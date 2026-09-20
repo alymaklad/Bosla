@@ -1,0 +1,30 @@
+{
+  "name": "bosla-services",
+  "version": "0.1.0",
+  "description": "Portable TypeScript services for the Bosla app, staged for integration: the Habit Tracker's recompute-honest habit engine + AI Goals planner (ported from the Adaptive Habit League Electron app), and Masar.ai's career-discovery AI pipeline (ported from the Masar.ai notebook). No Electron, no database, no HTTP framework — plain functions and provider-agnostic AI clients that Bosla's real backend wires up.",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "smoke": "npm run build && node smoke.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.126.0",
+    "luxon": "^3.7.2",
+    "openai": "^4.104.0",
+    "pdf-parse": "^1.1.1",
+    "pdfkit": "^0.15.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.7.1",
+    "@types/node": "^22.10.2",
+    "@types/pdfkit": "^0.13.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}
