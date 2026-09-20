@@ -14,7 +14,7 @@ export function Card({
   return (
     <section className={`min-w-0 rounded-card border border-line bg-white p-5 md:p-6 ${className}`}>
       {(title || action) && (
-        <header className="mb-4 flex items-center justify-between">
+        <header className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           {title && <h3 className="text-[18px] font-semibold">{title}</h3>}
           {action}
         </header>
@@ -43,7 +43,7 @@ export function Chip({
         ? 'bg-amber-tint text-[#92400e]'
         : 'bg-page text-text-2'
   return (
-    <span className={`inline-flex items-center rounded-chip px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] ${styles}`}>
+    <span className={`inline-flex items-center whitespace-nowrap rounded-chip px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] ${styles}`}>
       {children}
     </span>
   )

@@ -50,7 +50,7 @@ function Stat({ label, value, aside }: { label: string; value: string; aside?: R
   return (
     <Card>
       <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">{label}</div>
-      <div className="mt-2 flex items-center gap-2">
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
         <div className="text-[28px] font-semibold leading-8 font-display">{value}</div>
         {aside}
       </div>
@@ -143,7 +143,7 @@ export function Dashboard() {
         action={
           <button
             type="button"
-            className="h-9 rounded-card border border-ink bg-white px-3 text-[13px] font-medium text-ink hover:bg-page"
+            className="h-9 whitespace-nowrap rounded-card border border-ink bg-white px-3 text-[13px] font-medium text-ink hover:bg-page"
           >
             Turn a step into a habit
           </button>
