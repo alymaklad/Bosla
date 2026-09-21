@@ -358,6 +358,13 @@ class GroqAiClient:
             )
             if stop:
                 kwargs["stop"] = stop
+            # gpt-oss models reason before answering and the reasoning spends the same
+            # output budget as the answer - on a small max_tokens cap (discovery turns
+            # use 300) reasoning alone can exhaust it, leaving no room for visible
+            # content and yielding an empty stream. Keep reasoning light, same as _chat().
+            if re.search(r"gpt-oss", self.model, re.I):
+                kwargs["reasoning_effort"] = "low"
+                kwargs["extra_body"] = {"include_reasoning": False}
             stream = await client.chat.completions.create(**kwargs)
             async for chunk in stream:
                 delta = chunk.choices[0].delta.content if chunk.choices else None
