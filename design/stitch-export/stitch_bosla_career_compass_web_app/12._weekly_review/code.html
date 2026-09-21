@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bosla — Weekly Review</title>
+<!-- Google Fonts: Space Grotesk & IBM Plex Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration verbatim as specified -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed": "#2a1700",
+            "inverse-surface": "#2a313d",
+            "inverse-primary": "#c6c6cc",
+            "background": "#f9f9ff",
+            "tertiary-fixed": "#ffddb8",
+            "primary-fixed-dim": "#c6c6cc",
+            "surface-container-highest": "#dce2f3",
+            "on-background": "#151c28",
+            "surface-tint": "#5d5e63",
+            "on-secondary": "#ffffff",
+            "on-surface-variant": "#45474b",
+            "on-surface": "#151c28",
+            "surface-bright": "#f9f9ff",
+            "on-secondary-fixed-variant": "#264191",
+            "surface-container-high": "#e2e8f9",
+            "on-primary-fixed-variant": "#45474b",
+            "error": "#ba1a1a",
+            "on-primary-container": "#828489",
+            "secondary-fixed": "#dce1ff",
+            "inverse-on-surface": "#ecf1ff",
+            "secondary": "#4059aa",
+            "secondary-fixed-dim": "#b6c4ff",
+            "tertiary-container": "#2a1700",
+            "on-tertiary-container": "#b87500",
+            "tertiary": "#000000",
+            "secondary-container": "#8fa7fe",
+            "error-container": "#ffdad6",
+            "on-secondary-fixed": "#00164e",
+            "on-primary-fixed": "#1a1c20",
+            "on-tertiary": "#ffffff",
+            "primary-container": "#1a1c20",
+            "surface-dim": "#d3daeb",
+            "surface-container": "#e7eeff",
+            "outline-variant": "#c6c6cb",
+            "on-secondary-container": "#1d3989",
+            "outline": "#76777b",
+            "surface-container-low": "#f0f3ff",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-fixed-variant": "#653e00",
+            "on-primary": "#ffffff",
+            "on-error": "#ffffff",
+            "surface": "#f9f9ff",
+            "primary-fixed": "#e2e2e8",
+            "tertiary-fixed-dim": "#ffb95f",
+            "primary": "#000000",
+            "surface-variant": "#dce2f3"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            "margin": "1.5rem",
+            "gutter": "1.5rem",
+            "space-xl": "2rem",
+            "space-lg": "1.5rem"
+          },
+          "fontFamily": {
+            "body-md-medium": [
+              "IBM Plex Sans"
+            ],
+            "label-md": [
+              "IBM Plex Sans"
+            ],
+            "body-md": [
+              "IBM Plex Sans"
+            ],
+            "headline-lg-mobile": [
+              "Space Grotesk"
+            ],
+            "headline-lg": [
+              "Space Grotesk"
+            ],
+            "headline-sm": [
+              "Space Grotesk"
+            ],
+            "headline-md": [
+              "Space Grotesk"
+            ],
+            "label-sm": [
+              "IBM Plex Sans"
+            ],
+            "display": [
+              "Space Grotesk"
+            ],
+            "body-lg-medium": [
+              "IBM Plex Sans"
+            ],
+            "body-lg": [
+              "IBM Plex Sans"
+            ]
+          },
+          "fontSize": {
+            "body-md-medium": [
+              "14px",
+              {
+                "lineHeight": "20px",
+                "fontWeight": "500"
+              }
+            ],
+            "label-md": [
+              "12px",
+              {
+                "lineHeight": "16px",
+                "letterSpacing": "0.02em",
+                "fontWeight": "500"
+              }
+            ],
+            "body-md": [
+              "14px",
+              {
+                "lineHeight": "20px",
+                "fontWeight": "400"
+              }
+            ],
+            "headline-lg-mobile": [
+              "24px",
+              {
+                "lineHeight": "32px",
+                "letterSpacing": "-0.02em",
+                "fontWeight": "700"
+              }
+            ],
+            "headline-lg": [
+              "28px",
+              {
+                "lineHeight": "36px",
+                "letterSpacing": "-0.02em",
+                "fontWeight": "700"
+              }
+            ],
+            "headline-sm": [
+              "18px",
+              {
+                "lineHeight": "24px",
+                "letterSpacing": "-0.01em",
+                "fontWeight": "600"
+              }
+            ],
+            "headline-md": [
+              "22px",
+              {
+                "lineHeight": "28px",
+                "letterSpacing": "-0.02em",
+                "fontWeight": "600"
+              }
+            ],
+            "label-sm": [
+              "11px",
+              {
+                "lineHeight": "14px",
+                "letterSpacing": "0.04em",
+                "fontWeight": "500"
+              }
+            ],
+            "display": [
+              "36px",
+              {
+                "lineHeight": "44px",
+                "letterSpacing": "-0.02em",
+                "fontWeight": "700"
+              }
+            ],
+            "body-lg-medium": [
+              "16px",
+              {
+                "lineHeight": "24px",
+                "fontWeight": "500"
+              }
+            ],
+            "body-lg": [
+              "16px",
+              {
+                "lineHeight": "24px",
+                "fontWeight": "400"
+              }
+            ]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .custom-floating-shadow {
+      box-shadow: 0 4px 20px -2px rgba(15, 17, 21, 0.12), 0 2px 6px -1px rgba(15, 17, 21, 0.06);
+    }
+  </style>
+</head>
+<body class="bg-[#FAFAF8] text-on-surface antialiased min-h-screen selection:bg-surface-container selection:text-secondary">
+<!-- SIDE NAVIGATION (Shared Component: SideNavBar) -->
+<aside class="w-60 h-screen fixed left-0 top-0 z-40 bg-surface-container-lowest border-r border-outline-variant flex flex-col justify-between">
+<!-- Top Branding & Navigation -->
+<div>
+<!-- Brand lockup -->
+<div class="h-14 px-5 flex items-center border-b border-outline-variant">
+<img alt="Bosla compass-rose brandmark" class="h-9 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNPJSst9eT6jI6GFAw-uLpKnC_vY__7UlIJcLFLNb49pBSmkqCOvPTnpGu2aRVtgM51OQU_hSvx3C-RcLMr3woqgc2GTk0s_pNCxd4kXT6NT6SwmX0m3VgHdlpPQZj3LfeWoP1qB-6jqrC70pTghsH0XHIR5sAjTM5UhCwpiBN1GI-jJYABUGeQdbJKB5TgGUWHmGtCppxy5I0RdXCtcOz6ssxjE0LYg3tmjH1OVP8ghBKhL5PX8Mnd_eQcnlWuqf9yw"/>
+</div>
+<!-- Navigation links (Weekly review belongs to Habits) -->
+<nav class="py-4 space-y-1">
+<!-- Discover -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">explore</span>
+<span class="font-body-md text-body-md">Discover</span>
+</a>
+<!-- Habits (Active tab for Habit & Review view) -->
+<a class="flex items-center gap-3 px-4 py-2.5 bg-surface-container text-secondary font-medium border-l-2 border-secondary hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-body-md-medium text-body-md-medium">Habits</span>
+</a>
+<!-- Learn -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">school</span>
+<span class="font-body-md text-body-md">Learn</span>
+</a>
+<!-- Progress -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">insights</span>
+<span class="font-body-md text-body-md">Progress</span>
+</a>
+<!-- Mentor -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+<span class="font-body-md text-body-md">Mentor</span>
+</a>
+<!-- Profile -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">person</span>
+<span class="font-body-md text-body-md">Profile</span>
+</a>
+</nav>
+</div>
+<!-- Bottom XP Tracker Card -->
+<div class="p-4 border-t border-outline-variant">
+<div class="p-3 bg-surface-container-low rounded border border-outline-variant">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5 text-primary">
+<span class="material-symbols-outlined text-[16px]">military_tech</span>
+<span class="font-label-md text-label-md text-primary">Level 3 · Disciplined</span>
+</div>
+</div>
+<!-- 62% Progress Bar -->
+<div class="w-full bg-[#E6E7EA] h-1.5 rounded-full overflow-hidden mb-2">
+<div class="bg-[#F59E0B] h-full rounded-full" style="width: 62%;"></div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm">XP Progress</span>
+<span class="font-label-sm text-label-sm font-medium">620 / 1,000 XP</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- TOP APP BAR (Shared Component: TopNavBar) -->
+<header class="fixed top-0 right-0 left-60 h-14 z-30 bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between px-6">
+<!-- Search Bar on left -->
+<div class="relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline">search</span>
+<input class="w-full h-9 pl-9 pr-3 text-on-surface placeholder:text-outline text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded focus:border-primary focus:ring-0 transition-colors" placeholder="Search careers, habits, courses" type="text"/>
+</div>
+<!-- Trailing actions: Notifications & User Avatar -->
+<div class="flex items-center gap-4">
+<button aria-label="Notifications" class="relative text-on-surface-variant hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<!-- Amber notification indicator dot -->
+<span class="absolute top-1 right-1 w-2 h-2 bg-[#F59E0B] rounded-full ring-2 ring-surface-container-lowest"></span>
+</button>
+<!-- Round Ink Avatar "A" -->
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-md text-label-md font-semibold tracking-wide">
+        A
+      </div>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="ml-60 pt-14 pb-20 px-6 min-h-screen">
+<div class="max-w-[1280px] mx-auto py-8">
+<!-- PAGE HEADER -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8 mb-8 border-b border-outline-variant">
+<div>
+<h1 class="font-display text-display text-primary tracking-tight">Week of Sep 13–19</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Recomputed from your logs — un-ticking anything updates this.</p>
+</div>
+<!-- Date navigation pill cluster -->
+<div class="flex items-center gap-2">
+<button class="h-9 px-3.5 bg-surface-container-lowest border border-outline-variant rounded hover:border-primary text-on-surface flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+<span class="font-body-md-medium text-body-md-medium">Previous week</span>
+</button>
+<div class="h-9 px-3.5 bg-surface-container-high rounded border border-outline-variant flex items-center">
+<span class="font-body-md-medium text-body-md-medium text-primary">Current week</span>
+</div>
+</div>
+</div>
+<!-- ROW 1: FOUR STAT TILES -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<!-- Stat Tile 1: Completion -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+<div class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Completion</div>
+<div class="font-display text-display text-primary leading-none mb-2">80%</div>
+<div class="font-body-md text-body-md text-on-surface-variant">12 of 15 planned sessions</div>
+</div>
+<!-- Stat Tile 2: Points -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+<div class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Points</div>
+<div class="font-display text-display text-primary leading-none mb-2">24</div>
+<div class="font-body-md text-body-md text-[#2e7d32] font-medium">+5 bonus for beating your target</div>
+</div>
+<!-- Stat Tile 3: Longest Streak -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+<div class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Longest streak</div>
+<div class="flex items-baseline gap-2 mb-2">
+<span class="font-display text-display text-primary leading-none">7</span>
+<span class="material-symbols-outlined text-[#F59E0B] text-[24px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<div class="font-body-md text-body-md text-on-surface-variant">Consistent through weekend</div>
+</div>
+<!-- Stat Tile 4: Worst Weekday -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+<div class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Worst weekday</div>
+<div class="font-headline-md text-headline-md text-primary mb-2">Thursday</div>
+<div class="flex items-center gap-1 text-[#2e7d32] font-body-md text-body-md font-medium">
+<span>completed this week</span>
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+</div>
+</div>
+<!-- SECTION 2: CHART CARD -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 mb-10">
+<div class="flex flex-col sm:flex-row sm:items-baseline justify-between pb-6 mb-6 border-b border-outline-variant gap-2">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-primary">Minutes per day</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">3h 45m logged across 5 active days</p>
+</div>
+<div class="flex items-center gap-5">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-[#F59E0B] rounded-sm"></span>
+<span class="font-label-md text-label-md text-on-surface-variant">Measured time</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-4 h-0.5 border-b border-dashed border-primary"></span>
+<span class="font-label-md text-label-md text-on-surface-variant">Target pace (30m)</span>
+</div>
+</div>
+</div>
+<!-- Bar Graphic Container -->
+<div class="relative pt-6 pb-2">
+<!-- 30m Pace Reference Line (at 50% height based on 60m max scale) -->
+<div class="absolute left-0 right-0 top-[52%] border-b border-dashed border-[#8A8F98] z-0"></div>
+<span class="absolute right-0 top-[48%] -translate-y-full font-label-sm text-label-sm text-outline pr-1">30m</span>
+<!-- Weekday Columns -->
+<div class="grid grid-cols-7 gap-3 sm:gap-6 items-end h-52 relative z-10">
+<!-- Mon: 45m (75% height) -->
+<div class="flex flex-col items-center h-full justify-end group">
+<span class="font-label-sm text-label-sm text-on-surface-variant mb-1">45m</span>
+<div class="w-full max-w-[48px] bg-[#F59E0B] rounded-t transition-all group-hover:brightness-95" style="height: 75%;"></div>
+<span class="font-body-md-medium text-body-md-medium text-primary mt-2">Mon</span>
+</div>
+<!-- Tue: 30m (50% height) -->
+<div class="flex flex-col items-center h-full justify-end group">
+<span class="font-label-sm text-label-sm text-on-surface-variant mb-1">30m</span>
+<div class="w-full max-w-[48px] bg-[#F59E0B] rounded-t transition-all group-hover:brightness-95" style="height: 50%;"></div>
+<span class="font-body-md-medium text-body-md-medium text-primary mt-2">Tue</span>
+</div>
+<!-- Wed: 60m (100% height) -->
+<div class="flex flex-col items-center h-full justify-end group">
+<span class="font-label-sm text-label-sm text-on-surface-variant mb-1 font-semibold">60m</span>
+<div class="w-full max-w-[48px] bg-[#F59E0B] rounded-t transition-all group-hover:brightness-95" style="height: 100%;"></div>
+<span class="font-body-md-medium text-body-md-medium text-primary mt-2">Wed</span>
+</div>
+<!-- Thu: 20m (33.3% height) -->
+<div class="flex flex-col items-center h-full justify-end group">
+<span class="font-label-sm text-label-sm text-on-surface-variant mb-1">20m</span>
+<div class="w-full max-w-[48px] bg-[#F59E0B] rounded-t transition-all group-hover:brightness-95" style="height: 33.3%;"></div>
+<span class="font-body-md-medium text-body-md-medium text-primary mt-2">Thu</span>
+</div>
+<!-- Fri: 45m (75% height) -->
+<div class="flex flex-col items-center h-full justify-end group">
+<span class="font-label-sm text-label-sm text-on-surface-variant mb-1">45m</span>
+<div class="w-full max-w-[48px] bg-[#F59E0B] rounded-t transition-all group-hover:brightness-95" style="height: 75%;"></div>
+<span class="font-body-md-medium text-body-md-medium text-primary mt-2">Fri</span>
+</div>
+<!-- Sat: 30m (50% height) -->
+<div class="flex flex-col items-center h-full justify-end group">
+<span class="font-label-sm text-label-sm text-on-surface-variant mb-1">30m</span>
+<div class="w-full max-w-[48px] bg-[#F59E0B] rounded-t transition-all group-hover:brightness-95" style="height: 50%;"></div>
+<span class="font-body-md-medium text-body-md-medium text-primary mt-2">Sat</span>
+</div>
+<!-- Sun: 0m (Track only) -->
+<div class="flex flex-col items-center h-full justify-end group">
+<span class="font-label-sm text-label-sm text-outline mb-1">0m</span>
+<div class="w-full max-w-[48px] bg-surface-container-high rounded-t" style="height: 4px;"></div>
+<span class="font-body-md text-body-md text-on-surface-variant mt-2">Sun</span>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION 3: AI PROPOSALS & TARGET ADJUSTMENTS -->
+<div class="mb-14">
+<div class="mb-5">
+<h2 class="font-headline-sm text-headline-sm text-primary">AI Proposals &amp; Target Adjustments</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">Bosla analyzes completion friction to propose pacing adjustments.</p>
+</div>
+<div class="space-y-4">
+<!-- CARD 1: Increase target proposal -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors hover:border-primary">
+<div class="space-y-2 max-w-2xl">
+<div class="flex flex-wrap items-center gap-2.5">
+<h3 class="font-headline-sm text-headline-sm text-primary">Python practice</h3>
+<span class="bg-[#F4F4F5] text-on-surface-variant px-2 py-0.5 rounded text-label-sm font-label-sm">MON–FRI</span>
+<span class="bg-[#E8EDF9] text-[#1E3A8A] px-2 py-0.5 rounded text-label-sm font-label-sm">Target: 30m</span>
+<span class="bg-[#FEF3C7] text-[#B45309] px-2.5 py-0.5 rounded-full text-label-sm font-label-sm font-medium">93% Complete</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">Python practice ran at 93% this week. Raise the target from 30m to 35m?</p>
+</div>
+<div class="flex items-center gap-3 shrink-0">
+<button class="h-10 px-4 bg-surface-container-lowest border border-outline-variant hover:border-primary text-primary rounded font-body-md-medium text-body-md-medium transition-colors">
+                Keep as is
+              </button>
+<button class="h-10 px-4 bg-primary hover:bg-[#1C1F26] text-on-primary rounded font-body-md-medium text-body-md-medium transition-colors">
+                Raise it
+              </button>
+</div>
+</div>
+<!-- CARD 2: Hold steady inside band -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div class="space-y-2 max-w-2xl">
+<div class="flex flex-wrap items-center gap-2.5">
+<h3 class="font-headline-sm text-headline-sm text-primary">Databases &amp; SQL exercises</h3>
+<span class="bg-[#F4F4F5] text-on-surface-variant px-2 py-0.5 rounded text-label-sm font-label-sm">MON/WED/FRI</span>
+<span class="bg-[#E8EDF9] text-[#1E3A8A] px-2 py-0.5 rounded text-label-sm font-label-sm">Target: 20m</span>
+<span class="bg-surface-container text-[#1E3A8A] px-2.5 py-0.5 rounded-full text-label-sm font-label-sm font-medium">75% Complete</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">Held at 75% — inside the 70–89% band, target stays at 20m.</p>
+</div>
+<!-- Neutral status indicator -->
+<div class="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-surface-container-low border border-outline-variant rounded text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-outline">verified</span>
+<span class="font-label-md text-label-md">No adjustment needed. Cadence is stable.</span>
+</div>
+</div>
+<!-- CARD 3: Decrease target / recovery proposal -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors hover:border-primary">
+<div class="space-y-2 max-w-2xl">
+<div class="flex flex-wrap items-center gap-2.5">
+<h3 class="font-headline-sm text-headline-sm text-primary">Read data-science article</h3>
+<span class="bg-[#F4F4F5] text-on-surface-variant px-2 py-0.5 rounded text-label-sm font-label-sm">DAILY</span>
+<span class="bg-[#E8EDF9] text-[#1E3A8A] px-2 py-0.5 rounded text-label-sm font-label-sm">Target: 20m</span>
+<span class="bg-[#FEF3C7] text-[#B45309] px-2.5 py-0.5 rounded-full text-label-sm font-label-sm font-medium">50% Complete</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">Dropped to 50%. Ease back to 15m until consistency recovers?</p>
+</div>
+<div class="flex items-center gap-3 shrink-0">
+<button class="h-10 px-4 bg-surface-container-lowest border border-outline-variant hover:border-primary text-primary rounded font-body-md-medium text-body-md-medium transition-colors">
+                Keep as is
+              </button>
+<button class="h-10 px-4 bg-primary hover:bg-[#1C1F26] text-on-primary rounded font-body-md-medium text-body-md-medium transition-colors">
+                Ease back
+              </button>
+</div>
+</div>
+</div>
+</div>
+<!-- QUIET MUTED FOOTER -->
+<footer class="text-center pt-8 border-t border-outline-variant">
+<p class="font-body-md text-body-md text-outline">Bosla proposes; you decide. Nothing changes unless you accept.</p>
+</footer>
+</div>
+</main>
+<!-- FLOATING 'ASK BOSLA' TRIGGER -->
+<button class="fixed bottom-8 right-8 z-50 h-12 px-5 bg-primary text-on-primary rounded-full custom-floating-shadow flex items-center gap-2 hover:bg-[#1C1F26] active:opacity-90 transition-all">
+<span class="material-symbols-outlined text-[18px]">spark</span>
+<span class="font-body-md-medium text-body-md-medium tracking-wide">Ask Bosla</span>
+</button>
+</body></html>

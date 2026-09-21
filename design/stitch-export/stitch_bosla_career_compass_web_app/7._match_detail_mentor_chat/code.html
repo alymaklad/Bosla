@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bosla — Career Navigation &amp; Mentorship</title>
+<!-- Material Symbols Outlined font -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Space Grotesk & IBM Plex Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN with Forms and Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "outline-variant": "#c6c6cb",
+            "surface-container-lowest": "#ffffff",
+            "inverse-on-surface": "#ecf1ff",
+            "on-tertiary-fixed-variant": "#653e00",
+            "on-tertiary-container": "#b87500",
+            "on-tertiary-fixed": "#2a1700",
+            "tertiary-container": "#2a1700",
+            "on-error": "#ffffff",
+            "surface-variant": "#dce2f3",
+            "on-surface": "#151c28",
+            "on-primary-fixed": "#1a1c20",
+            "error": "#ba1a1a",
+            "surface-container-highest": "#dce2f3",
+            "inverse-surface": "#2a313d",
+            "surface-container": "#e7eeff",
+            "on-secondary-container": "#1d3989",
+            "on-primary-fixed-variant": "#45474b",
+            "surface": "#f9f9ff",
+            "on-secondary-fixed-variant": "#264191",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed-dim": "#b6c4ff",
+            "tertiary-fixed-dim": "#ffb95f",
+            "tertiary-fixed": "#ffddb8",
+            "outline": "#76777b",
+            "tertiary": "#000000",
+            "primary-fixed": "#e2e2e8",
+            "on-primary": "#ffffff",
+            "background": "#f9f9ff",
+            "inverse-primary": "#c6c6cc",
+            "primary": "#000000",
+            "on-error-container": "#93000a",
+            "surface-tint": "#5d5e63",
+            "on-secondary": "#ffffff",
+            "error-container": "#ffdad6",
+            "primary-container": "#1a1c20",
+            "secondary-fixed": "#dce1ff",
+            "surface-dim": "#d3daeb",
+            "on-primary-container": "#828489",
+            "surface-container-low": "#f0f3ff",
+            "secondary-container": "#8fa7fe",
+            "on-surface-variant": "#45474b",
+            "surface-container-high": "#e2e8f9",
+            "on-secondary-fixed": "#00164e",
+            "primary-fixed-dim": "#c6c6cc",
+            "on-background": "#151c28",
+            "surface-bright": "#f9f9ff",
+            "secondary": "#4059aa"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "gutter": "1.5rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "margin": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Space Grotesk"],
+            "body-md": ["IBM Plex Sans"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-md": ["Space Grotesk"],
+            "body-lg": ["IBM Plex Sans"],
+            "body-lg-medium": ["IBM Plex Sans"],
+            "body-md-medium": ["IBM Plex Sans"],
+            "display": ["Space Grotesk"],
+            "label-sm": ["IBM Plex Sans"],
+            "label-md": ["IBM Plex Sans"],
+            "headline-lg-mobile": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "body-lg-medium": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+            "body-md-medium": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+            "display": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .floating-shadow {
+      box-shadow: 0 4px 20px -2px rgba(15, 17, 21, 0.12), 0 2px 6px -1px rgba(15, 17, 21, 0.06);
+    }
+    /* Structural hairline border */
+    .border-subtle {
+      border-color: #E6E7EA;
+    }
+    .bg-canvas {
+      background-color: #FAFAF8;
+    }
+  </style>
+</head>
+<body class="bg-canvas text-on-surface antialiased min-h-screen font-body-md text-body-md selection:bg-surface-container selection:text-secondary">
+<!-- LEFT SIDEBAR COMPONENT (SideNavBar Anchor: w-60 fixed left-0 top-0 h-screen) -->
+<aside class="w-60 h-screen fixed left-0 top-0 z-40 bg-surface-container-lowest border-r border-outline-variant flex flex-col justify-between">
+<!-- Sidebar Top: Brand & Navigation -->
+<div class="flex flex-col">
+<!-- Brand lockup -->
+<div class="h-14 px-6 flex items-center border-b border-outline-variant">
+<img alt="Bosla compass-rose brandmark" class="h-9 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkjYkTSi140q4mF8RNyJx0CGKMXrGb-DuUoSG3K72NlZe2LWEvZupcFGDxmTSG7CK6xNb2hS2947GgVijEQfwrL_TeexT0PRl-LNh0bg1Nq07E_xbMLrOZk0a0btPpxcZGFctIHMMSP1vlqsA_ed0jigbF7ubNMcUOdITeC4UjYl55ZGb6XAU1I18QCqs3c7F509I0-K_YjBIQIgETMr-EMXqLiWEJtX-JciOKFKj8G-UnjRDAk4YJog3Q9NucjZUctg"/>
+</div>
+<!-- Navigation List -->
+<nav class="py-4 flex flex-col gap-1">
+<!-- Discover (Active: Match detail logically lives under Discover) -->
+<a class="flex items-center gap-3 px-4 py-2.5 bg-surface-container text-secondary font-body-md-medium text-body-md-medium border-l-2 border-secondary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span>Discover</span>
+</a>
+<!-- Habits -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-body-md text-body-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+<span>Habits</span>
+</a>
+<!-- Learn -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-body-md text-body-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+<span>Learn</span>
+</a>
+<!-- Progress -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-body-md text-body-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span>Progress</span>
+</a>
+<!-- Mentor -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-body-md text-body-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span>Mentor</span>
+</a>
+<!-- Profile -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-body-md text-body-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span>Profile</span>
+</a>
+</nav>
+</div>
+<!-- Sidebar Bottom: Level Status & XP Tracker -->
+<div class="p-4 m-3 rounded-lg border border-subtle bg-surface-container-lowest flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-600 text-[18px]" data-icon="military_tech">military_tech</span>
+<span class="font-body-md-medium text-body-md-medium text-primary text-[13px]">Level 3 · Disciplined</span>
+</div>
+</div>
+<!-- Amber Progress Bar -->
+<div class="w-full bg-[#E6E7EA] h-1.5 rounded-full overflow-hidden">
+<div class="bg-[#F59E0B] h-full rounded-full" style="width: 62%;"></div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Daily Consistency</span>
+<span class="font-body-md-medium text-body-md-medium text-primary">620 / 1,000 XP</span>
+</div>
+</div>
+</aside>
+<!-- TOP BAR COMPONENT (TopNavBar Anchor: fixed top-0 right-0 left-60 h-14) -->
+<header class="fixed top-0 right-0 left-60 h-14 z-30 bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between px-6">
+<!-- Search Bar on the Left -->
+<div class="flex items-center gap-2.5 w-96 bg-surface-container-lowest border border-subtle rounded-lg px-3 py-1.5 focus-within:border-secondary transition-colors">
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="search">search</span>
+<input class="w-full border-none p-0 bg-transparent text-primary placeholder-on-surface-variant text-[13px] focus:ring-0 focus:outline-none" placeholder="Search careers, habits, courses" type="text"/>
+<kbd class="hidden sm:inline-block font-label-sm text-label-sm text-outline border border-subtle px-1.5 py-0.5 rounded bg-surface-container-low">⌘K</kbd>
+</div>
+<!-- Right Side Actions: Trailing notification and Ink Avatar -->
+<div class="flex items-center gap-4">
+<button aria-label="Notifications" class="relative p-1.5 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#F59E0B]"></span>
+</button>
+<div class="h-4 w-px bg-outline-variant"></div>
+<!-- Ink Profile Avatar "A" -->
+<div class="flex items-center gap-2.5 cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-headline-sm text-[13px] font-bold">
+          A
+        </div>
+</div>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="ml-60 pt-14 min-h-screen">
+<div class="max-w-[1280px] mx-auto p-6 md:p-8">
+<!-- Breadcrumb / Back Link -->
+<div class="mb-4">
+<a class="inline-flex items-center gap-1.5 text-secondary hover:underline font-body-md-medium text-body-md-medium text-[13px]" href="#">
+<span class="material-symbols-outlined text-[16px]" data-icon="arrow_back">arrow_back</span>
+<span>All matches</span>
+</a>
+</div>
+<!-- Role Title Header Banner -->
+<div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-subtle">
+<div class="flex items-center gap-4">
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary tracking-tight">Data Analyst</h1>
+<div class="flex items-center gap-2">
+<!-- TOP MATCH Badge -->
+<span class="bg-[#E8EDF9] text-[#1E3A8A] font-label-sm text-label-sm px-2.5 py-1 rounded tracking-wider uppercase">
+              TOP MATCH
+            </span>
+</div>
+</div>
+<!-- 78% Indigo Fit Ring Indicator -->
+<div class="flex items-center gap-3 bg-surface-container-lowest border border-subtle px-3.5 py-2 rounded-lg">
+<div class="relative w-10 h-10 flex items-center justify-center">
+<svg class="w-10 h-10 transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-[#E6E7EA]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-[#1E3A8A]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="78, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<span class="absolute font-headline-sm text-headline-sm text-[12px] font-bold text-primary">78%</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Role Fit Score</span>
+<span class="font-body-md-medium text-body-md-medium text-primary text-[13px]">Strong Trajectory</span>
+</div>
+</div>
+</div>
+<!-- TWO-COLUMN WORKSPACE: Left 60% / Right 40% -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 items-start">
+<!-- LEFT COLUMN: Deep Path Insights (7 cols on 12-col grid ≈ 58.3%) -->
+<div class="lg:col-span-7 flex flex-col gap-6">
+<!-- 1. Card: Why this fits you -->
+<div class="bg-surface-container-lowest border border-subtle rounded-lg p-6 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#1E3A8A]" data-icon="verified">verified</span>
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary">Why this fits you</h2>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Synthesized from 4 assessments</span>
+</div>
+<div class="flex flex-col gap-4 divide-y divide-subtle pt-1">
+<!-- Bullet 1 -->
+<div class="pt-3 first:pt-0 flex items-start gap-3">
+<div class="mt-0.5">
+<span class="bg-[#E8EDF9] text-[#1E3A8A] font-label-sm text-label-sm px-2 py-0.5 rounded whitespace-nowrap">
+                    SKILLS: SQL
+                  </span>
+</div>
+<p class="text-on-surface text-[14px] leading-relaxed">
+                  You already have verified familiarity querying relational databases and aggregating datasets.
+                </p>
+</div>
+<!-- Bullet 2 -->
+<div class="pt-3 flex items-start gap-3">
+<div class="mt-0.5">
+<span class="bg-[#E8EDF9] text-[#1E3A8A] font-label-sm text-label-sm px-2 py-0.5 rounded whitespace-nowrap">
+                    INTEREST: PATTERNS
+                  </span>
+</div>
+<p class="text-on-surface text-[14px] leading-relaxed">
+                  Your stated satisfaction with troubleshooting funnel drop-offs correlates directly with exploratory metric diagnostics.
+                </p>
+</div>
+<!-- Bullet 3 -->
+<div class="pt-3 flex items-start gap-3">
+<div class="mt-0.5">
+<span class="bg-[#E8EDF9] text-[#1E3A8A] font-label-sm text-label-sm px-2 py-0.5 rounded whitespace-nowrap">
+                    MOTIVATION: DECISION SUPPORT
+                  </span>
+</div>
+<p class="text-on-surface text-[14px] leading-relaxed">
+                  You prefer using empirical evidence to guide business stakeholders rather than executing routine manual tickets.
+                </p>
+</div>
+</div>
+</div>
+<!-- 2. Card: Where we're less sure -->
+<div class="bg-surface-container-lowest border border-subtle rounded-lg p-6 flex flex-col gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-600" data-icon="help_outline">help_outline</span>
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary">Where we're less sure</h2>
+</div>
+<div class="space-y-3">
+<div class="flex items-start gap-3 p-3 bg-[#FAFAF8] rounded-lg border border-subtle">
+<span class="material-symbols-outlined text-outline text-[18px] mt-0.5" data-icon="calendar_month">calendar_month</span>
+<p class="text-on-surface-variant text-[13.5px] leading-relaxed">
+<strong class="text-primary font-medium">Reporting cadences</strong> — recurring weekly KPI generation can occasionally feel routine compared to exploratory projects.
+                </p>
+</div>
+<div class="flex items-start gap-3 p-3 bg-[#FAFAF8] rounded-lg border border-subtle">
+<span class="material-symbols-outlined text-outline text-[18px] mt-0.5" data-icon="forum">forum</span>
+<p class="text-on-surface-variant text-[13.5px] leading-relaxed">
+<strong class="text-primary font-medium">Stakeholder ambiguity</strong> — translating ambiguous executive queries into concrete data specs requires negotiation.
+                </p>
+</div>
+</div>
+</div>
+<!-- 3. Card: Market context -->
+<div class="bg-surface-container-lowest border border-subtle rounded-lg p-6 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="query_stats">query_stats</span>
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary">Market context</h2>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Source: ILOSTAT · updated Sep 2026</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<!-- Salary -->
+<div class="p-4 rounded-lg bg-[#FAFAF8] border border-subtle flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Median Compensation</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">$84,500 <span class="text-xs font-normal text-on-surface-variant">/ yr</span></span>
+<span class="font-label-sm text-label-sm text-outline">National base average</span>
+</div>
+<!-- Remote -->
+<div class="p-4 rounded-lg bg-[#FAFAF8] border border-subtle flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Remote Availability</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">68%</span>
+<span class="font-label-sm text-label-sm text-outline">Of active open postings</span>
+</div>
+<!-- Growth Rate -->
+<div class="p-4 rounded-lg bg-[#FAFAF8] border border-subtle flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Growth Rate</span>
+<span class="font-headline-md text-headline-md font-bold text-[#1E3A8A]">+18%</span>
+<span class="font-label-sm text-label-sm text-outline">5-year demand projection</span>
+</div>
+</div>
+</div>
+<!-- 4. Card: Typical day -->
+<div class="bg-surface-container-lowest border border-subtle rounded-lg p-6 flex flex-col gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="play_circle">play_circle</span>
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary">Typical day in the role</h2>
+</div>
+<!-- Video preview banner -->
+<div class="relative w-full h-48 rounded-lg overflow-hidden border border-subtle group cursor-pointer bg-slate-900 flex items-center justify-center">
+<img class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-300" data-alt="A refined modern tech office workspace with dual monitor displays presenting crisp SQL queries and geometric data visualization dashboards. The atmosphere is quiet and focused, bathed in soft daylight streaming through industrial studio windows, emphasizing clarity, precision, and calm concentration." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6XYoYh7YHyGUrtMIRhP7kUXTF0nJQ7Pc2uExS3FW8hMvWZ5smKplbiWRsiLWtY1Qu-VDlBzu1uR-fbAKbblwmDhu2xPwDdIFvTz5w25rW0wHoyrtbrjofLn5h9vmVVlgmqsu6OQhgcaz6BSxG5RqLrwzXqgrAT1uoA14KKegM8Q4LXU8GltHhu9FYuStkelQrYJ--bdlJUn37p3tmEqnJoAXLYajeC_VTunaRef5MFZd0BcS3diQR"/>
+<div class="relative z-10 flex flex-col items-center gap-2 text-center px-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary shadow-sm group-hover:bg-[#1E3A8A] group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[26px] ml-0.5" data-icon="play_arrow">play_arrow</span>
+</div>
+<span class="text-white font-body-md-medium text-body-md-medium text-[13px] bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
+                  A day as a Data Analyst at a hypergrowth tech company · 4 min
+                </span>
+</div>
+</div>
+</div>
+<!-- 5. Bottom pinned action -->
+<div class="bg-surface-container-lowest border border-subtle rounded-lg p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Ready to align your trajectory?</span>
+<span class="font-body-md text-body-md text-on-surface-variant text-[13px]">Sets this as your active roadmap and configures tailored daily habits.</span>
+</div>
+<button class="bg-[#0F1115] hover:bg-[#1C1F26] text-white px-5 py-2.5 rounded-lg font-body-md-medium text-body-md-medium transition-colors whitespace-nowrap">
+              Choose this direction
+            </button>
+</div>
+</div>
+<!-- RIGHT COLUMN: Sticky AI Mentor Chat (5 cols on 12-col grid ≈ 41.7%) -->
+<div class="lg:col-span-5 sticky top-20">
+<div class="bg-surface-container-lowest border border-subtle rounded-lg flex flex-col h-[740px] shadow-sm overflow-hidden">
+<!-- Chat Panel Header -->
+<div class="p-4 border-b border-subtle bg-surface-container-lowest flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-[#FAFAF8] border border-subtle flex items-center justify-center p-1.5">
+<img alt="Bosla compass icon" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATMNFlUTGPSZsnVGf9eKcLe27iUyMAwESzQDuso4zRnxKx6YbFUbW698xcpk0l_juRj3F-fPATZzlaPVURrSAB_k2KWZp9d_Rx8FM5tjU8o18SfHOYHe63VRtmTMUxc2TDA7SFx7fnxesjEEAvBrK6rYd2QOW6DIxiYcEXOg4yCYlHvZ4nj5hfU5PXW7B29lSqAqzvXD4M54mPWCkmKGKzfHvb9yrzfZBQecrCQ0YviCOCyo7ilP2nT2-2tAR96BiGZA"/>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-[15px] font-bold text-primary">Ask Bosla about this path</span>
+<span class="font-label-sm text-label-sm text-secondary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                    AI Career Mentor · Focused on Data Analyst
+                  </span>
+</div>
+</div>
+<button class="text-outline hover:text-primary transition-colors p-1" title="Clear conversation">
+<span class="material-symbols-outlined text-[18px]" data-icon="restart_alt">restart_alt</span>
+</button>
+</div>
+<!-- Chat Message Scroll Area -->
+<div class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#FAFAF8]">
+<!-- Assistant Bubble 1 -->
+<div class="flex items-start gap-2.5">
+<div class="w-6 h-6 rounded-full bg-primary flex-shrink-0 flex items-center justify-center mt-1">
+<span class="material-symbols-outlined text-white text-[14px]" data-icon="assistant">assistant</span>
+</div>
+<div class="max-w-[85%] bg-surface-container-lowest border border-subtle border-l-[3px] border-l-[#1E3A8A] rounded-lg p-3 text-[13.5px] leading-relaxed text-on-surface">
+                  Given your SQL habit and your interest in patterns, the fastest bridge is a portfolio project that answers one real question with public data. For example, scraping e-commerce reviews to isolate product return reasons. Would you like to map out the study milestones?
+                </div>
+</div>
+<!-- User Bubble -->
+<div class="flex justify-end">
+<div class="max-w-[85%] bg-[#F0F1F3] rounded-lg p-3 text-[13.5px] leading-relaxed text-[#0F1115]">
+                  That sounds practical. How long would it take to reach interview readiness if I put in 5 hours a week?
+                </div>
+</div>
+<!-- Assistant Reply (Simulated Streaming) -->
+<div class="flex items-start gap-2.5">
+<div class="w-6 h-6 rounded-full bg-primary flex-shrink-0 flex items-center justify-center mt-1">
+<span class="material-symbols-outlined text-white text-[14px]" data-icon="assistant">assistant</span>
+</div>
+<div class="max-w-[85%] bg-surface-container-lowest border border-subtle border-l-[3px] border-l-[#1E3A8A] rounded-lg p-3 text-[13.5px] leading-relaxed text-on-surface flex flex-col gap-2">
+<p>
+                    At 5 hours weekly, focused on SQL joins, window functions, and one polished public dashboard, you can build a credible portfolio in approximately 12 to 14 weeks.
+                  </p>
+<div class="p-2 bg-surface-container-low rounded border border-subtle text-[12px] text-on-surface-variant flex items-center justify-between">
+<span>Target readiness window</span>
+<strong class="text-primary font-medium">Late Dec 2026</strong>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Prompt Pills -->
+<div class="px-4 py-2 bg-surface-container-lowest border-t border-subtle flex items-center gap-1.5 overflow-x-auto whitespace-nowrap no-scrollbar">
+<button class="text-[12px] bg-[#F4F4F5] hover:bg-[#E8EDF9] hover:text-[#1E3A8A] text-on-surface-variant px-2.5 py-1 rounded-full transition-colors border border-subtle">
+                Draft study timeline
+              </button>
+<button class="text-[12px] bg-[#F4F4F5] hover:bg-[#E8EDF9] hover:text-[#1E3A8A] text-on-surface-variant px-2.5 py-1 rounded-full transition-colors border border-subtle">
+                Show required math
+              </button>
+<button class="text-[12px] bg-[#F4F4F5] hover:bg-[#E8EDF9] hover:text-[#1E3A8A] text-on-surface-variant px-2.5 py-1 rounded-full transition-colors border border-subtle">
+                Alternative junior roles
+              </button>
+</div>
+<!-- Chat Input Area -->
+<div class="p-3 bg-surface-container-lowest border-t border-subtle">
+<form class="relative flex items-center" onsubmit="event.preventDefault();">
+<input class="w-full pl-3.5 pr-10 py-2 bg-surface-container-lowest border border-subtle rounded-lg text-[13.5px] text-primary placeholder-outline focus:border-[#1E3A8A] focus:ring-0 focus:outline-none" placeholder="Ask anything about this role or preparation…" type="text"/>
+<button aria-label="Send message" class="absolute right-1.5 p-1.5 rounded-md bg-[#0F1115] hover:bg-[#1C1F26] text-white flex items-center justify-center transition-colors" type="submit">
+<span class="material-symbols-outlined text-[16px]" data-icon="send">send</span>
+</button>
+</form>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FLOATING 'ASK BOSLA' TRIGGER (Bottom-right contextual action) -->
+<button aria-label="Open Bosla dialogue" class="fixed bottom-8 right-8 z-50 h-12 px-5 rounded-full bg-[#0F1115] hover:bg-[#1C1F26] text-white flex items-center gap-2 floating-shadow font-body-md-medium text-body-md-medium transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[18px] text-[#FEF3C7]" data-icon="spark">spark</span>
+<span class="tracking-tight">Ask Bosla</span>
+</button>
+</body></html>

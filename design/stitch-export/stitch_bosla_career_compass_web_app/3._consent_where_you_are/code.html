@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bosla — Consent &amp; Where You Are</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-fixed-dim": "#b6c4ff",
+            "on-primary": "#ffffff",
+            "on-background": "#151c28",
+            "surface-container-low": "#f0f3ff",
+            "surface-variant": "#dce2f3",
+            "on-surface-variant": "#45474b",
+            "on-secondary-fixed": "#00164e",
+            "on-error": "#ffffff",
+            "on-tertiary-fixed-variant": "#653e00",
+            "error": "#ba1a1a",
+            "inverse-on-surface": "#ecf1ff",
+            "surface-bright": "#f9f9ff",
+            "on-primary-container": "#828489",
+            "on-primary-fixed": "#1a1c20",
+            "secondary": "#4059aa",
+            "tertiary-fixed-dim": "#ffb95f",
+            "surface-dim": "#d3daeb",
+            "secondary-container": "#8fa7fe",
+            "surface-container": "#e7eeff",
+            "on-primary-fixed-variant": "#45474b",
+            "surface-container-lowest": "#ffffff",
+            "tertiary-fixed": "#ffddb8",
+            "surface-container-highest": "#dce2f3",
+            "primary-container": "#1a1c20",
+            "surface-container-high": "#e2e8f9",
+            "inverse-surface": "#2a313d",
+            "primary-fixed": "#e2e2e8",
+            "primary-fixed-dim": "#c6c6cc",
+            "on-secondary-container": "#1d3989",
+            "on-error-container": "#93000a",
+            "tertiary": "#000000",
+            "primary": "#000000",
+            "on-secondary-fixed-variant": "#264191",
+            "on-tertiary-fixed": "#2a1700",
+            "surface-tint": "#5d5e63",
+            "on-secondary": "#ffffff",
+            "inverse-primary": "#c6c6cc",
+            "tertiary-container": "#2a1700",
+            "error-container": "#ffdad6",
+            "surface": "#f9f9ff",
+            "outline-variant": "#c6c6cb",
+            "on-tertiary": "#ffffff",
+            "on-surface": "#151c28",
+            "background": "#f9f9ff",
+            "outline": "#76777b",
+            "on-tertiary-container": "#b87500",
+            "secondary-fixed": "#dce1ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin": "1.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            "space-xl": "2rem",
+            "gutter": "1.5rem"
+          },
+          "fontFamily": {
+            "body-lg": ["IBM Plex Sans"],
+            "body-md": ["IBM Plex Sans"],
+            "body-lg-medium": ["IBM Plex Sans"],
+            "label-sm": ["IBM Plex Sans"],
+            "headline-lg-mobile": ["Space Grotesk"],
+            "body-md-medium": ["IBM Plex Sans"],
+            "label-md": ["IBM Plex Sans"],
+            "headline-sm": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-md": ["Space Grotesk"],
+            "display": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-lg-medium": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-md-medium": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "display": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      background-color: #FAFAF8;
+      color: #151C28;
+      font-family: 'IBM Plex Sans', sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .custom-border {
+      border-color: #E6E7EA;
+    }
+    .indigo-active-border {
+      border-color: #1E3A8A;
+    }
+    .indigo-active-bg {
+      background-color: #E8EDF9;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-surface-container selection:text-secondary">
+<!-- Top Navigation Bar (Onboarding Step Context: Suppressed Global SideNav per destination rule) -->
+<header class="w-full bg-surface-container-lowest border-b border-outline-variant/40 h-14 fixed top-0 left-0 z-30 flex items-center px-6">
+<div class="max-w-4xl mx-auto w-full flex items-center justify-between">
+<!-- Left: Logo Asset -->
+<div class="flex items-center gap-3">
+<img alt="Bosla" class="h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrhsBIRGBxcNGu_b_A1v_XlsABUhJFFTxKwraBB4X0SRDFuN2h6z0EzCFnRScsAOfOqNVvVv2Z5vDEmVrgHYwWu5o08DV559awi-zGQiJiNGjJ4_MxW7x6GQFmgRYmm8uL5RlEX_XIM7NF0fv46WfMByYRcS3JkyW9LIm96WwxHQ0WQ7vgUhVIOLGqFrrK4kdSChP4QcvRtLrjpuLoawLP97I6PlD9-q3Rm13s60FNgLgEYTPBfpgP6Q8VuBigwvYdmA"/>
+</div>
+<!-- Center/Right: Linear Stepper -->
+<nav aria-label="Onboarding Progress" class="flex items-center gap-2 sm:gap-4">
+<!-- Step 1: Active -->
+<div class="flex items-center gap-2">
+<span class="flex items-center justify-center w-5 h-5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm">1</span>
+<span class="font-label-md text-label-md font-medium text-secondary">Consent</span>
+</div>
+<span class="w-4 h-px bg-outline-variant"></span>
+<!-- Step 2: Inactive -->
+<div class="flex items-center gap-2 opacity-60">
+<span class="flex items-center justify-center w-5 h-5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">2</span>
+<span class="font-label-md text-label-md text-on-surface-variant hidden sm:inline">CV</span>
+</div>
+<span class="w-4 h-px bg-outline-variant"></span>
+<!-- Step 3: Inactive -->
+<div class="flex items-center gap-2 opacity-60">
+<span class="flex items-center justify-center w-5 h-5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">3</span>
+<span class="font-label-md text-label-md text-on-surface-variant hidden sm:inline">Conversation</span>
+</div>
+<span class="w-4 h-px bg-outline-variant"></span>
+<!-- Step 4: Inactive -->
+<div class="flex items-center gap-2 opacity-60">
+<span class="flex items-center justify-center w-5 h-5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">4</span>
+<span class="font-label-md text-label-md text-on-surface-variant hidden sm:inline">Matches</span>
+</div>
+</nav>
+</div>
+</header>
+<!-- Main Canvas Container -->
+<main class="flex-grow pt-24 pb-16 px-6">
+<div class="max-w-4xl mx-auto">
+<!-- Meta Header Info -->
+<div class="mb-8">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container text-secondary font-label-sm text-label-sm mb-2">
+<span class="material-symbols-outlined text-[14px]" data-icon="lock">lock</span>
+<span>Privacy-first orientation</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">Setup your direction profile</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Bosla operates with strict structural boundaries to guide long-term career planning without selling personal data.</p>
+</div>
+<!-- Two-Column Form Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Left Column: Consent -->
+<section aria-labelledby="consent-title" class="bg-surface-container-lowest border border-[#E6E7EA] rounded-lg p-6 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-4 mb-4 border-b border-[#E6E7EA]">
+<h2 class="font-headline-sm text-headline-sm text-primary" id="consent-title">Before we start</h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Step 1 of 4</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 leading-relaxed">
+              Bosla evaluates your trajectory solely using your provided history and exploratory responses. Your data remains strictly isolated and is never monetized.
+            </p>
+<div class="space-y-3.5">
+<!-- Item 1: Checked, Required -->
+<label class="flex items-start gap-3 p-3 rounded-lg border border-[#E6E7EA] hover:border-primary transition-colors cursor-pointer bg-surface-container-lowest">
+<div class="pt-0.5">
+<input checked="" class="w-4 h-4 rounded text-secondary focus:ring-0 focus:ring-offset-0 border-outline cursor-pointer" required="" type="checkbox"/>
+</div>
+<div class="flex-grow">
+<div class="flex items-center gap-2">
+<span class="font-body-md-medium text-body-md-medium text-on-surface">Use my answers to recommend careers</span>
+<span class="text-[10px] uppercase tracking-wider font-semibold text-secondary bg-surface-container px-1.5 py-0.5 rounded">Required</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant mt-0.5">Analyzed solely to map skill and role affinities.</p>
+</div>
+</label>
+<!-- Item 2: Checked -->
+<label class="flex items-start gap-3 p-3 rounded-lg border border-[#E6E7EA] hover:border-primary transition-colors cursor-pointer bg-surface-container-lowest">
+<div class="pt-0.5">
+<input checked="" class="w-4 h-4 rounded text-secondary focus:ring-0 focus:ring-offset-0 border-outline cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex-grow">
+<span class="font-body-md-medium text-body-md-medium text-on-surface">Store my conversation so I can come back later</span>
+<p class="font-label-md text-label-md text-on-surface-variant mt-0.5">Encrypted and associated with your session.</p>
+</div>
+</label>
+<!-- Item 3: Unchecked -->
+<label class="flex items-start gap-3 p-3 rounded-lg border border-[#E6E7EA] hover:border-primary transition-colors cursor-pointer bg-surface-container-lowest">
+<div class="pt-0.5">
+<input class="w-4 h-4 rounded text-secondary focus:ring-0 focus:ring-offset-0 border-outline cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex-grow">
+<span class="font-body-md-medium text-body-md-medium text-on-surface">Allow notifications for habit reminders</span>
+<p class="font-label-md text-label-md text-on-surface-variant mt-0.5">Gentle nudges for daily commitments.</p>
+</div>
+</label>
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-[#E6E7EA] flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="shield">shield</span>
+<span class="font-label-sm text-label-sm">Standard zero-knowledge retention protocol</span>
+</div>
+</section>
+<!-- Right Column: Where are you right now? -->
+<section aria-labelledby="status-title" class="bg-surface-container-lowest border border-[#E6E7EA] rounded-lg p-6 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-4 mb-4 border-b border-[#E6E7EA]">
+<h2 class="font-headline-sm text-headline-sm text-primary" id="status-title">Where are you right now?</h2>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Single selection</span>
+</div>
+<!-- 2x2 Persona Card Grid -->
+<div aria-label="Current professional stage" class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup">
+<!-- Card 1: Secondary-school student -->
+<div aria-checked="false" class="p-4 rounded-lg border border-[#E6E7EA] hover:border-primary transition-all cursor-pointer flex flex-col justify-between min-h-[120px] bg-surface-container-lowest group" role="radio" tabindex="0">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="school">school</span>
+<span class="w-3.5 h-3.5 rounded-full border border-outline-variant"></span>
+</div>
+<div class="mt-4">
+<div class="font-body-md-medium text-body-md-medium text-on-surface leading-snug">Secondary-school student</div>
+<div class="font-label-md text-label-md text-on-surface-variant mt-0.5">Choosing a study path</div>
+</div>
+</div>
+<!-- Card 2: University student -->
+<div aria-checked="false" class="p-4 rounded-lg border border-[#E6E7EA] hover:border-primary transition-all cursor-pointer flex flex-col justify-between min-h-[120px] bg-surface-container-lowest group" role="radio" tabindex="0">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="auto_stories">auto_stories</span>
+<span class="w-3.5 h-3.5 rounded-full border border-outline-variant"></span>
+</div>
+<div class="mt-4">
+<div class="font-body-md-medium text-body-md-medium text-on-surface leading-snug">University student</div>
+<div class="font-label-md text-label-md text-on-surface-variant mt-0.5">Choosing a track</div>
+</div>
+</div>
+<!-- Card 3: Recent graduate -->
+<div aria-checked="false" class="p-4 rounded-lg border border-[#E6E7EA] hover:border-primary transition-all cursor-pointer flex flex-col justify-between min-h-[120px] bg-surface-container-lowest group" role="radio" tabindex="0">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="explore">explore</span>
+<span class="w-3.5 h-3.5 rounded-full border border-outline-variant"></span>
+</div>
+<div class="mt-4">
+<div class="font-body-md-medium text-body-md-medium text-on-surface leading-snug">Recent graduate</div>
+<div class="font-label-md text-label-md text-on-surface-variant mt-0.5">Don't know where to begin</div>
+</div>
+</div>
+<!-- Card 4: Career switcher (SELECTED) -->
+<div aria-checked="true" class="p-4 rounded-lg border-2 border-[#1E3A8A] bg-[#E8EDF9] transition-all cursor-pointer flex flex-col justify-between min-h-[120px]" role="radio" tabindex="0">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-[#1E3A8A]" data-icon="swap_horiz">swap_horiz</span>
+<span class="w-3.5 h-3.5 rounded-full border-4 border-[#1E3A8A] bg-white"></span>
+</div>
+<div class="mt-4">
+<div class="font-body-md-medium text-body-md-medium text-[#1E3A8A] leading-snug">Career switcher</div>
+<div class="font-label-md text-label-md text-[#1E3A8A]/80 mt-0.5">Reusing my skills in a new field</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-[#E6E7EA]">
+<p class="font-label-sm text-label-sm text-on-surface-variant">
+              This anchors the depth and terminology of your interactive session.
+            </p>
+</div>
+</section>
+</div>
+<!-- Bottom Navigation / Action Bar -->
+<div class="mt-8 pt-6 border-t border-[#E6E7EA] flex items-center justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]" data-icon="info">info</span>
+<span>Consent preferences can be revised in Account Settings at any point</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="h-10 px-4 bg-white border border-[#E6E7EA] text-primary hover:bg-[#FAFAF8] hover:border-primary rounded-lg font-body-md-medium text-body-md-medium transition-colors" type="button">
+            Back
+          </button>
+<button class="h-10 px-5 bg-[#0F1115] hover:bg-[#1C1F26] text-white rounded-lg font-body-md-medium text-body-md-medium flex items-center gap-2 transition-colors" type="button">
+<span>Continue</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Grounded subtle footer indicator -->
+<footer class="py-4 text-center border-t border-outline-variant/30 bg-surface-container-lowest">
+<div class="max-w-4xl mx-auto px-6 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Bosla Career Navigation Infrastructure</span>
+<span>System version 2.4.0 — All interactions calibrated for deliberate planning</span>
+</div>
+</footer>
+<script>
+    // Minimal interactivity for selection states
+    document.querySelectorAll('[role="radio"]').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('[role="radio"]').forEach(c => {
+          c.setAttribute('aria-checked', 'false');
+          c.className = 'p-4 rounded-lg border border-[#E6E7EA] hover:border-primary transition-all cursor-pointer flex flex-col justify-between min-h-[120px] bg-surface-container-lowest group';
+          const icon = c.querySelector('.material-symbols-outlined');
+          if(icon) icon.className = 'material-symbols-outlined text-outline group-hover:text-primary transition-colors';
+          const indicator = c.querySelector('span:last-child');
+          if(indicator) indicator.className = 'w-3.5 h-3.5 rounded-full border border-outline-variant';
+          const label = c.querySelector('.font-body-md-medium');
+          if(label) label.className = 'font-body-md-medium text-body-md-medium text-on-surface leading-snug';
+          const sub = c.querySelector('.font-label-md');
+          if(sub) sub.className = 'font-label-md text-label-md text-on-surface-variant mt-0.5';
+        });
+
+        card.setAttribute('aria-checked', 'true');
+        card.className = 'p-4 rounded-lg border-2 border-[#1E3A8A] bg-[#E8EDF9] transition-all cursor-pointer flex flex-col justify-between min-h-[120px]';
+        const icon = card.querySelector('.material-symbols-outlined');
+        if(icon) icon.className = 'material-symbols-outlined text-[#1E3A8A]';
+        const indicator = card.querySelector('span:last-child');
+        if(indicator) indicator.className = 'w-3.5 h-3.5 rounded-full border-4 border-[#1E3A8A] bg-white';
+        const label = card.querySelector('.font-body-md-medium');
+        if(label) label.className = 'font-body-md-medium text-body-md-medium text-[#1E3A8A] leading-snug';
+        const sub = card.querySelector('.font-label-md');
+        if(sub) sub.className = 'font-label-md text-label-md text-[#1E3A8A]/80 mt-0.5';
+      });
+    });
+  </script>
+</body></html>

@@ -1,9 +1,13 @@
 import { Bell, Search } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useApp } from '../context/AppContext'
 
 export function TopBar() {
+  const { user, signOut } = useApp()
+  const navigate = useNavigate()
+
   return (
     <header className="flex h-14 items-center gap-4 border-b border-line bg-white px-4 md:px-6">
-      {/* Compass mark alone (logo file #4) — the mobile/collapsed-rail version. */}
       <img src="/brand/bosla-mark.png" alt="Bosla" className="h-8 w-8 object-contain md:hidden" />
 
       <label className="relative flex-1 max-w-xl">
@@ -24,9 +28,17 @@ export function TopBar() {
           <Bell size={18} strokeWidth={1.75} />
           <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-amber-brand" />
         </button>
-        <div className="grid h-9 w-9 place-items-center rounded-full bg-ink text-[13px] font-semibold text-white">
-          A
-        </div>
+        <button
+          type="button"
+          onClick={async () => {
+            await signOut()
+            navigate('/')
+          }}
+          title={user?.email}
+          className="grid h-9 w-9 place-items-center rounded-full bg-ink text-[13px] font-semibold text-white"
+        >
+          {(user?.name || user?.email || 'A').slice(0, 1).toUpperCase()}
+        </button>
       </div>
     </header>
   )

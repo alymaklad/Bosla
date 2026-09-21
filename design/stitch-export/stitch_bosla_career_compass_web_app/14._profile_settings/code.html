@@ -1,0 +1,369 @@
+<!DOCTYPE html><html class="h-full" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Bosla - Profile &amp; Settings</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "error": "#ba1a1a",
+            "inverse-primary": "#c6c6cc",
+            "on-tertiary-container": "#b87500",
+            "primary-container": "#1a1c20",
+            "outline": "#76777b",
+            "on-primary-fixed": "#1a1c20",
+            "on-surface": "#151c28",
+            "background": "#FAFAF8",
+            "secondary-fixed": "#dce1ff",
+            "on-error": "#ffffff",
+            "inverse-surface": "#2a313d",
+            "surface-bright": "#f9f9ff",
+            "tertiary-container": "#2a1700",
+            "tertiary-fixed": "#ffddb8",
+            "on-secondary-fixed-variant": "#264191",
+            "on-primary-fixed-variant": "#45474b",
+            "on-tertiary": "#ffffff",
+            "on-surface-variant": "#45474b",
+            "on-secondary": "#ffffff",
+            "tertiary": "#000000",
+            "outline-variant": "#E6E7EA",
+            "surface-container-high": "#e2e8f9",
+            "on-tertiary-fixed": "#2a1700",
+            "error-container": "#ffdad6",
+            "on-primary": "#ffffff",
+            "primary-fixed-dim": "#c6c6cc",
+            "surface": "#f9f9ff",
+            "surface-container-low": "#f0f3ff",
+            "on-secondary-fixed": "#00164e",
+            "surface-container": "#E8EDF9",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-container": "#828489",
+            "on-background": "#151c28",
+            "secondary-fixed-dim": "#b6c4ff",
+            "secondary-container": "#8fa7fe",
+            "surface-dim": "#d3daeb",
+            "primary": "#0F1115",
+            "on-secondary-container": "#1d3989",
+            "on-tertiary-fixed-variant": "#653e00",
+            "inverse-on-surface": "#ecf1ff",
+            "primary-fixed": "#e2e2e8",
+            "tertiary-fixed-dim": "#ffb95f",
+            "secondary": "#1E3A8A",
+            "surface-container-highest": "#dce2f3",
+            "surface-variant": "#dce2f3",
+            "surface-tint": "#5d5e63",
+            "on-error-container": "#93000a",
+            "amber-track": "#F59E0B"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "space-xs": "0.25rem",
+            "gutter": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "body-lg-medium": ["IBM Plex Sans"],
+            "body-md": ["IBM Plex Sans"],
+            "body-md-medium": ["IBM Plex Sans"],
+            "label-sm": ["IBM Plex Sans"],
+            "headline-md": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "label-md": ["IBM Plex Sans"],
+            "display": ["Space Grotesk"],
+            "body-lg": ["IBM Plex Sans"]
+          },
+          "fontSize": {
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-lg-medium": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-md-medium": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "display": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .custom-shadow-float {
+      box-shadow: 0 4px 20px -2px rgba(15, 17, 21, 0.12), 0 2px 6px -1px rgba(15, 17, 21, 0.06);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md antialiased min-h-screen flex selection:bg-surface-container selection:text-secondary">
+<!-- Side Navigation Rail (Desktop) -->
+<aside class="w-60 h-screen fixed left-0 top-0 z-40 bg-surface-container-lowest border-r border-outline-variant flex flex-col justify-between">
+<div class="flex flex-col">
+<!-- Brand Lockup -->
+<div class="h-14 px-5 flex items-center border-b border-outline-variant">
+<img alt="Bosla compass-rose brandmark" class="h-9 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7nW46lfWebQTMwz75yZSmYUEWdu5plbvEU24rkWmNqCUJFa8eWDI83Ehgfgz4vDxwacPelPbCp9R_com8HZ1WevWSL5kKmp6zmD2CB9PhgGm0oEoQ9G3XRe7kv1hji0Fkeb6kvFpM-Uy8XMIYlPMTF-etDRR2NUvvVGqXxc5PupizsztyAMK4LoHT29u7QBOqyew2C_HrErGxgCEygM-b93qWa3iWe67e9zIOCsmGN-ZD5xOLeDsA0TXi_051atc1xw">
+</div>
+<!-- Navigation Tabs -->
+<nav class="py-4 flex flex-col space-y-0.5">
+<!-- Discover -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Discover</span>
+</a>
+<!-- Habits -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="check_circle">check_circle</span>
+<span class="font-label-md text-label-md">Habits</span>
+</a>
+<!-- Learn -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="school">school</span>
+<span class="font-label-md text-label-md">Learn</span>
+</a>
+<!-- Progress -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="insights">insights</span>
+<span class="font-label-md text-label-md">Progress</span>
+</a>
+<!-- Mentor -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="psychology">psychology</span>
+<span class="font-label-md text-label-md">Mentor</span>
+</a>
+<!-- Profile (Active) -->
+<a class="flex items-center gap-3 px-4 py-2.5 bg-surface-container text-secondary font-medium border-l-2 border-secondary" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+</div>
+<!-- Sidebar Bottom Progression Badge -->
+<div class="p-4 border-t border-outline-variant bg-surface-container-lowest">
+<div class="p-3 bg-[#FAFAF8] border border-outline-variant rounded-lg">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-md text-label-md font-medium text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-amber-track" data-icon="military_tech" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+            Level 3 · Disciplined
+          </span>
+</div>
+<div class="w-full bg-outline-variant h-1.5 rounded-full overflow-hidden mb-1.5">
+<div class="bg-amber-track h-1.5 rounded-full" style="width: 62%;"></div>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="font-label-sm text-label-sm">620 / 1,000 XP</span>
+<span class="font-label-sm text-label-sm">62%</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Top Bar -->
+<header class="fixed top-0 right-0 left-60 h-14 z-30 bg-surface-container-lowest border-b border-outline-variant">
+<div class="h-14 px-6 max-w-screen-2xl mx-auto flex items-center justify-between">
+<!-- Search Input -->
+<div class="relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline" data-icon="search">search</span>
+<input class="w-full h-9 pl-9 pr-4 text-on-surface placeholder:text-outline text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-secondary transition-colors" placeholder="Search careers, habits, courses" type="text">
+</div>
+<!-- Actions & Profile Info -->
+<div class="flex items-center gap-4">
+<!-- Notification Icon with Amber Dot -->
+<button aria-label="Notifications" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors focus:outline-none">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-amber-track rounded-full"></span>
+</button>
+<div class="h-5 w-px bg-outline-variant"></div>
+<!-- Profile Avatar Marker -->
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-headline-sm text-headline-sm select-none">
+            A
+          </div>
+<span class="font-label-md text-label-md font-medium text-primary hidden sm:inline-block">Aly Maklad</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-60 pt-14 pb-20 w-[calc(100%-15rem)] min-h-screen bg-background">
+<div class="max-w-[1280px] mx-auto px-6 py-8">
+<!-- Top Profile Overview Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div class="flex items-center gap-5">
+<div class="w-16 h-16 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-display text-[26px] font-bold select-none flex-shrink-0">
+            A
+          </div>
+<div class="space-y-1">
+<div class="flex items-center gap-3">
+<h1 class="font-headline-lg text-headline-lg text-primary">Aly Maklad</h1>
+<span class="px-2.5 py-0.5 bg-surface-container text-secondary font-label-md text-label-md rounded">Career Switcher · Data Track</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">aly.maklad@example.com</p>
+</div>
+</div>
+<div>
+<button class="inline-flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant hover:border-primary text-primary font-body-md-medium text-body-md-medium rounded-lg transition-colors focus:outline-none">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+<span class="">Edit profile</span>
+</button>
+</div>
+</div>
+<!-- Settings 2-Column Framework -->
+<div class="grid grid-cols-12 gap-6 items-start">
+<!-- Left Sub-Navigation Menu (200px equivalent -> 3 cols) -->
+<nav class="col-span-12 lg:col-span-3 bg-surface-container-lowest border border-outline-variant rounded-lg p-2 space-y-1">
+<a class="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#FAFAF8] font-body-md-medium text-body-md-medium transition-colors" href="#">
+<span class="">Account</span>
+<span class="material-symbols-outlined text-[16px] opacity-40" data-icon="chevron_right">chevron_right</span>
+</a>
+<a class="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#FAFAF8] font-body-md-medium text-body-md-medium transition-colors" href="#">
+<span class="">Preferences</span>
+<span class="material-symbols-outlined text-[16px] opacity-40" data-icon="chevron_right">chevron_right</span>
+</a>
+<a class="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#FAFAF8] font-body-md-medium text-body-md-medium transition-colors" href="#">
+<span class="">Notifications</span>
+<span class="material-symbols-outlined text-[16px] opacity-40" data-icon="chevron_right">chevron_right</span>
+</a>
+<!-- Active Data & privacy item -->
+<a class="flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-surface-container text-secondary font-body-md-medium text-body-md-medium" href="#">
+<span class="">Data &amp; privacy</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+</a>
+<a class="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#FAFAF8] font-body-md-medium text-body-md-medium transition-colors" href="#">
+<span class="">AI &amp; Models</span>
+<span class="material-symbols-outlined text-[16px] opacity-40" data-icon="chevron_right">chevron_right</span>
+</a>
+</nav>
+<!-- Right Content Panel (9 cols) -->
+<div class="col-span-12 lg:col-span-9 space-y-6">
+<!-- Section Title Header -->
+<div class="border-b border-outline-variant pb-4">
+<h2 class="font-headline-md text-headline-md text-primary">Data &amp; privacy</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+              Control your data sovereignty, zero-knowledge storage preferences, and language settings.
+            </p>
+</div>
+<!-- Card 1: Language -->
+
+<!-- Card 2: Your Data -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+<div class="pb-4 border-b border-outline-variant">
+<h3 class="font-headline-sm text-headline-sm text-primary">Data Sovereignty &amp; Export</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+                Bosla operates with strict boundaries. Your career answers and habit logs belong to you.
+              </p>
+</div>
+<div class="py-5 flex flex-wrap items-center gap-4">
+<!-- Export Action -->
+<button class="inline-flex items-center gap-2 h-10 px-4 bg-surface-container-lowest border border-primary hover:bg-[#FAFAF8] text-primary rounded-lg font-body-md-medium text-body-md-medium transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="download">download</span>
+<span class="">Export my data</span>
+</button>
+<!-- Delete Action -->
+<button class="inline-flex items-center gap-2 h-10 px-4 bg-surface-container-lowest border border-[#DC2626] hover:bg-error-container/20 text-[#DC2626] rounded-lg font-body-md-medium text-body-md-medium transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+<span class="">Delete my account</span>
+</button>
+</div>
+<p class="font-label-md text-label-md text-outline">
+              Requests are completed within 30 days. Export format includes JSON habit logs and PDF roadmap synthesis.
+            </p>
+</section>
+<!-- Card 3: Voice Recordings -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+<div class="flex items-start justify-between gap-6 pb-4 border-b border-outline-variant">
+<div class="max-w-xl">
+<h3 class="font-headline-sm text-headline-sm text-primary">Audio &amp; Voice Input</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+                  Optional speech-to-text during conversational discovery and mentor sessions.
+                </p>
+</div>
+<!-- Switch OFF -->
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-4">
+              Deleted 30 days after evaluation. Audio is never used to train external public foundation models.
+            </p>
+</section>
+<!-- Card 4: Consent Preferences -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+<div class="pb-4 border-b border-outline-variant">
+<h3 class="font-headline-sm text-headline-sm text-primary">Consent &amp; Telemetry</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+                Review the permissions granted during initial onboarding. Changes take effect immediately.
+              </p>
+</div>
+<div class="divide-y divide-outline-variant">
+<!-- Item 1 (ON - Engine Requirement) -->
+<div class="py-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-2.5">
+<span class="font-body-md-medium text-body-md-medium text-primary">Use my answers to recommend careers</span>
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="lock" title="Required for match engine">lock</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input checked="" class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+</label>
+</div>
+<!-- Item 2 (ON) -->
+<div class="py-4 flex items-center justify-between gap-4">
+<span class="font-body-md-medium text-body-md-medium text-primary">Store my conversation so I can come back later</span>
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input checked="" class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+</label>
+</div>
+<!-- Item 3 (OFF) -->
+<div class="py-4 flex items-center justify-between gap-4">
+<span class="font-body-md-medium text-body-md-medium text-primary">Allow notifications for habit reminders</span>
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+</div>
+<div class="pt-5 border-t border-outline-variant">
+<a class="font-label-md text-label-md text-secondary hover:underline inline-flex items-center gap-1" href="#">
+<span class="">Review Bosla Privacy Charter &amp; Zero-Knowledge Protocol</span>
+<span class="text-[14px]">→</span>
+</a>
+</div>
+</section>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating 'Ask Bosla' Action Trigger -->
+<button class="fixed bottom-8 right-8 z-50 h-12 px-5 rounded-full bg-primary hover:bg-[#1C1F26] text-surface-container-lowest font-body-md-medium text-body-md-medium flex items-center gap-2.5 custom-shadow-float transition-colors focus:outline-none active:opacity-90" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="spark" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="">Ask Bosla</span>
+</button>
+
+
+</body></html>

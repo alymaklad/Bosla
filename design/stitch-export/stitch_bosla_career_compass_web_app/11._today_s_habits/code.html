@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bosla — Habits</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed": "#2a1700",
+            "inverse-surface": "#2a313d",
+            "inverse-primary": "#c6c6cc",
+            "background": "#f9f9ff",
+            "tertiary-fixed": "#ffddb8",
+            "primary-fixed-dim": "#c6c6cc",
+            "surface-container-highest": "#dce2f3",
+            "on-background": "#151c28",
+            "surface-tint": "#5d5e63",
+            "on-secondary": "#ffffff",
+            "on-surface-variant": "#45474b",
+            "on-surface": "#151c28",
+            "surface-bright": "#f9f9ff",
+            "on-secondary-fixed-variant": "#264191",
+            "surface-container-high": "#e2e8f9",
+            "on-primary-fixed-variant": "#45474b",
+            "error": "#ba1a1a",
+            "on-primary-container": "#828489",
+            "secondary-fixed": "#dce1ff",
+            "inverse-on-surface": "#ecf1ff",
+            "secondary": "#4059aa",
+            "secondary-fixed-dim": "#b6c4ff",
+            "tertiary-container": "#2a1700",
+            "on-tertiary-container": "#b87500",
+            "tertiary": "#000000",
+            "secondary-container": "#8fa7fe",
+            "error-container": "#ffdad6",
+            "on-secondary-fixed": "#00164e",
+            "on-primary-fixed": "#1a1c20",
+            "on-tertiary": "#ffffff",
+            "primary-container": "#1a1c20",
+            "surface-dim": "#d3daeb",
+            "surface-container": "#e7eeff",
+            "outline-variant": "#c6c6cb",
+            "on-secondary-container": "#1d3989",
+            "outline": "#76777b",
+            "surface-container-low": "#f0f3ff",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-fixed-variant": "#653e00",
+            "on-primary": "#ffffff",
+            "on-error": "#ffffff",
+            "surface": "#f9f9ff",
+            "primary-fixed": "#e2e2e8",
+            "tertiary-fixed-dim": "#ffb95f",
+            "primary": "#000000",
+            "surface-variant": "#dce2f3"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            "margin": "1.5rem",
+            "gutter": "1.5rem",
+            "space-xl": "2rem",
+            "space-lg": "1.5rem"
+          },
+          "fontFamily": {
+            "body-md-medium": ["IBM Plex Sans"],
+            "label-md": ["IBM Plex Sans"],
+            "body-md": ["IBM Plex Sans"],
+            "headline-lg-mobile": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "headline-md": ["Space Grotesk"],
+            "label-sm": ["IBM Plex Sans"],
+            "display": ["Space Grotesk"],
+            "body-lg-medium": ["IBM Plex Sans"],
+            "body-lg": ["IBM Plex Sans"]
+          },
+          "fontSize": {
+            "body-md-medium": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "display": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-lg-medium": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+    }
+    .custom-floating-shadow {
+      box-shadow: 0 4px 20px -2px rgba(15, 17, 21, 0.12), 0 2px 6px -1px rgba(15, 17, 21, 0.06);
+    }
+  </style>
+</head>
+<body class="bg-[#FAFAF8] text-on-surface antialiased min-h-screen">
+<!-- SIDEBAR (JSON Anchored Component) -->
+<aside class="w-60 h-screen fixed left-0 top-0 z-40 bg-surface-container-lowest border-r border-[#E6E7EA] flex flex-col justify-between">
+<div>
+<!-- Header Lockup -->
+<div class="h-14 px-5 flex items-center border-b border-[#E6E7EA]">
+<img alt="Bosla compass-rose brandmark" class="h-9 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaeF8bk-1w879lV3eKm6e7G54lwhmaEU83LTNP4v26yPoQxF4UVyZy2YkGD6yx6HUTMbKmkFo7aC_jd33WC7TxjRcQqt4MF92m6biZyg7IdISAPPHnhnEaAWGOeORada6sJ4QwGVRknClXml271vj1aY1UUZJqNRggCRYhB9EJuLXWbg94RkjdObBKagu5MWpktseHunPE2gF0-_29-3SsLpDXk_dlafr4T0Zzu3PWO7JDW0t3nMfnV5xcqNCsJNXZAw"/>
+</div>
+<!-- Navigation List -->
+<nav class="py-4 space-y-1">
+<!-- Discover -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="explore">explore</span>
+<span class="font-body-md text-body-md">Discover</span>
+</a>
+<!-- Habits (ACTIVE) -->
+<a class="flex items-center gap-3 px-4 py-2.5 bg-[#E8EDF9] text-[#1E3A8A] font-medium border-l-2 border-[#1E3A8A]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-body-md-medium text-body-md-medium">Habits</span>
+</a>
+<!-- Learn -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="school">school</span>
+<span class="font-body-md text-body-md">Learn</span>
+</a>
+<!-- Progress -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="insights">insights</span>
+<span class="font-body-md text-body-md">Progress</span>
+</a>
+<!-- Mentor -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="psychology">psychology</span>
+<span class="font-body-md text-body-md">Mentor</span>
+</a>
+<!-- Profile -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="person">person</span>
+<span class="font-body-md text-body-md">Profile</span>
+</a>
+</nav>
+</div>
+<!-- Sidebar Bottom Progression Anchor -->
+<div class="p-4 border-t border-[#E6E7EA]">
+<div class="bg-[#FAFAF8] border border-[#E6E7EA] rounded-lg p-3">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#F59E0B] text-[18px]" data-icon="military_tech">military_tech</span>
+<span class="font-body-md-medium text-body-md-medium text-on-surface text-[12px] leading-none">Level 3 · Disciplined</span>
+</div>
+</div>
+<div class="w-full bg-[#E6E7EA] h-1.5 rounded-full overflow-hidden mb-1.5">
+<div class="bg-[#F59E0B] h-full rounded-full" style="width: 62%;"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] font-label-sm text-on-surface-variant">
+<span>Weekly target progress</span>
+<span class="tabular-nums font-body-md-medium text-on-surface">620 / 1,000 XP</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- TOP APP BAR (JSON Anchored Component) -->
+<header class="fixed top-0 right-0 left-60 h-14 z-30 bg-surface-container-lowest border-b border-[#E6E7EA]">
+<div class="flex items-center justify-between h-14 px-6 max-w-screen-2xl mx-auto w-full">
+<!-- Search Input -->
+<div class="flex items-center w-80">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-[#8A8F98] text-[18px]" data-icon="search">search</span>
+<input class="w-full h-9 pl-9 pr-3 text-[13px] font-body-md bg-[#FAFAF8] border border-[#E6E7EA] rounded-lg text-primary placeholder-[#8A8F98] focus:border-[#1E3A8A] focus:ring-0 focus:outline-none transition-colors" placeholder="Search careers, habits, courses" type="text"/>
+</div>
+</div>
+<!-- Trailing Action Section -->
+<div class="flex items-center gap-4">
+<!-- Notification with Amber Indicator -->
+<button aria-label="Notifications" class="relative p-1.5 text-on-surface-variant hover:text-on-surface rounded-lg hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F59E0B]"></span>
+</button>
+<div class="h-4 w-px bg-[#E6E7EA]"></div>
+<!-- User Identity -->
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-[#0F1115] text-white flex items-center justify-center font-headline-sm text-[13px] font-semibold">
+            A
+          </div>
+<span class="font-body-md-medium text-body-md-medium text-on-surface">Aly Maklad</span>
+</div>
+</div>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="ml-60 pt-14 min-h-screen">
+<div class="max-w-[1280px] mx-auto px-6 py-8">
+<!-- Header Section -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+<div>
+<span class="text-[12px] font-label-md text-on-surface-variant tracking-wider uppercase">Habit Cadence</span>
+<h1 class="font-headline-lg text-headline-lg text-[#0F1115] tracking-tight">Saturday 20 September</h1>
+</div>
+<!-- Segmented Scope Control -->
+<div class="inline-flex bg-[#FFFFFF] border border-[#E6E7EA] p-0.5 rounded-lg">
+<button class="px-3 py-1.5 text-[13px] font-body-md-medium rounded-md bg-[#0F1115] text-white transition-colors">
+            Today
+          </button>
+<button class="px-3 py-1.5 text-[13px] font-body-md text-on-surface-variant hover:text-on-surface transition-colors">
+            Week
+          </button>
+<button class="px-3 py-1.5 text-[13px] font-body-md text-on-surface-variant hover:text-on-surface transition-colors">
+            All
+          </button>
+</div>
+</div>
+<!-- Bento-style Two Column Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- Left Column: Habit Directives (Approx 70%) -->
+<div class="lg:col-span-8 space-y-4">
+<!-- 1. Active Timer Card -->
+<article class="bg-white border border-[#E6E7EA] rounded-lg p-6">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-start gap-3">
+<div class="w-5 h-5 rounded border-2 border-[#1E3A8A] flex items-center justify-center mt-0.5 bg-[#E8EDF9]">
+<span class="w-2 h-2 rounded-sm bg-[#1E3A8A]"></span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-headline-sm text-headline-sm text-[#0F1115]">Python practice</h2>
+<span class="bg-[#F4F4F5] text-on-surface-variant font-label-sm text-label-sm px-1.5 py-0.5 rounded">MON–FRI</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant text-[13px]">Target: 30 min</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1.5 bg-[#FEF3C7] text-[#B45309] font-label-sm text-label-sm px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-[#F59E0B] animate-pulse"></span>
+                In progress
+              </span>
+</div>
+<!-- Active Timer Container -->
+<div class="bg-surface-container-low border border-[#dce2f3] rounded-lg p-4">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+<div>
+<div class="inline-flex items-center gap-1.5 text-[#1E3A8A] font-label-sm text-label-sm mb-1">
+<span class="material-symbols-outlined text-[15px]" data-icon="timer">timer</span>
+                    Measured by timer
+                  </div>
+<div class="font-headline-lg text-[40px] leading-tight font-bold text-[#0F1115] tracking-tight tabular-nums">
+                    12:40
+                  </div>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-4 h-10 rounded-lg bg-[#0F1115] hover:bg-[#1C1F26] text-white font-body-md-medium text-body-md-medium transition-colors">
+                    Done
+                  </button>
+<button class="px-4 h-10 rounded-lg bg-white border border-[#E6E7EA] hover:border-[#0F1115] text-[#0F1115] font-body-md-medium text-body-md-medium transition-colors">
+                    Pause
+                  </button>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant text-[12px]">
+                Elapsed time will be verified and credited to weekly XP.
+              </p>
+</div>
+</article>
+<!-- 2. Assumed Habit Card -->
+<article class="bg-white border border-[#E6E7EA] rounded-lg p-6">
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-3">
+<div class="w-5 h-5 rounded border border-[#0F1115] bg-[#0F1115] text-white flex items-center justify-center mt-0.5">
+<span class="material-symbols-outlined text-[16px]" data-icon="check">check</span>
+</div>
+<div>
+<div class="flex items-center gap-2 flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-[#0F1115]">SQL exercises</h2>
+<span class="bg-[#F4F4F5] text-on-surface-variant font-label-sm text-label-sm px-1.5 py-0.5 rounded">MON/WED/FRI</span>
+<span class="inline-flex items-center bg-[#FEF3C7] text-[#B45309] border border-[#F59E0B] font-label-sm text-[11px] px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold">
+                      ASSUMED
+                    </span>
+</div>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-body-md text-body-md text-on-surface-variant text-[13px]">Progress: 20/20m</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant text-[12px] mt-1.5">
+                    Ticked without a timer — credited at target.
+                  </p>
+</div>
+</div>
+<!-- Radial Meter (Visual Fit Token) -->
+<div class="relative w-10 h-10 flex-shrink-0 flex items-center justify-center">
+<svg class="w-10 h-10 -rotate-90" viewbox="0 0 36 36">
+<path class="text-[#E6E7EA]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-[#1E3A8A]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="100, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<span class="absolute font-headline-sm text-[10px] font-bold text-on-surface">20m</span>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#E6E7EA] flex items-center justify-end gap-3 text-[12px] font-body-md-medium">
+<button class="text-on-surface-variant hover:text-[#0F1115] transition-colors">Log minutes</button>
+<span class="text-[#E6E7EA]">•</span>
+<button class="text-on-surface-variant hover:text-[#0F1115] transition-colors">Start timer</button>
+</div>
+</article>
+<!-- 3. Justified Skip Card -->
+<article class="bg-white border border-[#E6E7EA] rounded-lg p-6 opacity-85">
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-3">
+<div class="w-5 h-5 rounded-full border border-outline text-[#5B6270] flex items-center justify-center mt-0.5">
+<span class="material-symbols-outlined text-[14px]" data-icon="block">block</span>
+</div>
+<div>
+<div class="flex items-center gap-2 flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface-variant line-through">Read data-science article</h2>
+<span class="bg-[#F4F4F5] text-on-surface-variant font-label-sm text-label-sm px-1.5 py-0.5 rounded">DAILY</span>
+<span class="bg-[#F4F4F5] text-[#5B6270] font-label-sm text-label-sm px-2 py-0.5 rounded">
+                      Skipped: travel day
+                    </span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant text-[13px] mt-1 block">Target: 15m</span>
+</div>
+</div>
+<button class="font-body-md-medium text-body-md-medium text-[13px] text-[#1E3A8A] hover:underline">
+                Re-open
+              </button>
+</div>
+</article>
+<!-- 4. Pending Habit Card -->
+<article class="bg-white border border-[#E6E7EA] rounded-lg p-6 hover:border-[#0F1115] transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-3">
+<div class="w-5 h-5 rounded border border-[#C6C6CB] hover:border-[#0F1115] flex items-center justify-center mt-0.5 cursor-pointer">
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-headline-sm text-headline-sm text-[#0F1115]">Portfolio EDA script refinement</h2>
+<span class="bg-[#F4F4F5] text-on-surface-variant font-label-sm text-label-sm px-1.5 py-0.5 rounded">TUE/THU/SAT</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant text-[13px]">Target: 45m</span>
+</div>
+</div>
+<div class="relative w-10 h-10 flex-shrink-0 flex items-center justify-center">
+<svg class="w-10 h-10 -rotate-90" viewbox="0 0 36 36">
+<path class="text-[#E6E7EA]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+</svg>
+<span class="absolute font-headline-sm text-[10px] text-on-surface-variant font-medium">0m</span>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#E6E7EA] flex items-center justify-between">
+<div class="flex items-center gap-3 text-[12px] font-body-md-medium">
+<button class="text-on-surface-variant hover:text-[#0F1115] transition-colors">Log minutes</button>
+<span class="text-[#E6E7EA]">•</span>
+<button class="text-on-surface-variant hover:text-[#0F1115] transition-colors">Skip (with reason)</button>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-[#0F1115] hover:bg-[#1C1F26] text-white font-body-md-medium text-[12px] transition-colors">
+                Start timer
+              </button>
+</div>
+</article>
+<!-- 5. Completed Verified Habit Card -->
+<article class="bg-white border border-[#E6E7EA] rounded-lg p-6">
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-3">
+<div class="w-5 h-5 rounded border border-[#0F1115] bg-[#0F1115] text-white flex items-center justify-center mt-0.5">
+<span class="material-symbols-outlined text-[16px]" data-icon="check">check</span>
+</div>
+<div>
+<div class="flex items-center gap-2 flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-[#0F1115]">Review industry newsletter &amp; job boards</h2>
+<span class="bg-[#F4F4F5] text-on-surface-variant font-label-sm text-label-sm px-1.5 py-0.5 rounded">SAT</span>
+</div>
+<div class="flex items-center gap-2 mt-1.5 flex-wrap">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-[#006038] bg-[#EAF7EE] px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px]" data-icon="verified">verified</span>
+                      Completed · 18 min logged (Timer verified)
+                    </span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1.5 bg-[#FEF3C7] text-[#B45309] font-body-md-medium text-[12px] px-2.5 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                +25 XP
+              </div>
+</div>
+</article>
+</div>
+<!-- Right Rail: Performance Metrics & AI Review (Approx 30%) -->
+<div class="lg:col-span-4 space-y-4">
+<!-- Mini Card 1: Weekly Synthesis -->
+<div class="bg-white border border-[#E6E7EA] rounded-lg p-6">
+<div class="flex items-center justify-between mb-4 border-b border-[#E6E7EA] pb-3">
+<h3 class="font-headline-sm text-[16px] text-[#0F1115]">This week</h3>
+<span class="text-[12px] font-label-md text-on-surface-variant">Cadence report</span>
+</div>
+<div class="space-y-3 mb-5">
+<div class="flex items-center justify-between text-[13px]">
+<span class="font-body-md text-on-surface-variant">Points credited</span>
+<span class="font-body-md-medium text-[#0F1115] tabular-nums">24</span>
+</div>
+<div class="flex items-center justify-between text-[13px]">
+<span class="font-body-md text-on-surface-variant">Best day</span>
+<span class="font-body-md-medium text-[#0F1115]">Wednesday</span>
+</div>
+<div class="flex items-center justify-between text-[13px]">
+<span class="font-body-md text-on-surface-variant">Active streak</span>
+<span class="inline-flex items-center gap-1 font-body-md-medium text-[#0F1115]">
+<span class="material-symbols-outlined text-[#F59E0B] text-[16px]" data-icon="local_fire_department" data-weight="fill" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                  7 days
+                </span>
+</div>
+</div>
+<div class="pt-3 border-t border-[#E6E7EA]">
+<div class="flex justify-between items-center text-[12px] mb-1.5">
+<span class="font-body-md text-on-surface-variant">Target completion</span>
+<span class="font-body-md-medium text-[#0F1115] tabular-nums">12 / 15 habits</span>
+</div>
+<div class="w-full bg-[#E6E7EA] h-1.5 rounded-full overflow-hidden">
+<div class="bg-[#F59E0B] h-full rounded-full" style="width: 80%;"></div>
+</div>
+</div>
+</div>
+<!-- Mini Card 2: AI Weekly Review -->
+<div class="bg-white border border-[#E6E7EA] rounded-lg p-6">
+<div class="flex items-center gap-2.5 mb-3">
+<div class="w-8 h-8 rounded-lg bg-[#E8EDF9] text-[#1E3A8A] flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<h3 class="font-headline-sm text-[16px] text-[#0F1115]">Weekly review is ready</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant text-[13px] mb-5">
+              Your week of Sep 13–19 is summarized with 3 suggested target adjustments.
+            </p>
+<button class="w-full h-10 rounded-lg bg-white border border-[#0F1115] hover:bg-[#FAFAF8] text-[#0F1115] font-body-md-medium text-body-md-medium transition-colors">
+              Open review
+            </button>
+</div>
+<!-- Quiet Context Helper Card -->
+<div class="bg-[#FAFAF8] border border-[#E6E7EA] rounded-lg p-4 text-[12px] text-on-surface-variant">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] text-outline mt-0.5" data-icon="info">info</span>
+<p class="leading-relaxed">
+                Timer verification prevents estimation drift and grants full fidelity XP on weekly progress summaries.
+              </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FLOATING CONVERSATION TRIGGER (The Single Floating Exception Token) -->
+<aside class="fixed bottom-8 right-8 z-50">
+<button class="flex items-center gap-2.5 bg-[#0F1115] hover:bg-[#1C1F26] text-white px-5 h-12 rounded-full custom-floating-shadow transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="sparkles">arrow_back_ios_new</span>
+<span class="font-body-md-medium text-body-md-medium tracking-wide">Ask Bosla</span>
+</button>
+</aside>
+</body></html>

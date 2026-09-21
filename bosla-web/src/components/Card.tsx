@@ -24,6 +24,49 @@ export function Card({
   )
 }
 
+export function FitRing({ value, size = 44 }: { value: number; size?: number }) {
+  const r = size * 0.36
+  const c = 2 * Math.PI * r
+  const center = size / 2
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
+      <circle cx={center} cy={center} r={r} fill="none" stroke="#E6E7EA" strokeWidth="4" />
+      <circle
+        cx={center}
+        cy={center}
+        r={r}
+        fill="none"
+        stroke="#1E3A8A"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeDasharray={c}
+        strokeDashoffset={c * (1 - value / 100)}
+        transform={`rotate(-90 ${center} ${center})`}
+      />
+      <text x={center} y={center + 4} textAnchor="middle" fontSize={size * 0.25} fontWeight="600" fill="#0F1115" fontFamily="Space Grotesk">
+        {value}%
+      </text>
+    </svg>
+  )
+}
+
+const CONFIDENCE_COLOR: Record<string, string> = {
+  none: '#E6E7EA',
+  low: '#F59E0B',
+  medium: '#1E3A8A',
+  high: '#16A34A',
+}
+
+export function ConfidenceDot({ confidence }: { confidence: string }) {
+  return (
+    <span
+      className="inline-block h-2 w-2 shrink-0 rounded-full"
+      style={{ background: CONFIDENCE_COLOR[confidence] ?? CONFIDENCE_COLOR.none }}
+      title={`${confidence} confidence`}
+    />
+  )
+}
+
 export function Chip({
   tone = 'indigo',
   outline = false,

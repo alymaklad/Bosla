@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bosla — Add your CV</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-fixed-dim": "#b6c4ff",
+            "on-primary": "#ffffff",
+            "on-background": "#151c28",
+            "surface-container-low": "#f0f3ff",
+            "surface-variant": "#dce2f3",
+            "on-surface-variant": "#45474b",
+            "on-secondary-fixed": "#00164e",
+            "on-error": "#ffffff",
+            "on-tertiary-fixed-variant": "#653e00",
+            "error": "#ba1a1a",
+            "inverse-on-surface": "#ecf1ff",
+            "surface-bright": "#f9f9ff",
+            "on-primary-container": "#828489",
+            "on-primary-fixed": "#1a1c20",
+            "secondary": "#4059aa",
+            "tertiary-fixed-dim": "#ffb95f",
+            "surface-dim": "#d3daeb",
+            "secondary-container": "#8fa7fe",
+            "surface-container": "#e7eeff",
+            "on-primary-fixed-variant": "#45474b",
+            "surface-container-lowest": "#ffffff",
+            "tertiary-fixed": "#ffddb8",
+            "surface-container-highest": "#dce2f3",
+            "primary-container": "#1a1c20",
+            "surface-container-high": "#e2e8f9",
+            "inverse-surface": "#2a313d",
+            "primary-fixed": "#e2e2e8",
+            "primary-fixed-dim": "#c6c6cc",
+            "on-secondary-container": "#1d3989",
+            "on-error-container": "#93000a",
+            "tertiary": "#000000",
+            "primary": "#000000",
+            "on-secondary-fixed-variant": "#264191",
+            "on-tertiary-fixed": "#2a1700",
+            "surface-tint": "#5d5e63",
+            "on-secondary": "#ffffff",
+            "inverse-primary": "#c6c6cc",
+            "tertiary-container": "#2a1700",
+            "error-container": "#ffdad6",
+            "surface": "#f9f9ff",
+            "outline-variant": "#c6c6cb",
+            "on-tertiary": "#ffffff",
+            "on-surface": "#151c28",
+            "background": "#f9f9ff",
+            "outline": "#76777b",
+            "on-tertiary-container": "#b87500",
+            "secondary-fixed": "#dce1ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin": "1.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            "space-xl": "2rem",
+            "gutter": "1.5rem"
+          },
+          "fontFamily": {
+            "body-lg": ["IBM Plex Sans"],
+            "body-md": ["IBM Plex Sans"],
+            "body-lg-medium": ["IBM Plex Sans"],
+            "label-sm": ["IBM Plex Sans"],
+            "headline-lg-mobile": ["Space Grotesk"],
+            "body-md-medium": ["IBM Plex Sans"],
+            "label-md": ["IBM Plex Sans"],
+            "headline-sm": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-md": ["Space Grotesk"],
+            "display": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-lg-medium": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-md-medium": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "display": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col font-body-md text-body-md selection:bg-surface-container-high">
+<!-- Linear Onboarding Header Bar (Semantic shell suppressed for step 2 of 4 onboarding) -->
+<header class="w-full bg-surface-container-lowest border-b border-outline-variant h-14 sticky top-0 z-30">
+<div class="max-w-screen-xl mx-auto h-full px-6 flex items-center justify-between">
+<!-- Logo Anchor -->
+<div class="flex items-center gap-3">
+<img alt="BOSLA" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0YXHimOiQsixFN4g1dc-kgVDKXw2ee87RN4umVN79_RV_rjS_tI-G6gGaAm2cJ-JR3Gzmz1JRmDhDkI9R5Vch6w0lAIT0noOjqH_L-x1QitCwm7ZIx5H_SfShSx6Xsi_Hj3P_OlUy6woyzHHpZ2KD2bGeBfl8caM0DEdGRyozIiIvzBd-nMLwqxqDN1OExewlIO_xR_rud20Dm2OH5r7a-Eqv5eaab1nFu11ul-P62AZqk5GB8ZOFSvDXQsWk25_y0A"/>
+</div>
+<!-- Stepper: Step 2 of 4 -->
+<nav aria-label="Onboarding Progress" class="flex items-center gap-2 sm:gap-4 font-label-md text-label-md">
+<!-- Step 1: Consent Completed -->
+<div class="flex items-center gap-1.5 text-on-surface">
+<span class="w-5 h-5 rounded-full bg-surface-container text-secondary flex items-center justify-center font-semibold">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</span>
+<span class="hidden sm:inline font-body-md-medium text-body-md-medium text-on-surface">1. Consent</span>
+</div>
+<span class="text-outline-variant">/</span>
+<!-- Step 2: CV Active Indigo -->
+<div class="flex items-center gap-1.5 text-secondary">
+<span class="w-5 h-5 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-semibold">2</span>
+<span class="font-body-lg-medium text-body-lg-medium text-secondary">2. CV</span>
+</div>
+<span class="text-outline-variant">/</span>
+<!-- Step 3: Conversation -->
+<div class="flex items-center gap-1.5 text-on-surface-variant opacity-70">
+<span class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center">3</span>
+<span class="hidden sm:inline font-body-md text-body-md">3. Conversation</span>
+</div>
+<span class="text-outline-variant">/</span>
+<!-- Step 4: Matches -->
+<div class="flex items-center gap-1.5 text-on-surface-variant opacity-70">
+<span class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center">4</span>
+<span class="hidden sm:inline font-body-md text-body-md">4. Matches</span>
+</div>
+</nav>
+<!-- Step Counter Meta Tag -->
+<div class="font-label-md text-label-md text-on-surface-variant">
+        Step 2 of 4
+      </div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 max-w-2xl w-full mx-auto py-12 px-6">
+<!-- Header Title & Sub-line -->
+<div class="mb-8">
+<div class="inline-flex items-center gap-2 mb-2">
+<span class="px-2 py-0.5 rounded bg-surface-container text-secondary font-label-sm text-label-sm uppercase">Orientation Input</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">Add your CV (optional)</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">It helps us ground the recommendation in what you've actually done.</p>
+</div>
+<div class="space-y-6">
+<!-- Main Content Card -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+<!-- Large Dashed Drop Zone -->
+<div class="border-2 border-dashed border-outline-variant rounded-lg p-8 text-center bg-surface-bright hover:border-secondary transition-colors cursor-pointer group">
+<div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-container flex items-center justify-center text-secondary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[26px]">upload_file</span>
+</div>
+<p class="font-body-lg-medium text-body-lg-medium text-primary">Drop a PDF here or browse</p>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">PDF up to 10 MB</p>
+</div>
+<!-- File Attached State Card -->
+<div class="mt-6 pt-6 border-t border-outline-variant">
+<div class="flex items-center justify-between p-3 bg-surface-container-low rounded-lg border border-outline-variant mb-4">
+<div class="flex items-center gap-3 min-w-0">
+<span class="material-symbols-outlined text-secondary flex-shrink-0" style="font-variation-settings: 'FILL' 1;">description</span>
+<div class="truncate">
+<p class="font-body-md-medium text-body-md-medium text-primary truncate">aly-cv.pdf</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">2 pages · 412 KB</p>
+</div>
+</div>
+<button aria-label="Remove attached file" class="p-1 rounded hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Read-only preview box: Extracted text -->
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium uppercase tracking-wider">Extracted text</span>
+<span class="font-label-sm text-label-sm text-secondary">Verified OCR output</span>
+</div>
+<div class="bg-surface border border-outline-variant rounded-lg p-3 font-mono text-[12px] leading-5 text-on-surface-variant select-text space-y-1">
+<p class="text-primary font-medium">Aly Maklad | Computer Science &amp; Data Analysis</p>
+<p>Experience: Junior Data Specialist at Nile Analytics (2022–Present)</p>
+<p>Skills: SQL, Python (Pandas), Tableau, Statistical Modeling, ETL Pipelines</p>
+<p>Projects: E-commerce churn prediction model with 84% recall benchmark</p>
+<p>Education: B.Sc. in Information Systems, Cairo University</p>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-2 text-right">Truncated to 3,000 characters.</p>
+</div>
+</div>
+</section>
+<!-- Inline Warning Variant -->
+<section class="border border-[#F59E0B] bg-[#FEF3C7]/40 rounded-lg p-4 flex gap-3 items-start" role="status">
+<span class="material-symbols-outlined text-[#B45309] text-[20px] flex-shrink-0 mt-0.5" style="font-variation-settings: 'FILL' 1;">warning</span>
+<div class="space-y-0.5">
+<h2 class="font-body-md-medium text-body-md-medium text-[#B45309]">Scanned PDF notice</h2>
+<p class="font-body-md text-body-md text-[#653e00]">We couldn't read text from this PDF — it may be a scanned image. Try another file or skip.</p>
+</div>
+</section>
+<!-- Bottom Actions -->
+<div class="pt-4 flex items-center justify-between gap-4">
+<button class="h-10 px-5 rounded-lg bg-surface-container-lowest border border-primary text-primary font-body-md-medium text-body-md-medium hover:bg-surface-container-low transition-colors" type="button">
+          Skip for now
+        </button>
+<button class="h-10 px-6 rounded-lg bg-primary text-on-primary font-body-lg-medium text-body-lg-medium hover:bg-primary-container transition-colors flex items-center gap-2" type="button">
+<span>Continue</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Quiet Brand Baseline Footer -->
+<footer class="py-6 border-t border-outline-variant text-center font-label-sm text-label-sm text-on-surface-variant">
+    Bosla Career Navigation Platform · Encrypted storage and automated PII scrubbing applied
+  </footer>
+</body></html>

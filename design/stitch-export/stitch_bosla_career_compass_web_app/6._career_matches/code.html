@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-[#FAFAF8]" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BOSLA - Career Navigation | Discover Matches</title>
+<!-- Google Fonts: Space Grotesk & IBM Plex Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "outline-variant": "#c6c6cb",
+            "surface-container-lowest": "#ffffff",
+            "inverse-on-surface": "#ecf1ff",
+            "on-tertiary-fixed-variant": "#653e00",
+            "on-tertiary-container": "#b87500",
+            "on-tertiary-fixed": "#2a1700",
+            "tertiary-container": "#2a1700",
+            "on-error": "#ffffff",
+            "surface-variant": "#dce2f3",
+            "on-surface": "#151c28",
+            "on-primary-fixed": "#1a1c20",
+            "error": "#ba1a1a",
+            "surface-container-highest": "#dce2f3",
+            "inverse-surface": "#2a313d",
+            "surface-container": "#e7eeff",
+            "on-secondary-container": "#1d3989",
+            "on-primary-fixed-variant": "#45474b",
+            "surface": "#f9f9ff",
+            "on-secondary-fixed-variant": "#264191",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed-dim": "#b6c4ff",
+            "tertiary-fixed-dim": "#ffb95f",
+            "tertiary-fixed": "#ffddb8",
+            "outline": "#76777b",
+            "tertiary": "#000000",
+            "primary-fixed": "#e2e2e8",
+            "on-primary": "#ffffff",
+            "background": "#f9f9ff",
+            "inverse-primary": "#c6c6cc",
+            "primary": "#000000",
+            "on-error-container": "#93000a",
+            "surface-tint": "#5d5e63",
+            "on-secondary": "#ffffff",
+            "error-container": "#ffdad6",
+            "primary-container": "#1a1c20",
+            "secondary-fixed": "#dce1ff",
+            "surface-dim": "#d3daeb",
+            "on-primary-container": "#828489",
+            "surface-container-low": "#f0f3ff",
+            "secondary-container": "#8fa7fe",
+            "on-surface-variant": "#45474b",
+            "surface-container-high": "#e2e8f9",
+            "on-secondary-fixed": "#00164e",
+            "primary-fixed-dim": "#c6c6cc",
+            "on-background": "#151c28",
+            "surface-bright": "#f9f9ff",
+            "secondary": "#4059aa"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "gutter": "1.5rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "margin": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Space Grotesk"],
+            "body-md": ["IBM Plex Sans"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-md": ["Space Grotesk"],
+            "body-lg": ["IBM Plex Sans"],
+            "body-lg-medium": ["IBM Plex Sans"],
+            "body-md-medium": ["IBM Plex Sans"],
+            "display": ["Space Grotesk"],
+            "label-sm": ["IBM Plex Sans"],
+            "label-md": ["IBM Plex Sans"],
+            "headline-lg-mobile": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "body-lg-medium": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+            "body-md-medium": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+            "display": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+    }
+    .material-symbols-outlined.fill-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+    .custom-floating-shadow {
+      box-shadow: 0 4px 20px -2px rgba(15, 17, 21, 0.12), 0 2px 6px -1px rgba(15, 17, 21, 0.06);
+    }
+  </style>
+</head>
+<body class="bg-[#FAFAF8] text-on-surface antialiased min-h-screen selection:bg-surface-container selection:text-secondary">
+<!-- ==================== LEFT NAVIGATION RAIL (240px) ==================== -->
+<aside class="w-60 h-screen fixed left-0 top-0 z-40 bg-surface-container-lowest border-r border-[#E6E7EA] flex flex-col justify-between">
+<div class="flex flex-col">
+<!-- Logo Lockup Area -->
+<div class="h-14 px-5 flex items-center border-b border-[#E6E7EA]">
+<img alt="Bosla compass-rose brandmark" class="h-9 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSLkWFGnNHZM1Xn700WozDbiWM8_XM9RchH3NMgQvx4kR1_XYCQrZWFz0Gtu32k0sorHp7TEUhT5Bd6PJktT890F5RzUR0IxRBEJpJi3lYgsMqohOmlo2t_ue2_hPy7lG31r881Bj9J5WH54HBrL7l6bcU9cLzm7jcFQTiqboZAjU6LQa-P_QPrTKOKk6b7naEhMfrv3yWcKpF3yoID_3_L0a0Gn27hAYttg96mkyBW9pd3fFEihYvWwWniaFdesIn7w"/>
+</div>
+<!-- Navigation Links -->
+<nav class="p-3 space-y-1">
+<!-- Discover (Active) -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 bg-[#E8EDF9] text-[#1E3A8A] font-body-md-medium text-body-md-medium border-l-[3px] border-[#1E3A8A] rounded-r-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[#1E3A8A]" data-icon="explore">explore</span>
+<span>Discover</span>
+</a>
+<!-- Habits -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 text-[#5B6270] hover:bg-surface-container-low hover:text-on-surface font-body-md text-body-md rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[#5B6270]" data-icon="check_circle">check_circle</span>
+<span>Habits</span>
+</a>
+<!-- Learn -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 text-[#5B6270] hover:bg-surface-container-low hover:text-on-surface font-body-md text-body-md rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[#5B6270]" data-icon="school">school</span>
+<span>Learn</span>
+</a>
+<!-- Progress -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 text-[#5B6270] hover:bg-surface-container-low hover:text-on-surface font-body-md text-body-md rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[#5B6270]" data-icon="insights">insights</span>
+<span>Progress</span>
+</a>
+<!-- Mentor -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 text-[#5B6270] hover:bg-surface-container-low hover:text-on-surface font-body-md text-body-md rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[#5B6270]" data-icon="psychology">psychology</span>
+<span>Mentor</span>
+</a>
+<!-- Profile -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 text-[#5B6270] hover:bg-surface-container-low hover:text-on-surface font-body-md text-body-md rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[#5B6270]" data-icon="person">person</span>
+<span>Profile</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Sidebar Card: User Progression Tier -->
+<div class="p-4 border-t border-[#E6E7EA]">
+<div class="bg-surface-container-low border border-[#E6E7EA] rounded-lg p-3">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#F59E0B] text-[18px]" data-icon="military_tech">military_tech</span>
+<span class="font-headline-sm text-[13px] leading-tight font-semibold text-[#0F1115]">Level 3 · Disciplined</span>
+</div>
+</div>
+<!-- Progress Bar Track -->
+<div class="w-full h-1.5 bg-[#E6E7EA] rounded-full overflow-hidden mb-1.5">
+<div class="h-full bg-[#F59E0B] rounded-full" style="width: 62%;"></div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>620 / 1,000 XP</span>
+<span class="text-[#F59E0B] font-medium">62%</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- ==================== TOP NAVIGATION BAR (56px) ==================== -->
+<header class="fixed top-0 right-0 left-60 h-14 bg-surface-container-lowest border-b border-[#E6E7EA] z-30 flex items-center justify-between px-6">
+<!-- Utility Search Bar -->
+<div class="relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]" data-icon="search">search</span>
+<input class="w-full h-9 pl-9 pr-3 rounded-lg border border-[#E6E7EA] bg-surface-container-lowest font-body-md text-body-md text-on-surface placeholder-[#8A8F98] focus:border-[#1E3A8A] focus:ring-0 transition-colors" placeholder="Search careers, habits, courses" type="text"/>
+</div>
+<!-- Right Utility Actions -->
+<div class="flex items-center gap-4">
+<!-- Notification Icon with Amber Dot -->
+<button aria-label="Notifications" class="relative p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-[#F59E0B] rounded-full"></span>
+</button>
+<div class="h-4 w-[1px] bg-[#E6E7EA]"></div>
+<!-- Ink User Avatar -->
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-[#0F1115] text-white flex items-center justify-center font-headline-sm text-sm font-semibold tracking-wide">
+          A
+        </div>
+<div class="flex flex-col text-left">
+<span class="font-body-md-medium text-[13px] leading-none text-[#0F1115]">Aly</span>
+<span class="font-label-sm text-[11px] text-[#5B6270]">Professional Track</span>
+</div>
+</div>
+</div>
+</header>
+<!-- ==================== MAIN CANVAS ==================== -->
+<main class="ml-60 pt-14 min-h-screen">
+<div class="max-w-[1280px] mx-auto px-6 py-8">
+<!-- Top Onboarding Stepper Banner -->
+<div class="bg-surface-container-lowest border border-[#E6E7EA] rounded-lg p-4 mb-8">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-label-sm uppercase tracking-wider text-[#5B6270] font-semibold">Orientation flow</span>
+<span class="text-[#c6c6cb]">/</span>
+<span class="font-label-sm text-[#1E3A8A] bg-[#E8EDF9] px-2 py-0.5 rounded font-medium">Step 4 of 4</span>
+</div>
+<div class="text-on-surface-variant font-label-md text-label-md">
+            Final synthesis based on diagnostic interview
+          </div>
+</div>
+<!-- Stepper Segments -->
+<div class="grid grid-cols-4 gap-3 mt-3.5">
+<!-- Step 1 -->
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-[#0F1115] text-white flex items-center justify-center font-label-sm text-[10px]">
+<span class="material-symbols-outlined text-[14px]" data-icon="check">check</span>
+</div>
+<span class="font-body-md text-body-md text-[#0F1115] font-medium">Consent</span>
+<div class="h-[1px] flex-1 bg-[#0F1115]"></div>
+</div>
+<!-- Step 2 -->
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-[#0F1115] text-white flex items-center justify-center font-label-sm text-[10px]">
+<span class="material-symbols-outlined text-[14px]" data-icon="check">check</span>
+</div>
+<span class="font-body-md text-body-md text-[#0F1115] font-medium">CV Review</span>
+<div class="h-[1px] flex-1 bg-[#0F1115]"></div>
+</div>
+<!-- Step 3 -->
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-[#0F1115] text-white flex items-center justify-center font-label-sm text-[10px]">
+<span class="material-symbols-outlined text-[14px]" data-icon="check">check</span>
+</div>
+<span class="font-body-md text-body-md text-[#0F1115] font-medium">Conversation</span>
+<div class="h-[1px] flex-1 bg-[#1E3A8A]"></div>
+</div>
+<!-- Step 4 (Active) -->
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-[#1E3A8A] text-white flex items-center justify-center font-label-sm text-[10px] font-semibold">
+              4
+            </div>
+<span class="font-body-md-medium text-body-md-medium text-[#1E3A8A]">Matches</span>
+</div>
+</div>
+</div>
+<!-- Page Header -->
+<div class="mb-8">
+<h1 class="font-display text-display text-[#0F1115] tracking-tight mb-2">Your top matches</h1>
+<p class="font-body-lg text-body-lg text-[#5B6270]">
+          Ranked by fit. Every match shows why — and where we're less sure.
+        </p>
+</div>
+<!-- Grid Layout: 70% Content / 30% Contextual Rail -->
+<div class="grid grid-cols-12 gap-6">
+<!-- ==================== LEFT COLUMN: RECOMMENDATIONS (70%) ==================== -->
+<div class="col-span-12 lg:col-span-8 space-y-6">
+<!-- MATCH CARD 1: Data Analyst (Top Rank) -->
+<div class="bg-surface-container-lowest border border-[#E6E7EA] rounded-lg p-6 hover:border-[#1E3A8A] transition-colors relative">
+<div class="flex items-start justify-between gap-4 mb-5">
+<div class="flex items-start gap-4">
+<!-- SVG Radial Gauge 78% -->
+<div class="relative w-16 h-16 flex-shrink-0 flex items-center justify-center">
+<svg class="w-16 h-16 transform -rotate-90" viewbox="0 0 64 64">
+<circle cx="32" cy="32" fill="transparent" r="28" stroke="#E6E7EA" stroke-width="4.5"></circle>
+<circle cx="32" cy="32" fill="transparent" r="28" stroke="#1E3A8A" stroke-dasharray="175.9" stroke-dashoffset="38.7" stroke-linecap="round" stroke-width="4.5"></circle>
+</svg>
+<span class="absolute font-headline-sm text-headline-sm font-bold text-[#1E3A8A]">78%</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm bg-[#E8EDF9] text-[#1E3A8A] px-2 py-0.5 rounded font-medium">Rank 1 · Prime Alignment</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-[#0F1115]">Data Analyst</h2>
+<p class="font-body-md text-body-md text-[#5B6270]">Enterprise &amp; Growth teams</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-[#76777b]" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<!-- Rationale Modules -->
+<div class="space-y-3 mb-5 pt-3 border-t border-[#E6E7EA]">
+<div class="bg-[#FAFAF8] rounded border border-[#E6E7EA] p-3.5">
+<span class="font-body-md-medium text-body-md-medium text-[#0F1115]">Why this fits you:</span>
+<p class="font-body-md text-body-md text-[#45474b] mt-0.5">
+                  Strong synergy between pattern recognition, structured problem solving, and existing SQL grounding.
+                </p>
+</div>
+<div class="bg-[#FAFAF8] rounded border border-[#E6E7EA] p-3.5">
+<span class="font-body-md-medium text-body-md-medium text-[#76777b]">Less certain about:</span>
+<p class="font-body-md text-body-md text-[#5B6270] mt-0.5">
+                  your appetite for reporting-heavy work vs exploratory modeling
+                </p>
+</div>
+</div>
+<!-- Media Insight & Video Pill -->
+<div class="mb-5 flex items-center justify-between p-3 bg-surface-container-low rounded border border-[#E6E7EA]">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-[#0F1115] text-white flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]" data-icon="play_arrow">play_arrow</span>
+</div>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-[#0F1115]">A day as a Data Analyst · 4 min</div>
+<div class="font-label-sm text-label-sm text-[#5B6270]">Field perspective by Lead Analyst at FinCore</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-[#76777b]" data-icon="open_in_new">open_in_new</span>
+</div>
+<!-- Actions Row -->
+<div class="flex items-center gap-3 pt-2 border-t border-[#E6E7EA]">
+<button class="h-10 px-4 bg-[#0F1115] hover:bg-[#1C1F26] text-white rounded-lg font-body-md-medium text-body-md-medium transition-colors">
+                Choose this direction
+              </button>
+<button class="h-10 px-4 bg-transparent hover:bg-surface-container text-[#1E3A8A] rounded-lg font-body-md-medium text-body-md-medium transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="chat_bubble_outline">chat_bubble_outline</span>
+<span>Ask a follow-up</span>
+</button>
+</div>
+</div>
+<!-- MATCH CARD 2: Product Analyst -->
+<div class="bg-surface-container-lowest border border-[#E6E7EA] rounded-lg p-6 hover:border-[#1E3A8A] transition-colors relative">
+<div class="flex items-start justify-between gap-4 mb-5">
+<div class="flex items-start gap-4">
+<!-- SVG Radial Gauge 71% -->
+<div class="relative w-16 h-16 flex-shrink-0 flex items-center justify-center">
+<svg class="w-16 h-16 transform -rotate-90" viewbox="0 0 64 64">
+<circle cx="32" cy="32" fill="transparent" r="28" stroke="#E6E7EA" stroke-width="4.5"></circle>
+<circle cx="32" cy="32" fill="transparent" r="28" stroke="#1E3A8A" stroke-dasharray="175.9" stroke-dashoffset="51.0" stroke-linecap="round" stroke-width="4.5"></circle>
+</svg>
+<span class="absolute font-headline-sm text-headline-sm font-bold text-[#1E3A8A]">71%</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm bg-[#F4F4F5] text-[#5B6270] px-2 py-0.5 rounded font-medium">Rank 2</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-[#0F1115]">Product Analyst</h2>
+<p class="font-body-md text-body-md text-[#5B6270]">B2B SaaS Products</p>
+</div>
+</div>
+</div>
+<!-- Rationale Modules -->
+<div class="space-y-3 mb-5 pt-3 border-t border-[#E6E7EA]">
+<div class="bg-[#FAFAF8] rounded border border-[#E6E7EA] p-3.5">
+<span class="font-body-md-medium text-body-md-medium text-[#0F1115]">Why this fits you:</span>
+<p class="font-body-md text-body-md text-[#45474b] mt-0.5">
+                  Matches your preference for translating drop-off data into product roadmaps and strategic team decisions.
+                </p>
+</div>
+<div class="bg-[#FAFAF8] rounded border border-[#E6E7EA] p-3.5">
+<span class="font-body-md-medium text-body-md-medium text-[#76777b]">Less certain about:</span>
+<p class="font-body-md text-body-md text-[#5B6270] mt-0.5">
+                  stakeholder management intensity across engineering and design
+                </p>
+</div>
+</div>
+<!-- Media Insight & Video Pill -->
+<div class="mb-5 flex items-center justify-between p-3 bg-surface-container-low rounded border border-[#E6E7EA]">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-[#0F1115] text-white flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]" data-icon="play_arrow">play_arrow</span>
+</div>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-[#0F1115]">A day as a Product Analyst · 5 min</div>
+<div class="font-label-sm text-label-sm text-[#5B6270]">Workflow session with Growth Ops</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-[#76777b]" data-icon="open_in_new">open_in_new</span>
+</div>
+<!-- Actions Row -->
+<div class="flex items-center gap-3 pt-2 border-t border-[#E6E7EA]">
+<button class="h-10 px-4 bg-[#0F1115] hover:bg-[#1C1F26] text-white rounded-lg font-body-md-medium text-body-md-medium transition-colors">
+                Choose this direction
+              </button>
+<button class="h-10 px-4 bg-transparent hover:bg-surface-container text-[#1E3A8A] rounded-lg font-body-md-medium text-body-md-medium transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="chat_bubble_outline">chat_bubble_outline</span>
+<span>Ask a follow-up</span>
+</button>
+</div>
+</div>
+<!-- MATCH CARD 3: BI Developer -->
+<div class="bg-surface-container-lowest border border-[#E6E7EA] rounded-lg p-6 hover:border-[#1E3A8A] transition-colors relative">
+<div class="flex items-start justify-between gap-4 mb-5">
+<div class="flex items-start gap-4">
+<!-- SVG Radial Gauge 64% -->
+<div class="relative w-16 h-16 flex-shrink-0 flex items-center justify-center">
+<svg class="w-16 h-16 transform -rotate-90" viewbox="0 0 64 64">
+<circle cx="32" cy="32" fill="transparent" r="28" stroke="#E6E7EA" stroke-width="4.5"></circle>
+<circle cx="32" cy="32" fill="transparent" r="28" stroke="#1E3A8A" stroke-dasharray="175.9" stroke-dashoffset="63.3" stroke-linecap="round" stroke-width="4.5"></circle>
+</svg>
+<span class="absolute font-headline-sm text-headline-sm font-bold text-[#1E3A8A]">64%</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm bg-[#F4F4F5] text-[#5B6270] px-2 py-0.5 rounded font-medium">Rank 3</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-[#0F1115]">BI Developer</h2>
+<p class="font-body-md text-body-md text-[#5B6270]">Data Warehousing &amp; Dashboards</p>
+</div>
+</div>
+</div>
+<!-- Rationale Modules -->
+<div class="space-y-3 mb-5 pt-3 border-t border-[#E6E7EA]">
+<div class="bg-[#FAFAF8] rounded border border-[#E6E7EA] p-3.5">
+<span class="font-body-md-medium text-body-md-medium text-[#0F1115]">Why this fits you:</span>
+<p class="font-body-md text-body-md text-[#45474b] mt-0.5">
+                  Aligns with database indexing, data pipeline structuring, and reliable automated metrics delivery.
+                </p>
+</div>
+<div class="bg-[#FAFAF8] rounded border border-[#E6E7EA] p-3.5">
+<span class="font-body-md-medium text-body-md-medium text-[#76777b]">Less certain about:</span>
+<p class="font-body-md text-body-md text-[#5B6270] mt-0.5">
+                  tolerance for ongoing pipeline maintenance overhead
+                </p>
+</div>
+</div>
+<!-- Actions Row -->
+<div class="flex items-center gap-3 pt-2 border-t border-[#E6E7EA]">
+<button class="h-10 px-4 bg-[#0F1115] hover:bg-[#1C1F26] text-white rounded-lg font-body-md-medium text-body-md-medium transition-colors">
+                Choose this direction
+              </button>
+<button class="h-10 px-4 bg-transparent hover:bg-surface-container text-[#1E3A8A] rounded-lg font-body-md-medium text-body-md-medium transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="chat_bubble_outline">chat_bubble_outline</span>
+<span>Ask a follow-up</span>
+</button>
+</div>
+</div>
+<!-- MATCH CARD 4: Research Assistant -->
+<div class="bg-surface-container-lowest border border-[#E6E7EA] rounded-lg p-6 hover:border-[#1E3A8A] transition-colors relative">
+<div class="flex items-start justify-between gap-4 mb-5">
+<div class="flex items-start gap-4">
+<!-- SVG Radial Gauge 58% -->
+<div class="relative w-16 h-16 flex-shrink-0 flex items-center justify-center">
+<svg class="w-16 h-16 transform -rotate-90" viewbox="0 0 64 64">
+<circle cx="32" cy="32" fill="transparent" r="28" stroke="#E6E7EA" stroke-width="4.5"></circle>
+<circle cx="32" cy="32" fill="transparent" r="28" stroke="#1E3A8A" stroke-dasharray="175.9" stroke-dashoffset="73.9" stroke-linecap="round" stroke-width="4.5"></circle>
+</svg>
+<span class="absolute font-headline-sm text-headline-sm font-bold text-[#1E3A8A]">58%</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm bg-[#F4F4F5] text-[#5B6270] px-2 py-0.5 rounded font-medium">Rank 4</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-[#0F1115]">Research Assistant</h2>
+<p class="font-body-md text-body-md text-[#5B6270]">Quantitative Market Studies</p>
+</div>
+</div>
+</div>
+<!-- Rationale Modules -->
+<div class="space-y-3 mb-5 pt-3 border-t border-[#E6E7EA]">
+<div class="bg-[#FAFAF8] rounded border border-[#E6E7EA] p-3.5">
+<span class="font-body-md-medium text-body-md-medium text-[#0F1115]">Why this fits you:</span>
+<p class="font-body-md text-body-md text-[#45474b] mt-0.5">
+                  Fits desire for rigorous independent investigation and deep analytical methodology.
+                </p>
+</div>
+<div class="bg-[#FAFAF8] rounded border border-[#E6E7EA] p-3.5">
+<span class="font-body-md-medium text-body-md-medium text-[#76777b]">Less certain about:</span>
+<p class="font-body-md text-body-md text-[#5B6270] mt-0.5">
+                  academic publishing timelines and theoretical constraints
+                </p>
+</div>
+</div>
+<!-- Actions Row -->
+<div class="flex items-center gap-3 pt-2 border-t border-[#E6E7EA]">
+<button class="h-10 px-4 bg-[#0F1115] hover:bg-[#1C1F26] text-white rounded-lg font-body-md-medium text-body-md-medium transition-colors">
+                Choose this direction
+              </button>
+<button class="h-10 px-4 bg-transparent hover:bg-surface-container text-[#1E3A8A] rounded-lg font-body-md-medium text-body-md-medium transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="chat_bubble_outline">chat_bubble_outline</span>
+<span>Ask a follow-up</span>
+</button>
+</div>
+</div>
+</div>
+<!-- ==================== RIGHT COLUMN: CONTEXT & REPORT (30%) ==================== -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<!-- Market Context Card for Data Analyst -->
+<div class="bg-surface-container-lowest border border-[#E6E7EA] rounded-lg p-6">
+<div class="flex items-center justify-between pb-4 mb-4 border-b border-[#E6E7EA]">
+<div>
+<span class="font-label-sm uppercase tracking-wider text-[#5B6270] font-semibold">Active Benchmark</span>
+<h3 class="font-headline-sm text-headline-sm text-[#0F1115]">Market context</h3>
+</div>
+<span class="font-label-sm text-label-sm bg-[#E8EDF9] text-[#1E3A8A] px-2 py-0.5 rounded font-medium">Data Analyst</span>
+</div>
+<div class="space-y-4">
+<!-- Metric 1 -->
+<div>
+<span class="font-label-md text-label-md text-[#5B6270]">Median salary</span>
+<div class="font-display text-[26px] leading-tight font-bold text-[#0F1115] mt-0.5">$84,500 / yr</div>
+<div class="font-label-sm text-label-sm text-[#76777b] mt-1">Source: ILOSTAT · updated Sep 2026</div>
+</div>
+<div class="h-[1px] bg-[#E6E7EA]"></div>
+<!-- Metric 2 -->
+<div>
+<span class="font-label-md text-label-md text-[#5B6270]">Remote potential</span>
+<div class="font-headline-sm text-headline-sm text-[#0F1115] mt-1">High (68% hybrid/remote listings)</div>
+<div class="w-full h-1.5 bg-[#E6E7EA] rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-[#1E3A8A] rounded-full" style="width: 68%;"></div>
+</div>
+</div>
+<div class="h-[1px] bg-[#E6E7EA]"></div>
+<!-- Metric 3 -->
+<div>
+<span class="font-label-md text-label-md text-[#5B6270]">Local demand</span>
+<div class="font-headline-sm text-headline-sm text-[#0F1115] mt-1">Very High (+18% YoY growth in tech &amp; finance)</div>
+<div class="flex items-center gap-1 text-[#1E3A8A] font-label-sm text-label-sm font-semibold mt-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="trending_up">trending_up</span>
+<span>Expansion index: Tier 1</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Save Results & Export Card -->
+<div class="bg-surface-container-lowest border border-[#E6E7EA] rounded-lg p-6">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-[#0F1115]" data-icon="description">description</span>
+<h3 class="font-headline-sm text-headline-sm text-[#0F1115]">Save your results</h3>
+</div>
+<p class="font-body-md text-body-md text-[#5B6270] mb-5">
+              Download your full diagnostic report including signal attribution and skill gaps.
+            </p>
+<button class="w-full h-10 bg-white border border-[#0F1115] hover:bg-[#FAFAF8] text-[#0F1115] font-body-md-medium text-body-md-medium rounded-lg flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="download">download</span>
+<span>Download PDF report</span>
+</button>
+</div>
+<!-- Assumption Validation Note -->
+<div class="bg-[#FEF3C7] border border-[#F59E0B]/30 rounded-lg p-4 text-[#B45309]">
+<div class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-[#B45309] flex-shrink-0 mt-0.5" data-icon="info">info</span>
+<div class="font-body-md text-[13px] leading-relaxed">
+                Rankings incorporate self-assessed preferences. Completing the optional SQL practice set adjusts confidence intervals.
+              </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- ==================== FLOATING 'ASK BOSLA' TRIGGER ==================== -->
+<button class="fixed bottom-8 right-8 z-50 h-12 px-5 bg-[#0F1115] hover:bg-[#1C1F26] text-white rounded-full flex items-center gap-2.5 custom-floating-shadow transition-colors">
+<span class="material-symbols-outlined text-[#F59E0B] text-[20px]" data-icon="spark">spark</span>
+<span class="font-body-md-medium text-body-md-medium tracking-wide">Ask Bosla</span>
+</button>
+</body></html>

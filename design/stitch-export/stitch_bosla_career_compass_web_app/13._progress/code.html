@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bosla — Progress</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration verbatim -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "error": "#ba1a1a",
+            "inverse-primary": "#c6c6cc",
+            "on-tertiary-container": "#b87500",
+            "primary-container": "#1a1c20",
+            "outline": "#76777b",
+            "on-primary-fixed": "#1a1c20",
+            "on-surface": "#151c28",
+            "background": "#f9f9ff",
+            "secondary-fixed": "#dce1ff",
+            "on-error": "#ffffff",
+            "inverse-surface": "#2a313d",
+            "surface-bright": "#f9f9ff",
+            "tertiary-container": "#2a1700",
+            "tertiary-fixed": "#ffddb8",
+            "on-secondary-fixed-variant": "#264191",
+            "on-primary-fixed-variant": "#45474b",
+            "on-tertiary": "#ffffff",
+            "on-surface-variant": "#45474b",
+            "on-secondary": "#ffffff",
+            "tertiary": "#000000",
+            "outline-variant": "#c6c6cb",
+            "surface-container-high": "#e2e8f9",
+            "on-tertiary-fixed": "#2a1700",
+            "error-container": "#ffdad6",
+            "on-primary": "#ffffff",
+            "primary-fixed-dim": "#c6c6cc",
+            "surface": "#f9f9ff",
+            "surface-container-low": "#f0f3ff",
+            "on-secondary-fixed": "#00164e",
+            "surface-container": "#e7eeff",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-container": "#828489",
+            "on-background": "#151c28",
+            "secondary-fixed-dim": "#b6c4ff",
+            "secondary-container": "#8fa7fe",
+            "surface-dim": "#d3daeb",
+            "primary": "#000000",
+            "on-secondary-container": "#1d3989",
+            "on-tertiary-fixed-variant": "#653e00",
+            "inverse-on-surface": "#ecf1ff",
+            "primary-fixed": "#e2e2e8",
+            "tertiary-fixed-dim": "#ffb95f",
+            "secondary": "#4059aa",
+            "surface-container-highest": "#dce2f3",
+            "surface-variant": "#dce2f3",
+            "surface-tint": "#5d5e63",
+            "on-error-container": "#93000a"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "space-xs": "0.25rem",
+            "gutter": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": [
+              "Space Grotesk"
+            ],
+            "headline-lg": [
+              "Space Grotesk"
+            ],
+            "body-lg-medium": [
+              "IBM Plex Sans"
+            ],
+            "body-md": [
+              "IBM Plex Sans"
+            ],
+            "body-md-medium": [
+              "IBM Plex Sans"
+            ],
+            "label-sm": [
+              "IBM Plex Sans"
+            ],
+            "headline-md": [
+              "Space Grotesk"
+            ],
+            "headline-sm": [
+              "Space Grotesk"
+            ],
+            "label-md": [
+              "IBM Plex Sans"
+            ],
+            "display": [
+              "Space Grotesk"
+            ],
+            "body-lg": [
+              "IBM Plex Sans"
+            ]
+          },
+          "fontSize": {
+            "headline-lg-mobile": [
+              "24px",
+              {
+                "lineHeight": "32px",
+                "letterSpacing": "-0.02em",
+                "fontWeight": "700"
+              }
+            ],
+            "headline-lg": [
+              "28px",
+              {
+                "lineHeight": "36px",
+                "letterSpacing": "-0.02em",
+                "fontWeight": "700"
+              }
+            ],
+            "body-lg-medium": [
+              "16px",
+              {
+                "lineHeight": "24px",
+                "fontWeight": "500"
+              }
+            ],
+            "body-md": [
+              "14px",
+              {
+                "lineHeight": "20px",
+                "fontWeight": "400"
+              }
+            ],
+            "body-md-medium": [
+              "14px",
+              {
+                "lineHeight": "20px",
+                "fontWeight": "500"
+              }
+            ],
+            "label-sm": [
+              "11px",
+              {
+                "lineHeight": "14px",
+                "letterSpacing": "0.04em",
+                "fontWeight": "500"
+              }
+            ],
+            "headline-md": [
+              "22px",
+              {
+                "lineHeight": "28px",
+                "letterSpacing": "-0.02em",
+                "fontWeight": "600"
+              }
+            ],
+            "headline-sm": [
+              "18px",
+              {
+                "lineHeight": "24px",
+                "letterSpacing": "-0.01em",
+                "fontWeight": "600"
+              }
+            ],
+            "label-md": [
+              "12px",
+              {
+                "lineHeight": "16px",
+                "letterSpacing": "0.02em",
+                "fontWeight": "500"
+              }
+            ],
+            "display": [
+              "36px",
+              {
+                "lineHeight": "44px",
+                "letterSpacing": "-0.02em",
+                "fontWeight": "700"
+              }
+            ],
+            "body-lg": [
+              "16px",
+              {
+                "lineHeight": "24px",
+                "fontWeight": "400"
+              }
+            ]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      background-color: #FAFAF8;
+      color: #0F1115;
+      font-family: 'IBM Plex Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .material-symbols-outlined.fill-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+    .floating-ask-bosla-shadow {
+      box-shadow: 0 4px 20px -2px rgba(15, 17, 21, 0.12), 0 2px 6px -1px rgba(15, 17, 21, 0.06);
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+<!-- Left Sidebar (SideNavBar) -->
+<aside class="w-60 h-screen fixed left-0 top-0 z-40 bg-surface-container-lowest border-r border-outline-variant flex flex-col justify-between" style="border-color: #E6E7EA; background-color: #FFFFFF;">
+<!-- Sidebar Top: Brand & Navigation -->
+<div>
+<!-- Brand Logo Header -->
+<div class="h-14 px-5 flex items-center border-b border-outline-variant" style="border-color: #E6E7EA;">
+<img alt="Bosla compass-rose brandmark" class="h-9 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaL4lO28tTABifIAoagspamFNi6aq2HMn2-JlpEJXgLBWivRJTOddMa1mWJBz6PpECK662b3NTo-T1407oNV9AD7_Y3XSHTe77_fL2-aOvoIXXqhhbkec5YKvBmTE4p4anR_d_OFJIbl68XEjP5LnSaHrhcsXfXbwbE3Ir2yof3hYbk1dPK_bZ3NA4hwL_vPveQJ-fNSrSRFE04nGM0X9P3IH5hKbrXHKgNWxBgtb3xXhBa71NwGQjTNu37Gw8vDWqWQ"/>
+</div>
+<!-- Navigation Rail -->
+<nav class="py-4 space-y-1">
+<!-- Discover -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#" style="color: #5B6270;">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Discover</span>
+</a>
+<!-- Habits -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#" style="color: #5B6270;">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+<span class="font-label-md text-label-md">Habits</span>
+</a>
+<!-- Learn -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#" style="color: #5B6270;">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+<span class="font-label-md text-label-md">Learn</span>
+</a>
+<!-- Progress (ACTIVE TAB) -->
+<a class="flex items-center gap-3 px-4 py-2.5 bg-surface-container text-secondary font-medium border-l-2 border-secondary" href="#" style="background-color: #E8EDF9; color: #1E3A8A; border-left-color: #1E3A8A;">
+<span class="material-symbols-outlined fill-icon" data-icon="insights" style="color: #1E3A8A;">insights</span>
+<span class="font-label-md text-label-md font-medium" style="color: #1E3A8A;">Progress</span>
+</a>
+<!-- Mentor -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#" style="color: #5B6270;">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-label-md text-label-md">Mentor</span>
+</a>
+<!-- Profile -->
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant font-normal hover:bg-surface-container-low hover:text-on-surface transition-colors" href="#" style="color: #5B6270;">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+</div>
+<!-- Sidebar Bottom: Level & XP Card -->
+<div class="p-4 m-3 rounded-lg border border-outline-variant bg-surface-container-lowest" style="border-color: #E6E7EA; background-color: #FAFAF8;">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="military_tech" style="color: #0F1115;">military_tech</span>
+<span class="font-headline-sm text-[13px] font-semibold tracking-tight text-primary" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">Level 3 · Disciplined</span>
+</div>
+</div>
+<!-- Track and Amber Bar -->
+<div class="w-full bg-outline-variant rounded-full h-1.5 overflow-hidden mb-2" style="background-color: #E6E7EA;">
+<div class="h-1.5 rounded-full" style="width: 62%; background-color: #F59E0B;"></div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm" style="color: #5B6270;">
+<span>620 / 1,000 XP</span>
+<span class="font-medium" style="color: #F59E0B;">62%</span>
+</div>
+</div>
+</aside>
+<!-- Top App Bar (TopNavBar) -->
+<header class="fixed top-0 right-0 left-60 h-14 z-30 bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between px-6" style="border-color: #E6E7EA; background-color: #FFFFFF;">
+<!-- Left: Utility Search -->
+<div class="relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search" style="color: #8A8F98; font-size: 18px;">search</span>
+<input class="w-full h-9 pl-9 pr-4 text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-secondary transition-colors" placeholder="Search careers, habits, courses" style="border-color: #E6E7EA; color: #0F1115;" type="text"/>
+</div>
+<!-- Right: Notification & Profile Avatar -->
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-on-surface-variant hover:text-primary transition-colors" title="Notifications">
+<span class="material-symbols-outlined" data-icon="notifications" style="font-size: 22px;">notifications</span>
+<!-- Amber status dot -->
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full ring-2 ring-white" style="background-color: #F59E0B;"></span>
+</button>
+<!-- Ink User Avatar Aly Maklad -->
+<div class="flex items-center gap-2 pl-2 border-l border-outline-variant" style="border-color: #E6E7EA;">
+<div class="w-8 h-8 rounded-full flex items-center justify-center font-headline-sm text-sm font-semibold text-white" style="background-color: #0F1115; font-family: 'Space Grotesk', sans-serif;">
+          A
+        </div>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="ml-60 pt-14 min-h-screen" style="background-color: #FAFAF8;">
+<div class="max-w-[1280px] mx-auto px-6 py-8">
+<!-- Page Header -->
+<div class="mb-8">
+<h1 class="font-headline-lg text-headline-lg font-bold tracking-tight text-primary mb-1" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+          Progress
+        </h1>
+<p class="font-body-md text-body-md" style="color: #5B6270;">
+          Your momentum, milestones, and personal records across all habits and roadmaps.
+        </p>
+</div>
+<!-- Hero Card: Level & Milestone Status -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-6 mb-6" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-outline-variant" style="border-color: #E6E7EA;">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg flex items-center justify-center border border-outline-variant" style="background-color: #FAFAF8; border-color: #E6E7EA;">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="military_tech" style="color: #0F1115;">military_tech</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-headline-md text-headline-md font-bold text-primary" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                  Level 3 · Disciplined
+                </h2>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-medium" style="background-color: #FEF3C7; color: #B45309;">
+                  Active tier
+                </span>
+</div>
+<p class="font-body-md text-body-md mt-0.5" style="color: #5B6270;">
+                Next tier: <span class="font-medium text-primary" style="color: #0F1115;">Focused</span> at 1,000 XP (380 XP remaining)
+              </p>
+</div>
+</div>
+<div class="text-right flex md:flex-col items-baseline md:items-end justify-between gap-1">
+<span class="font-headline-sm text-headline-sm font-bold text-primary" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">620 / 1,000 XP</span>
+<span class="font-label-md text-label-md" style="color: #5B6270;">62% completed</span>
+</div>
+</div>
+<!-- Large Progress Bar -->
+<div class="pt-5">
+<div class="w-full h-2.5 rounded-full overflow-hidden" style="background-color: #E6E7EA;">
+<div class="h-full rounded-full transition-all duration-500" style="width: 62%; background-color: #F59E0B;"></div>
+</div>
+<div class="flex justify-between items-center mt-2.5 font-label-sm text-label-sm" style="color: #5B6270;">
+<span>Level 2: Apprentice (0 XP)</span>
+<span class="font-medium" style="color: #0F1115;">Current: Disciplined (620 XP)</span>
+<span>Level 4: Focused (1,000 XP)</span>
+</div>
+</div>
+</div>
+<!-- Stat Summary Cards (Row of 3) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<!-- 1. Current streak -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-6" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-md text-label-md font-medium" style="color: #5B6270;">Current streak</span>
+<span class="material-symbols-outlined fill-icon" data-icon="local_fire_department" style="color: #F59E0B;">local_fire_department</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-display text-[32px] leading-9 font-bold text-primary" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+              7 days
+            </span>
+</div>
+<div class="mt-3 pt-3 border-t border-outline-variant flex items-center gap-1.5 font-label-sm text-label-sm" style="border-color: #E6E7EA; color: #5B6270;">
+<span class="material-symbols-outlined text-[16px] text-secondary" data-icon="check_circle" style="color: #1E3A8A;">check_circle</span>
+<span>Target logged today</span>
+</div>
+</div>
+<!-- 2. Longest streak -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-6" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-md text-label-md font-medium" style="color: #5B6270;">Longest streak</span>
+<span class="material-symbols-outlined" data-icon="history" style="color: #5B6270;">history</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-display text-[32px] leading-9 font-bold text-primary" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+              12 days
+            </span>
+</div>
+<div class="mt-3 pt-3 border-t border-outline-variant font-label-sm text-label-sm" style="border-color: #E6E7EA; color: #5B6270;">
+            Achieved 14 Aug 2026
+          </div>
+</div>
+<!-- 3. Hours logged -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-6" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-md text-label-md font-medium" style="color: #5B6270;">Hours logged</span>
+<span class="material-symbols-outlined" data-icon="schedule" style="color: #5B6270;">schedule</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-display text-[32px] leading-9 font-bold text-primary" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+              41h 20m
+            </span>
+</div>
+<div class="mt-3 pt-3 border-t border-outline-variant font-label-sm text-label-sm" style="border-color: #E6E7EA; color: #5B6270;">
+            Across 3 active roadmaps
+          </div>
+</div>
+</div>
+<!-- Section: Achievements -->
+<section class="mb-10">
+<div class="mb-4">
+<h2 class="font-headline-md text-headline-md font-bold text-primary mb-0.5" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+            Achievements
+          </h2>
+<p class="font-body-md text-body-md" style="color: #5B6270;">
+            Milestones unlocked through continuous deliberate practice.
+          </p>
+</div>
+<!-- 8 Achievement Badges Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- 1. First 7-Day Streak (UNLOCKED) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-5 flex flex-col justify-between" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div>
+<div class="flex items-start justify-between mb-3">
+<div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: #FEF3C7; color: #B45309;">
+<span class="material-symbols-outlined fill-icon" data-icon="star">star</span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-[11px] px-2 py-0.5 rounded-full font-medium" style="background-color: #E8EDF9; color: #1E3A8A;">
+<span class="material-symbols-outlined text-[12px] fill-icon" data-icon="check_circle">check_circle</span>
+                  Unlocked
+                </span>
+</div>
+<h3 class="font-headline-sm text-[15px] font-semibold text-primary mb-1" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                First 7-Day Streak
+              </h3>
+<p class="font-body-md text-[13px] leading-snug" style="color: #5B6270;">
+                Completed 7 days in a row
+              </p>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant text-[11px] font-label-sm" style="border-color: #E6E7EA; color: #8A8F98;">
+              Unlocked 2 days ago
+            </div>
+</div>
+<!-- 2. 10 Hours Studied (UNLOCKED) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-5 flex flex-col justify-between" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div>
+<div class="flex items-start justify-between mb-3">
+<div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: #E8EDF9; color: #1E3A8A;">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-[11px] px-2 py-0.5 rounded-full font-medium" style="background-color: #E8EDF9; color: #1E3A8A;">
+<span class="material-symbols-outlined text-[12px] fill-icon" data-icon="check_circle">check_circle</span>
+                  Unlocked
+                </span>
+</div>
+<h3 class="font-headline-sm text-[15px] font-semibold text-primary mb-1" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                10 Hours Studied
+              </h3>
+<p class="font-body-md text-[13px] leading-snug" style="color: #5B6270;">
+                Logged 10 hours of verified study
+              </p>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant text-[11px] font-label-sm" style="border-color: #E6E7EA; color: #8A8F98;">
+              Unlocked 18 Aug 2026
+            </div>
+</div>
+<!-- 3. 50 Tasks Completed (PROGRESS: 34/50) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-5 flex flex-col justify-between opacity-90" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div>
+<div class="flex items-start justify-between mb-3">
+<div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: #F4F4F5; color: #5B6270;">
+<span class="material-symbols-outlined" data-icon="task_alt">task_alt</span>
+</div>
+<span class="font-label-sm text-[11px] px-2 py-0.5 rounded-full font-medium" style="background-color: #F4F4F5; color: #5B6270;">
+                  34 / 50
+                </span>
+</div>
+<h3 class="font-headline-sm text-[15px] font-semibold text-primary mb-1" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                50 Tasks Completed
+              </h3>
+<p class="font-body-md text-[13px] leading-snug" style="color: #5B6270;">
+                Finish 50 curriculum milestones
+              </p>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant" style="border-color: #E6E7EA;">
+<div class="w-full bg-outline-variant rounded-full h-1.5 overflow-hidden mb-1.5" style="background-color: #E6E7EA;">
+<div class="h-1.5 rounded-full" style="width: 68%; background-color: #1E3A8A;"></div>
+</div>
+<div class="flex justify-between text-[11px] font-label-sm" style="color: #8A8F98;">
+<span>68% completed</span>
+<span>16 to go</span>
+</div>
+</div>
+</div>
+<!-- 4. 100 Hours Studied (PROGRESS: 41/100) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-5 flex flex-col justify-between opacity-90" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div>
+<div class="flex items-start justify-between mb-3">
+<div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: #F4F4F5; color: #5B6270;">
+<span class="material-symbols-outlined" data-icon="hourglass_top">hourglass_top</span>
+</div>
+<span class="font-label-sm text-[11px] px-2 py-0.5 rounded-full font-medium" style="background-color: #F4F4F5; color: #5B6270;">
+                  41h / 100h
+                </span>
+</div>
+<h3 class="font-headline-sm text-[15px] font-semibold text-primary mb-1" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                100 Hours Studied
+              </h3>
+<p class="font-body-md text-[13px] leading-snug" style="color: #5B6270;">
+                Reach triple-digit career focus
+              </p>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant" style="border-color: #E6E7EA;">
+<div class="w-full bg-outline-variant rounded-full h-1.5 overflow-hidden mb-1.5" style="background-color: #E6E7EA;">
+<div class="h-1.5 rounded-full" style="width: 41%; background-color: #1E3A8A;"></div>
+</div>
+<div class="flex justify-between text-[11px] font-label-sm" style="color: #8A8F98;">
+<span>41% completed</span>
+<span>59h remaining</span>
+</div>
+</div>
+</div>
+<!-- 5. Perfect Week (UNLOCKED) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-5 flex flex-col justify-between" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div>
+<div class="flex items-start justify-between mb-3">
+<div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: #FEF3C7; color: #B45309;">
+<span class="material-symbols-outlined fill-icon" data-icon="workspace_premium">workspace_premium</span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-[11px] px-2 py-0.5 rounded-full font-medium" style="background-color: #E8EDF9; color: #1E3A8A;">
+<span class="material-symbols-outlined text-[12px] fill-icon" data-icon="check_circle">check_circle</span>
+                  Unlocked
+                </span>
+</div>
+<h3 class="font-headline-sm text-[15px] font-semibold text-primary mb-1" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                Perfect Week
+              </h3>
+<p class="font-body-md text-[13px] leading-snug" style="color: #5B6270;">
+                1 so far — 100% completion in week of Sep 6
+              </p>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant text-[11px] font-label-sm" style="border-color: #E6E7EA; color: #8A8F98;">
+              Unlocked 10 Sep 2026
+            </div>
+</div>
+<!-- 6. 30-Day Streak (PROGRESS: 12/30) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-5 flex flex-col justify-between opacity-90" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div>
+<div class="flex items-start justify-between mb-3">
+<div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: #F4F4F5; color: #5B6270;">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+</div>
+<span class="font-label-sm text-[11px] px-2 py-0.5 rounded-full font-medium" style="background-color: #F4F4F5; color: #5B6270;">
+                  12 / 30 days
+                </span>
+</div>
+<h3 class="font-headline-sm text-[15px] font-semibold text-primary mb-1" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                30-Day Streak
+              </h3>
+<p class="font-body-md text-[13px] leading-snug" style="color: #5B6270;">
+                Maintain active momentum for a month
+              </p>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant" style="border-color: #E6E7EA;">
+<div class="w-full bg-outline-variant rounded-full h-1.5 overflow-hidden mb-1.5" style="background-color: #E6E7EA;">
+<div class="h-1.5 rounded-full" style="width: 40%; background-color: #1E3A8A;"></div>
+</div>
+<div class="flex justify-between text-[11px] font-label-sm" style="color: #8A8F98;">
+<span>40% completed</span>
+<span>18 days remaining</span>
+</div>
+</div>
+</div>
+<!-- 7. Beat Your Previous Record (UNLOCKED) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-5 flex flex-col justify-between" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div>
+<div class="flex items-start justify-between mb-3">
+<div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: #E8EDF9; color: #1E3A8A;">
+<span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-[11px] px-2 py-0.5 rounded-full font-medium" style="background-color: #E8EDF9; color: #1E3A8A;">
+<span class="material-symbols-outlined text-[12px] fill-icon" data-icon="check_circle">check_circle</span>
+                  Unlocked
+                </span>
+</div>
+<h3 class="font-headline-sm text-[15px] font-semibold text-primary mb-1" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                Beat Your Record
+              </h3>
+<p class="font-body-md text-[13px] leading-snug" style="color: #5B6270;">
+                Surpassed 5-day habit streak
+              </p>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant text-[11px] font-label-sm" style="border-color: #E6E7EA; color: #8A8F98;">
+              Unlocked 14 Aug 2026
+            </div>
+</div>
+<!-- 8. Comeback (NOT YET / LOCKED) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-5 flex flex-col justify-between opacity-60" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div>
+<div class="flex items-start justify-between mb-3">
+<div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: #F4F4F5; color: #8A8F98;">
+<span class="material-symbols-outlined" data-icon="lock">lock</span>
+</div>
+<span class="font-label-sm text-[11px] px-2 py-0.5 rounded-full font-medium" style="background-color: #F4F4F5; color: #8A8F98;">
+                  Locked
+                </span>
+</div>
+<h3 class="font-headline-sm text-[15px] font-semibold text-primary mb-1" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                Comeback
+              </h3>
+<p class="font-body-md text-[13px] leading-snug" style="color: #5B6270;">
+                Recover a dropped habit within 48 hours
+              </p>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant text-[11px] font-label-sm" style="border-color: #E6E7EA; color: #8A8F98;">
+              Condition pending
+            </div>
+</div>
+</div>
+</section>
+<!-- Section: Personal records -->
+<section class="mb-12">
+<div class="mb-4">
+<h2 class="font-headline-md text-headline-md font-bold text-primary mb-0.5" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+            Personal records
+          </h2>
+<p class="font-body-md text-body-md" style="color: #5B6270;">
+            Benchmark performance metrics recorded over your journey.
+          </p>
+</div>
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden" style="background-color: #FFFFFF; border-color: #E6E7EA;">
+<div class="divide-y divide-outline-variant" style="border-color: #E6E7EA;">
+<!-- Record Item 1 -->
+<div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="bolt" style="color: #1E3A8A;">bolt</span>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-primary" style="color: #0F1115;">Longest streak</div>
+<div class="font-label-sm text-label-sm" style="color: #8A8F98;">Consecutive days with at least one validated session</div>
+</div>
+</div>
+<div class="flex items-center sm:text-right gap-4 sm:gap-6 pl-8 sm:pl-0">
+<span class="font-headline-sm text-headline-sm font-bold text-primary tabular-nums" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                  12 days
+                </span>
+<span class="font-label-md text-label-md min-w-[90px] text-right" style="color: #5B6270;">
+                  Aug 2026
+                </span>
+</div>
+</div>
+<!-- Record Item 2 -->
+<div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="timer" style="color: #1E3A8A;">timer</span>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-primary" style="color: #0F1115;">Most hours in a week</div>
+<div class="font-label-sm text-label-sm" style="color: #8A8F98;">Peak continuous dedication in a Monday–Sunday cycle</div>
+</div>
+</div>
+<div class="flex items-center sm:text-right gap-4 sm:gap-6 pl-8 sm:pl-0">
+<span class="font-headline-sm text-headline-sm font-bold text-primary tabular-nums" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                  9h 45m
+                </span>
+<span class="font-label-md text-label-md min-w-[90px] text-right" style="color: #5B6270;">
+                  Week of Aug 24
+                </span>
+</div>
+</div>
+<!-- Record Item 3 -->
+<div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="stars" style="color: #1E3A8A;">stars</span>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-primary" style="color: #0F1115;">Most points in a week</div>
+<div class="font-label-sm text-label-sm" style="color: #8A8F98;">Highest volume of habit discipline and task execution points</div>
+</div>
+</div>
+<div class="flex items-center sm:text-right gap-4 sm:gap-6 pl-8 sm:pl-0">
+<span class="font-headline-sm text-headline-sm font-bold text-primary tabular-nums" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                  38 pts
+                </span>
+<span class="font-label-md text-label-md min-w-[90px] text-right" style="color: #5B6270;">
+                  Week of Aug 24
+                </span>
+</div>
+</div>
+<!-- Record Item 4 -->
+<div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="done_all" style="color: #1E3A8A;">done_all</span>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-primary" style="color: #0F1115;">Highest completion rate</div>
+<div class="font-label-sm text-label-sm" style="color: #8A8F98;">Ratio of planned vs completed daily routines</div>
+</div>
+</div>
+<div class="flex items-center sm:text-right gap-4 sm:gap-6 pl-8 sm:pl-0">
+<span class="font-headline-sm text-headline-sm font-bold text-primary tabular-nums" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                  100%
+                </span>
+<span class="font-label-md text-label-md min-w-[90px] text-right" style="color: #5B6270;">
+                  Week of Sep 6
+                </span>
+</div>
+</div>
+<!-- Record Item 5 -->
+<div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="calendar_today" style="color: #1E3A8A;">calendar_today</span>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-primary" style="color: #0F1115;">Most productive day</div>
+<div class="font-label-sm text-label-sm" style="color: #8A8F98;">Day with highest aggregate focus and completion count</div>
+</div>
+</div>
+<div class="flex items-center sm:text-right gap-4 sm:gap-6 pl-8 sm:pl-0">
+<span class="font-headline-sm text-headline-sm font-bold text-primary" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                  Saturday
+                </span>
+<span class="font-label-md text-label-md min-w-[90px] text-right" style="color: #5B6270;">
+                  avg 1h 15m
+                </span>
+</div>
+</div>
+<!-- Record Item 6 -->
+<div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="query_stats" style="color: #1E3A8A;">query_stats</span>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-primary" style="color: #0F1115;">Most improved habit</div>
+<div class="font-label-sm text-label-sm" style="color: #8A8F98;">Steepest 30-day upward trajectory in adherence</div>
+</div>
+</div>
+<div class="flex items-center sm:text-right gap-4 sm:gap-6 pl-8 sm:pl-0">
+<span class="font-headline-sm text-headline-sm font-bold text-primary" style="font-family: 'Space Grotesk', sans-serif; color: #0F1115;">
+                  SQL exercises
+                </span>
+<span class="font-label-md text-label-md min-w-[90px] text-right font-medium" style="color: #1E3A8A;">
+                  +40% consistency
+                </span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Floating 'Ask Bosla' Trigger (System standard exception for shadow) -->
+<aside aria-label="Floating guidance action">
+<button class="fixed bottom-8 right-8 z-50 h-12 px-5 rounded-full flex items-center gap-2.5 text-white floating-ask-bosla-shadow hover:opacity-90 transition-opacity" style="background-color: #0F1115; font-family: 'Space Grotesk', sans-serif;">
+<span class="material-symbols-outlined text-[20px]" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-headline-sm text-sm font-semibold tracking-wide">Ask Bosla</span>
+</button>
+</aside>
+</body></html>

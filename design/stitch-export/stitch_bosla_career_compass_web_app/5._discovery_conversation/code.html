@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bosla Career Navigation — Onboarding Discovery</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "outline-variant": "#c6c6cb",
+            "surface-container-lowest": "#ffffff",
+            "inverse-on-surface": "#ecf1ff",
+            "on-tertiary-fixed-variant": "#653e00",
+            "on-tertiary-container": "#b87500",
+            "on-tertiary-fixed": "#2a1700",
+            "tertiary-container": "#2a1700",
+            "on-error": "#ffffff",
+            "surface-variant": "#dce2f3",
+            "on-surface": "#151c28",
+            "on-primary-fixed": "#1a1c20",
+            "error": "#ba1a1a",
+            "surface-container-highest": "#dce2f3",
+            "inverse-surface": "#2a313d",
+            "surface-container": "#e7eeff",
+            "on-secondary-container": "#1d3989",
+            "on-primary-fixed-variant": "#45474b",
+            "surface": "#f9f9ff",
+            "on-secondary-fixed-variant": "#264191",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed-dim": "#b6c4ff",
+            "tertiary-fixed-dim": "#ffb95f",
+            "tertiary-fixed": "#ffddb8",
+            "outline": "#76777b",
+            "tertiary": "#000000",
+            "primary-fixed": "#e2e2e8",
+            "on-primary": "#ffffff",
+            "background": "#f9f9ff",
+            "inverse-primary": "#c6c6cc",
+            "primary": "#000000",
+            "on-error-container": "#93000a",
+            "surface-tint": "#5d5e63",
+            "on-secondary": "#ffffff",
+            "error-container": "#ffdad6",
+            "primary-container": "#1a1c20",
+            "secondary-fixed": "#dce1ff",
+            "surface-dim": "#d3daeb",
+            "on-primary-container": "#828489",
+            "surface-container-low": "#f0f3ff",
+            "secondary-container": "#8fa7fe",
+            "on-surface-variant": "#45474b",
+            "surface-container-high": "#e2e8f9",
+            "on-secondary-fixed": "#00164e",
+            "primary-fixed-dim": "#c6c6cc",
+            "on-background": "#151c28",
+            "surface-bright": "#f9f9ff",
+            "secondary": "#4059aa"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "gutter": "1.5rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "margin": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Space Grotesk"],
+            "body-md": ["IBM Plex Sans"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-md": ["Space Grotesk"],
+            "body-lg": ["IBM Plex Sans"],
+            "body-lg-medium": ["IBM Plex Sans"],
+            "body-md-medium": ["IBM Plex Sans"],
+            "display": ["Space Grotesk"],
+            "label-sm": ["IBM Plex Sans"],
+            "label-md": ["IBM Plex Sans"],
+            "headline-lg-mobile": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "body-lg-medium": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+            "body-md-medium": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+            "display": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .cursor-blink {
+      animation: blink 1s infinite;
+    }
+  </style>
+</head>
+<body class="bg-[#FAFAF8] text-on-surface antialiased min-h-screen flex flex-col font-body-md text-body-md selection:bg-surface-container-high">
+<!-- Linear Onboarding Stepper Header (Top Bar) -->
+<header class="w-full bg-surface-container-lowest border-b border-outline-variant/30 sticky top-0 z-30">
+<div class="max-w-[1280px] mx-auto px-6 h-14 flex items-center justify-between">
+<!-- Brand Lockup -->
+<div class="flex items-center gap-3">
+<img alt="BOSLA Career Navigation" class="h-6 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnHR8GkdSjNe9fb087tRy1jogiddOp9AtjQa1UdpL9z7e1VCxTvLkxNplWe_9BU-6pU5RzTfnmn54lkyVdWbMOs8TTY30h54_YLam_RxFmZJoOHLjat2WGzRDHixoteqptUtT4nzakII2kxh9X2JKD4AykhWdTD5DW2dS4_NxLGK0jKiD_ME06NmpNDzcCZv3nUKG2iDglCVzrCRZCN8gnURgXNBoX1LBLJPzRIGkwYQaDJYGu01k96yPtOjOT20Nsrw"/>
+<span class="text-outline-variant font-light">|</span>
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Onboarding</span>
+</div>
+<!-- Stepper: Step 3 of 4 -->
+<nav aria-label="Onboarding Progress" class="hidden sm:flex items-center gap-2">
+<!-- Step 1 -->
+<div class="flex items-center gap-1.5 text-on-surface-variant font-label-md text-label-md">
+<span class="w-5 h-5 rounded-full bg-surface-container flex items-center justify-center font-label-sm text-label-sm text-on-surface">1</span>
+<span>Consent</span>
+</div>
+<span class="text-outline-variant/40 font-light mx-1">·</span>
+<!-- Step 2 -->
+<div class="flex items-center gap-1.5 text-on-surface-variant font-label-md text-label-md">
+<span class="w-5 h-5 rounded-full bg-surface-container flex items-center justify-center font-label-sm text-label-sm text-on-surface">2</span>
+<span>CV</span>
+</div>
+<span class="text-outline-variant/40 font-light mx-1">·</span>
+<!-- Step 3 (Active) -->
+<div class="flex items-center gap-1.5 font-label-md text-label-md text-primary font-body-md-medium">
+<span class="w-5 h-5 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-label-sm text-label-sm">3</span>
+<span class="font-body-md-medium text-primary">Conversation</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-secondary font-medium ml-0.5">Active</span>
+</div>
+<span class="text-outline-variant/40 font-light mx-1">·</span>
+<!-- Step 4 -->
+<div class="flex items-center gap-1.5 text-on-surface-variant/60 font-label-md text-label-md">
+<span class="w-5 h-5 rounded-full bg-surface-container-low text-on-surface-variant/70 flex items-center justify-center font-label-sm text-label-sm">4</span>
+<span>Matches</span>
+</div>
+</nav>
+<!-- Step Counter Mobile -->
+<div class="flex sm:hidden items-center font-label-md text-label-md text-on-surface-variant">
+        Step 3 of 4
+      </div>
+<!-- Quiet Indicator / Support -->
+<div class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+<span class="hidden md:inline">Session synced</span>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 max-w-[1280px] w-full mx-auto px-6 py-8">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- Left Column: Chat Conversation Panel (2/3 width -> 8 cols) -->
+<section class="lg:col-span-8 flex flex-col bg-surface-container-lowest border border-outline-variant/40 rounded-lg">
+<!-- Conversation Header -->
+<div class="px-6 py-5 border-b border-outline-variant/30 flex items-center justify-between">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm px-2 py-0.5 bg-surface-container text-secondary rounded">STEP 3 OF 4</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ORIENTATION ENGINE</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-primary">Let's find your direction</h1>
+</div>
+<div class="text-right hidden sm:block">
+<div class="font-label-sm text-label-sm text-on-surface-variant">Progress to unlock</div>
+<div class="font-body-md-medium text-body-md-medium text-primary">Turn 5 of ~12</div>
+</div>
+</div>
+<!-- Chat Stream Canvas (5 Exact Turns) -->
+<div class="p-6 space-y-6 overflow-y-auto">
+<!-- Turn 1: Assistant -->
+<div class="flex flex-col items-start gap-1 max-w-2xl">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm font-medium text-secondary">Bosla Orientation</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">09:42 AM</span>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/50 border-l-[3px] border-l-[#1E3A8A] rounded-lg p-4 text-on-surface font-body-md text-body-md">
+              Welcome, Aly. Let's start with what actually energizes you. Thinking back over projects or work you've done recently, what kind of problems did you look forward to solving?
+            </div>
+<button class="mt-1 text-on-surface-variant hover:text-primary font-label-sm text-label-sm flex items-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined" data-icon="refresh">refresh</span>
+              Rephrase this question
+            </button>
+</div>
+<!-- Turn 2: User -->
+<div class="flex flex-col items-end gap-1 ml-auto max-w-xl">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Aly</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">09:43 AM</span>
+</div>
+<div class="bg-[#F0F1F3] rounded-lg p-4 text-[#0F1115] font-body-md text-body-md">
+              I found myself really enjoying looking at user drop-off data in our app and figuring out where people got stuck. Digging into messy spreadsheets and finding the underlying pattern was satisfying.
+            </div>
+</div>
+<!-- Turn 3: Assistant -->
+<div class="flex flex-col items-start gap-1 max-w-2xl">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm font-medium text-secondary">Bosla Orientation</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">09:44 AM</span>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/50 border-l-[3px] border-l-[#1E3A8A] rounded-lg p-4 text-on-surface font-body-md text-body-md">
+              That pattern-seeking instinct is clear. When you think about working with others versus digging into problems solo, where do you feel your natural strengths come out?
+            </div>
+<button class="mt-1 text-on-surface-variant hover:text-primary font-label-sm text-label-sm flex items-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined" data-icon="refresh">refresh</span>
+              Rephrase this question
+            </button>
+</div>
+<!-- Turn 4: User -->
+<div class="flex flex-col items-end gap-1 ml-auto max-w-xl">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Aly</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">09:45 AM</span>
+</div>
+<div class="bg-[#F0F1F3] rounded-lg p-4 text-[#0F1115] font-body-md text-body-md">
+              I like working independently to uncover the insight, but then I want to present the story clearly so the team can make a decision.
+            </div>
+</div>
+<!-- Turn 5: Assistant (Active Streaming) -->
+<div class="flex flex-col items-start gap-1 max-w-2xl">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm font-medium text-secondary">Bosla Orientation</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Just now</span>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/50 border-l-[3px] border-l-[#1E3A8A] rounded-lg p-4 text-on-surface font-body-md text-body-md relative">
+<span>When you picture a good work day, what are you doing most of the time?</span>
+<span class="inline-block w-1.5 h-4 ml-1 bg-[#1E3A8A] align-middle cursor-blink"></span>
+</div>
+<button class="mt-1 text-on-surface-variant hover:text-primary font-label-sm text-label-sm flex items-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined" data-icon="refresh">refresh</span>
+              Rephrase this question
+            </button>
+</div>
+</div>
+<!-- Chat Input Footer -->
+<div class="p-4 border-t border-outline-variant/30 bg-surface-container-lowest rounded-b-lg">
+<form class="flex items-center gap-3" onsubmit="event.preventDefault();">
+<div class="relative flex-1">
+<input class="w-full h-10 px-4 pr-10 bg-surface-container-lowest border border-outline-variant/50 rounded-lg text-primary placeholder-[#8A8F98] focus:border-[#1E3A8A] focus:outline-none transition-colors font-body-md text-body-md" placeholder="Type your answer…" type="text"/>
+</div>
+<button class="h-10 px-5 bg-primary text-surface-container-lowest hover:bg-[#1C1F26] rounded-lg font-body-md-medium text-body-md-medium flex items-center justify-center gap-1.5 transition-colors" type="submit">
+<span>Send</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="arrow_upward">arrow_upward</span>
+</button>
+</form>
+<div class="mt-2.5 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Press Enter to send · Shift+Enter for new line</span>
+<span class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]" data-icon="lock">lock</span>
+              Encrypted synthesis
+            </span>
+</div>
+</div>
+</section>
+<!-- Right Column: Sticky Structured Knowledge Card (1/3 width -> 4 cols) -->
+<aside class="lg:col-span-4 sticky top-20 flex flex-col gap-4">
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-lg p-6 flex flex-col">
+<!-- Card Header -->
+<div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-5">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-primary">What we've learned</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Real-time profile synthesis</p>
+</div>
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+<span class="font-label-sm text-label-sm font-medium text-secondary">Live</span>
+</div>
+</div>
+<!-- Structured Rows -->
+<div class="space-y-4">
+<!-- Row 1: Interests -->
+<div class="flex items-start justify-between gap-3 pb-3 border-b border-outline-variant/20">
+<div class="flex-1 min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block mb-0.5">Interests</span>
+<span class="font-body-md-medium text-body-md-medium text-primary block truncate">Data patterns &amp; user journeys</span>
+</div>
+<div class="flex items-center gap-1.5 mt-1 shrink-0" title="Confidence: Clear">
+<span class="w-2 h-2 rounded-full bg-[#16A34A]"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">clear</span>
+</div>
+</div>
+<!-- Row 2: Dislikes -->
+<div class="flex items-start justify-between gap-3 pb-3 border-b border-outline-variant/20">
+<div class="flex-1 min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block mb-0.5">Dislikes</span>
+<span class="font-body-md-medium text-body-md-medium text-primary block truncate">Repetitive manual data entry</span>
+</div>
+<div class="flex items-center gap-1.5 mt-1 shrink-0" title="Confidence: Getting there">
+<span class="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">getting there</span>
+</div>
+</div>
+<!-- Row 3: Strengths -->
+<div class="flex items-start justify-between gap-3 pb-3 border-b border-outline-variant/20">
+<div class="flex-1 min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block mb-0.5">Strengths</span>
+<span class="font-body-md-medium text-body-md-medium text-primary block truncate">Synthesizing data into insights</span>
+</div>
+<div class="flex items-center gap-1.5 mt-1 shrink-0" title="Confidence: Clear">
+<span class="w-2 h-2 rounded-full bg-[#16A34A]"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">clear</span>
+</div>
+</div>
+<!-- Row 4: Skills -->
+<div class="flex items-start justify-between gap-3 pb-3 border-b border-outline-variant/20">
+<div class="flex-1 min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block mb-0.5">Skills</span>
+<span class="font-body-md-medium text-body-md-medium text-primary block truncate">SQL, Python basics, Spreadsheets</span>
+</div>
+<div class="flex items-center gap-1.5 mt-1 shrink-0" title="Confidence: Clear">
+<span class="w-2 h-2 rounded-full bg-[#16A34A]"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">clear</span>
+</div>
+</div>
+<!-- Row 5: Experience -->
+<div class="flex items-start justify-between gap-3 pb-3 border-b border-outline-variant/20">
+<div class="flex-1 min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block mb-0.5">Experience</span>
+<span class="font-body-md-medium text-body-md-medium text-primary block truncate">2 yrs Junior Data Specialist</span>
+</div>
+<div class="flex items-center gap-1.5 mt-1 shrink-0" title="Confidence: Clear">
+<span class="w-2 h-2 rounded-full bg-[#16A34A]"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">clear</span>
+</div>
+</div>
+<!-- Row 6: Motivations -->
+<div class="flex items-start justify-between gap-3">
+<div class="flex-1 min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block mb-0.5">Motivations</span>
+<span class="font-body-md-medium text-body-md-medium text-primary block truncate">High-leverage decision support</span>
+</div>
+<div class="flex items-center gap-1.5 mt-1 shrink-0" title="Confidence: Getting there">
+<span class="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">getting there</span>
+</div>
+</div>
+</div>
+<!-- Muted Explanatory Note -->
+<div class="mt-6 pt-4 border-t border-outline-variant/30 flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant mt-0.5" data-icon="info">info</span>
+<p class="font-label-md text-label-md text-on-surface-variant leading-relaxed">
+              We'll ask 8–20 questions and stop when the picture is clear.
+            </p>
+</div>
+<!-- Primary CTA: Get my matches (Shown enabled with subtle amber state dot) -->
+<div class="mt-6">
+<button class="w-full h-10 px-4 bg-primary text-surface-container-lowest hover:bg-[#1C1F26] rounded-lg font-body-md-medium text-body-md-medium flex items-center justify-between transition-colors shadow-none" type="button">
+<span class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
+<span>Get my matches</span>
+</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<span class="block text-center font-label-sm text-label-sm text-on-surface-variant mt-2">
+              Ready to generate preliminary career pathways
+            </span>
+</div>
+</div>
+<!-- Secondary Information Pill / Guidance Note -->
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-lg p-4 flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center shrink-0 text-secondary">
+<span class="material-symbols-outlined text-[18px]" data-icon="psychology">psychology</span>
+</div>
+<div class="min-w-0 text-left">
+<div class="font-body-md-medium text-body-md-medium text-primary">Dynamic Depth Calibration</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant truncate">Calibrating role affinity based on phrasing</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Bottom Regulatory & Trust Footer -->
+<footer class="w-full mt-auto py-4 border-t border-outline-variant/30 bg-surface-container-lowest">
+<div class="max-w-[1280px] mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-on-surface-variant font-label-sm text-label-sm">
+<div class="flex items-center gap-2">
+<span class="font-medium text-on-surface">Bosla Career Navigation Platform</span>
+<span>·</span>
+<span>Encrypted storage and automated PII scrubbing applied</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="hover:text-primary transition-colors cursor-pointer">Security Protocol</span>
+<span>·</span>
+<span class="hover:text-primary transition-colors cursor-pointer">Privacy Charter</span>
+<span>·</span>
+<span>v2.4.0</span>
+</div>
+</div>
+</footer>
+</body></html>
