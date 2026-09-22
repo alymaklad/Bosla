@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy import inspect, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -12,13 +13,21 @@ settings = get_settings()
 def _async_database_url(url: str) -> str:
     """Make standard Postgres URLs compatible with SQLAlchemy's async driver."""
     if url.startswith("postgres://"):
-        return "postgresql+asyncpg://" + url[len("postgres://") :]
-    if url.startswith("postgresql://"):
-        return "postgresql+asyncpg://" + url[len("postgresql://") :]
+        url = "postgresql+asyncpg://" + url[len("postgres://") :]
+    elif url.startswith("postgresql://"):
+        url = "postgresql+asyncpg://" + url[len("postgresql://") :]
+    if url.startswith("postgresql+asyncpg://"):
+        parsed = urlsplit(url)
+        # Neon URLs target libpq clients and include parameters (for example
+        # ``sslmode`` and ``channel_binding``) that asyncpg does not accept.
+        query = [(key, value) for key, value in parse_qsl(parsed.query) if key not in {"sslmode", "channel_binding"}]
+        return urlunsplit(parsed._replace(query=urlencode(query)))
     return url
 
 
-engine = create_async_engine(_async_database_url(settings.database_url), echo=False)
+database_url = _async_database_url(settings.database_url)
+postgres_connect_args = {"ssl": True} if database_url.startswith("postgresql+asyncpg://") else {}
+engine = create_async_engine(database_url, echo=False, connect_args=postgres_connect_args)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
