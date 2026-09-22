@@ -1,16 +1,17 @@
-import { Send, Sparkles } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, type DiscoveryMessage, type DiscoveryProfile } from '../api'
-import { ConfidenceDot } from '../components/Card'
+import { OnboardingHeader } from '../components/OnboardingHeader'
 import { useApp } from '../context/AppContext'
 
-const DIMENSION_LABELS: [keyof DiscoveryProfile, string][] = [
-  ['interests', 'Interests'],
-  ['strengths', 'Strengths'],
-  ['skills', 'Skills'],
-  ['experience', 'Experience'],
-  ['motivations', 'Motivations'],
+type DimensionKey = 'interests' | 'strengths' | 'skills' | 'experience' | 'motivations'
+
+const DIMENSION_KEYS: { key: DimensionKey; label: string }[] = [
+  { key: 'interests', label: 'Interests' },
+  { key: 'strengths', label: 'Strengths' },
+  { key: 'skills', label: 'Skills' },
+  { key: 'experience', label: 'Experience' },
+  { key: 'motivations', label: 'Motivations' },
 ]
 
 export function Discovery() {
@@ -31,7 +32,7 @@ export function Discovery() {
         setMessages([opening])
       } else {
         setMessages(existing)
-        api.discoveryProfile().then(setProfile)
+        api.discoveryProfile().then(setProfile).catch(() => {})
       }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -39,7 +40,7 @@ export function Discovery() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages])
+  }, [messages, sending])
 
   async function send() {
     const text = input.trim()
@@ -49,19 +50,24 @@ export function Discovery() {
     setSending(true)
     setMessages((m) => [...m, { role: 'assistant', content: '' }])
 
-    try { await api.sendDiscoveryMessage(text, {
-      onChunk: (chunk) => {
-        setMessages((m) => {
-          const copy = [...m]
-          copy[copy.length - 1] = { role: 'assistant', content: copy[copy.length - 1].content + chunk }
-          return copy
-        })
-      },
-      onDone: (p) => {
-        setProfile(p)
-        setSending(false)
-      },
-    }) } catch (err) {
+    try {
+      await api.sendDiscoveryMessage(text, {
+        onChunk: (chunk) => {
+          setMessages((m) => {
+            const copy = [...m]
+            copy[copy.length - 1] = {
+              role: 'assistant',
+              content: copy[copy.length - 1].content + chunk,
+            }
+            return copy
+          })
+        },
+        onDone: (p) => {
+          setProfile(p)
+          setSending(false)
+        },
+      })
+    } catch (err) {
       setMessages((m) => m.slice(0, -1))
       setError(err instanceof Error ? err.message : 'Connection failed. Please retry.')
       setSending(false)
@@ -72,19 +78,21 @@ export function Discovery() {
     setError(null)
     try {
       setPreparing('Reading everything you shared…')
-    let assessmentText = ''
-    await api.runAssessment({
-      onChunk: () => {},
-      onDone: (text) => {
-        assessmentText = text
-      },
-    })
-    if (!assessmentText) return
-    setPreparing('Ranking career directions…')
-    await api.generateMatches()
-    navigate('/matches')
+      let assessmentText = ''
+      await api.runAssessment({
+        onChunk: () => {},
+        onDone: (text) => {
+          assessmentText = text
+        },
+      })
+      if (!assessmentText) return
+      setPreparing('Ranking career directions…')
+      await api.generateMatches()
+      navigate('/matches')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not generate matches. Check your connection and retry.')
+      setError(
+        err instanceof Error ? err.message : 'Could not generate matches. Check your connection and retry.',
+      )
     } finally {
       setPreparing(null)
     }
@@ -92,79 +100,223 @@ export function Discovery() {
 
   if (preparing) {
     return (
-      <div className="flex min-h-full flex-col items-center justify-center gap-3 px-6 text-center">
-        <Sparkles className="animate-pulse text-indigo-brand" size={28} />
-        <p className="text-[15px] font-medium">{preparing}</p>
-        <p className="text-[13px] text-text-3">This takes a few seconds.</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#FAFAF8] px-6 text-center">
+        <span className="material-symbols-outlined animate-spin text-[32px] text-[#1E3A8A]">
+          refresh
+        </span>
+        <p className="font-display text-[18px] font-semibold text-[#0F1115]">{preparing}</p>
+        <p className="font-body text-[13px] text-[#5B6270]">This takes a few seconds.</p>
       </div>
     )
   }
 
+  const turnCount = messages.filter((m) => m.role === 'user').length + 1
+  const firstName = (user?.name || 'there').split(' ')[0]
+
   return (
-    <div className="mx-auto grid min-h-full max-w-5xl grid-cols-1 gap-4 px-4 py-6 md:grid-cols-[1fr_280px] md:px-6">
-      <div className="flex min-h-[70vh] flex-col rounded-card border border-line bg-white">
-        <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
-          {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div
-                className={[
-                  'max-w-[85%] rounded-card px-3.5 py-2.5 text-[14px] leading-6',
-                  m.role === 'user' ? 'bg-ink text-white' : 'border border-line bg-page text-ink',
-                ].join(' ')}
-              >
-                {m.content || (sending && i === messages.length - 1 ? '…' : '')}
+    <div className="flex min-h-screen flex-col justify-between bg-[#FAFAF8] text-[#0F1115] antialiased">
+      <OnboardingHeader currentStep={3} />
+
+      {/* Main Canvas */}
+      <main className="mx-auto w-full max-w-[1280px] flex-1 px-6 pt-20 pb-8">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+          {/* Left Column: Chat Conversation Panel (8 cols) */}
+          <section className="flex flex-col rounded-lg border border-[#E6E7EA] bg-white lg:col-span-8">
+            {/* Conversation Header */}
+            <div className="flex items-center justify-between border-b border-[#E6E7EA] px-6 py-5">
+              <div>
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="rounded bg-[#E7EEFF] px-2 py-0.5 font-body text-[11px] font-medium text-[#1E3A8A]">
+                    STEP 3 OF 4
+                  </span>
+                  <span className="font-body text-[11px] uppercase tracking-wider text-[#5B6270]">
+                    ORIENTATION ENGINE
+                  </span>
+                </div>
+                <h1 className="font-display text-[22px] font-semibold tracking-tight text-[#0F1115]">
+                  Let's find your direction
+                </h1>
+              </div>
+              <div className="hidden text-right sm:block">
+                <div className="font-body text-[11px] text-[#5B6270]">Progress to unlock</div>
+                <div className="font-body text-[14px] font-medium text-[#0F1115]">
+                  Turn {turnCount} of ~12
+                </div>
               </div>
             </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 border-t border-line p-3">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && send()}
-            placeholder="Type your answer…"
-            disabled={sending}
-            className="h-10 flex-1 rounded-card border border-line px-3 text-[14px] outline-none focus:border-ink disabled:opacity-60"
-          />
-          <button
-            type="button"
-            onClick={send}
-            disabled={sending || !input.trim()}
-            aria-label="Send discovery response"
-            className="grid h-10 w-10 place-items-center rounded-card bg-ink text-white hover:bg-ink-hover disabled:opacity-40"
-          >
-            <Send size={16} />
-          </button>
-        </div>
-      </div>
 
-      <div className="rounded-card border border-line bg-white p-4">
-        <h3 className="text-[14px] font-semibold">What we've learned</h3>
-        <ul className="mt-3 space-y-3">
-          {DIMENSION_LABELS.map(([key, label]) => {
-            const dim = profile?.[key] as { text: string; confidence: string } | undefined
-            return (
-              <li key={key}>
-                <div className="flex items-center gap-2">
-                  <ConfidenceDot confidence={dim?.confidence ?? 'none'} />
-                  <span className="text-[13px] font-medium">{label}</span>
+            {/* Chat Stream Canvas */}
+            <div ref={scrollRef} className="h-[480px] space-y-6 overflow-y-auto p-6">
+              {messages.map((m, idx) => {
+                if (m.role === 'assistant') {
+                  const isLast = idx === messages.length - 1
+                  return (
+                    <div key={idx} className="flex max-w-2xl flex-col items-start gap-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="font-body text-[11px] font-medium text-[#1E3A8A]">
+                          Bosla Orientation
+                        </span>
+                        <span className="font-body text-[11px] text-[#8A8F98]">Assistant</span>
+                      </div>
+                      <div className="relative rounded-lg border border-[#E6E7EA] border-l-[3px] border-l-[#1E3A8A] bg-white p-4 font-body text-[14px] leading-relaxed text-[#0F1115]">
+                        <span className="whitespace-pre-wrap">{m.content}</span>
+                        {isLast && sending && (
+                          <span className="ml-1 inline-block h-4 w-1.5 animate-pulse bg-[#1E3A8A] align-middle" />
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInput('Could you rephrase that question in another way?')
+                        }}
+                        className="mt-1 flex items-center gap-1 font-body text-[11px] text-[#5B6270] transition-colors hover:text-[#0F1115]"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">refresh</span>
+                        Rephrase this question
+                      </button>
+                    </div>
+                  )
+                }
+
+                return (
+                  <div key={idx} className="ml-auto flex max-w-xl flex-col items-end gap-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <span className="font-body text-[11px] text-[#5B6270]">{firstName}</span>
+                    </div>
+                    <div className="rounded-lg bg-[#F0F1F3] p-4 font-body text-[14px] leading-relaxed text-[#0F1115]">
+                      <span className="whitespace-pre-wrap">{m.content}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Chat Input Footer */}
+            <div className="rounded-b-lg border-t border-[#E6E7EA] bg-white p-4">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  send()
+                }}
+                className="flex items-center gap-3"
+              >
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={input}
+                    disabled={sending}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Type your answer…"
+                    className="h-10 w-full rounded-lg border border-[#E6E7EA] bg-white px-4 font-body text-[14px] text-[#0F1115] placeholder-[#8A8F98] outline-none transition-colors focus:border-[#1E3A8A]"
+                  />
                 </div>
-                <p className="mt-0.5 pl-4 text-[12px] leading-5 text-text-3">{dim?.text || 'Not yet covered'}</p>
-              </li>
-            )
-          })}
-        </ul>
-        <button
-          type="button"
-          disabled={!profile?.ready}
-          onClick={getMatches}
-          className="mt-4 h-10 w-full rounded-card bg-ink text-[13px] font-medium text-white hover:bg-ink-hover disabled:opacity-30"
-        >
-          Get my matches
-        </button>
-        {error && <p role="alert" className="mt-2 text-[12px] text-danger">{error}</p>}
-        {!profile?.ready && <p className="mt-2 text-[11px] text-text-3">Unlocks once every dimension has a signal.</p>}
-      </div>
+                <button
+                  type="submit"
+                  disabled={!input.trim() || sending}
+                  className="flex h-10 items-center justify-center gap-1.5 rounded-lg bg-[#0F1115] px-5 font-body text-[14px] font-medium text-white transition-colors hover:bg-[#1C1F26] disabled:opacity-50"
+                >
+                  <span>Send</span>
+                  <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
+                </button>
+              </form>
+              <div className="mt-2.5 flex items-center justify-between font-body text-[11px] text-[#5B6270]">
+                <span>Press Enter to send · Shift+Enter for new line</span>
+                <span className="flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">lock</span>
+                  Encrypted synthesis
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* Right Column: Sticky Structured Knowledge Card (4 cols) */}
+          <aside className="sticky top-20 flex flex-col gap-4 lg:col-span-4">
+            <div className="flex flex-col rounded-lg border border-[#E6E7EA] bg-white p-6">
+              {/* Card Header */}
+              <div className="mb-5 flex items-center justify-between border-b border-[#E6E7EA] pb-4">
+                <div>
+                  <h2 className="font-display text-[18px] font-semibold text-[#0F1115]">
+                    What we've learned
+                  </h2>
+                  <p className="mt-0.5 font-body text-[11px] text-[#5B6270]">
+                    Real-time profile synthesis
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 rounded bg-[#E7EEFF] px-2 py-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" />
+                  <span className="font-body text-[11px] font-medium text-[#1E3A8A]">Live</span>
+                </div>
+              </div>
+
+              {/* Structured Rows */}
+              <div className="space-y-4">
+                {DIMENSION_KEYS.map(({ key, label }) => {
+                  const dim = profile?.[key]
+                  const text = dim?.text || 'Listening for signals…'
+                  const confidence = dim?.confidence || 'none'
+                  const isClear = confidence === 'high' || confidence === 'medium'
+                  const isGettingThere = confidence === 'low'
+
+                  return (
+                    <div
+                      key={key}
+                      className="flex items-start justify-between gap-3 border-b border-[#E6E7EA]/60 pb-3 last:border-b-0"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <span className="mb-0.5 block font-body text-[11px] uppercase tracking-wider text-[#5B6270]">
+                          {label}
+                        </span>
+                        <span
+                          className={`block truncate font-body text-[13px] ${
+                            dim?.text ? 'font-medium text-[#0F1115]' : 'text-[#8A8F98] italic'
+                          }`}
+                        >
+                          {text}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex shrink-0 items-center gap-1.5">
+                        <span
+                          className={`h-2 w-2 rounded-full ${
+                            isClear
+                              ? 'bg-[#16A34A]'
+                              : isGettingThere
+                                ? 'bg-[#F59E0B]'
+                                : 'bg-[#E6E7EA]'
+                          }`}
+                        />
+                        <span className="font-body text-[11px] text-[#5B6270]">
+                          {isClear ? 'clear' : isGettingThere ? 'getting there' : 'analyzing'}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Explanatory Note */}
+              <div className="mt-6 flex items-start gap-2 border-t border-[#E6E7EA] pt-4 text-[#5B6270]">
+                <span className="material-symbols-outlined mt-0.5 text-[16px]">info</span>
+                <p className="font-body text-[12px] leading-relaxed">
+                  We'll ask 8–20 questions and stop when the picture is clear.
+                </p>
+              </div>
+
+              {/* View Matches Button */}
+              <div className="mt-5 pt-2">
+                <button
+                  type="button"
+                  onClick={getMatches}
+                  className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#0F1115] font-body text-[14px] font-medium text-white transition-colors hover:bg-[#1C1F26]"
+                >
+                  <span>{profile?.ready ? 'View Career Matches' : 'Generate Matches Now'}</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+            {error && <p className="text-[13px] text-[#DC2626]">{error}</p>}
+          </aside>
+        </div>
+      </main>
     </div>
   )
 }

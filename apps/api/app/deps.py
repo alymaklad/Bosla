@@ -39,7 +39,7 @@ def get_ai_client() -> AiClient:
         if not api_keys:
             raise HTTPException(
                 503,
-                "Groq AI is not configured. Add GROQ_API_KEY or GROQ_API_KEYS in Vercel Environment Variables, then redeploy.",
+                "Credit limit reached. Please try again later.",
             )
         fallback_models = [model.strip() for model in settings.groq_fallback_models.split(",") if model.strip()]
         return GroqAiClient(
@@ -49,5 +49,5 @@ def get_ai_client() -> AiClient:
             research_model=settings.groq_research_model,
         )
     if not settings.anthropic_api_key:
-        raise HTTPException(500, "ANTHROPIC_API_KEY is not configured on the server.")
+        raise HTTPException(503, "Credit limit reached. Please try again later.")
     return AnthropicAiClient(api_key=settings.anthropic_api_key, model=settings.anthropic_model)

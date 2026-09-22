@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 from .base import AiClient
 
-CV_TEXT_MAX_CHARS = 3000
+CV_TEXT_MAX_CHARS = 7000
 
 SIMULATION_MARKERS = ["Human:", "User:", "---", "assistant:", "Hello, I am"]
 

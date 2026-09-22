@@ -10,6 +10,13 @@ export class ApiError extends Error {
   }
 }
 
+function sanitizeErrorMessage(msg: string): string {
+  if (/GROQ|ANTHROPIC|API_KEY|not configured|recharge your|Add credits/i.test(msg)) {
+    return 'Credit limit reached. Please try again later.'
+  }
+  return msg
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     credentials: 'include',
@@ -24,7 +31,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       /* ignore */
     }
-    throw new ApiError(message, res.status)
+    throw new ApiError(sanitizeErrorMessage(message), res.status)
   }
   if (res.status === 204) return undefined as T
   return res.json() as Promise<T>
@@ -59,7 +66,7 @@ async function streamSSE(
     } catch {
       /* ignore */
     }
-    throw new ApiError(message, res.status)
+    throw new ApiError(sanitizeErrorMessage(message), res.status)
   }
 
   const reader = res.body.getReader()

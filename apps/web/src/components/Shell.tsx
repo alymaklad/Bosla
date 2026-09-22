@@ -1,11 +1,10 @@
-import { Sparkles } from 'lucide-react'
 import { Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { MobileTabs } from './MobileTabs'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 
-/** Post-onboarding shell: sidebar + top bar + mobile tabs + the persistent "Ask Bosla" entry point. */
+/** Post-onboarding shell: persistent sidebar + 56px top bar + mobile tabs + floating "Ask Bosla" trigger. */
 export function Shell() {
   const { user, loading } = useApp()
   const navigate = useNavigate()
@@ -14,20 +13,31 @@ export function Shell() {
   if (!user) return <Navigate to="/" replace />
 
   return (
-    <div className="flex min-h-full">
+    <div className="min-h-screen bg-[#FAFAF8]">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
-        <TopBar />
+      <TopBar />
+
+      {/* Main Canvas offset by 240px sidebar on desktop and 56px top bar */}
+      <div className="min-h-screen pb-20 md:ml-60 md:pb-12 pt-14">
         <Outlet />
       </div>
+
       <MobileTabs />
+
+      {/* Floating 'Ask Bosla' Trigger Button */}
       <button
         type="button"
         onClick={() => navigate('/matches')}
-        className="fixed bottom-20 right-5 z-20 flex h-12 items-center gap-2 rounded-full bg-ink px-4 text-[14px] font-medium text-white shadow-[0_1px_2px_rgba(15,17,21,.06),0_8px_24px_rgba(15,17,21,.18)] hover:bg-ink-hover md:bottom-6 md:right-6"
+        aria-label="Ask Bosla guidance AI"
+        className="custom-floating-shadow fixed bottom-8 right-8 z-50 flex h-12 items-center gap-2.5 rounded-full bg-[#0F1115] px-5 font-body text-[14px] font-medium text-white transition-all hover:bg-[#1C1F26] active:opacity-90"
       >
-        <Sparkles size={18} />
-        Ask Bosla
+        <span
+          className="material-symbols-outlined text-[20px] text-[#F59E0B]"
+          data-icon="spark"
+        >
+          auto_awesome
+        </span>
+        <span className="tracking-wide">Ask Bosla</span>
       </button>
     </div>
   )

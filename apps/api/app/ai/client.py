@@ -34,9 +34,9 @@ def _translate(err: Exception) -> AiError:
     if isinstance(err, AiError):
         return err
     if isinstance(err, anthropic.AuthenticationError):
-        return AiError("The AI provider rejected the API key. Check it in Settings.", "auth")
+        return AiError("Credit limit reached. Please try again later.", "auth")
     if isinstance(err, anthropic.RateLimitError):
-        return AiError("The AI provider is rate-limiting requests. Try again in a minute.", "rate_limit")
+        return AiError("Credit limit reached. Please try again later.", "rate_limit")
     if isinstance(err, anthropic.APIConnectionError):
         return AiError("Could not reach the AI provider. Check the connection.", "network")
     if isinstance(err, anthropic.APIStatusError):

@@ -7,7 +7,7 @@
 import pdfParse from 'pdf-parse'
 
 /** Matches the notebook's `if len(cleaned_text) > 3000` truncation exactly. */
-export const CV_TEXT_MAX_CHARS = 3000
+export const CV_TEXT_MAX_CHARS = 7000
 
 export interface CvExtractionResult {
   text: string

@@ -1,12 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 @import 'tailwindcss';
 
-/* Bosla "Compass" design tokens — see ../../design/stitch for the Stitch design system.
-   Ink-first: the monochrome logo is the darkest thing on the page. Indigo = guidance,
-   amber = progress only. */
+/* Bosla "Calm Directional Precision" design tokens matching Stitch export */
 @theme {
   --color-ink: #0f1115;
   --color-ink-hover: #1c1f26;
+  --color-primary: #0f1115;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #1a1c20;
+  --color-secondary: #1e3a8a;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #8fa7fe;
+  --color-on-secondary-container: #1d3989;
   --color-indigo-brand: #1e3a8a;
   --color-indigo-tint: #e8edf9;
   --color-amber-brand: #f59e0b;
@@ -14,9 +19,24 @@
   --color-success: #16a34a;
   --color-danger: #dc2626;
   --color-page: #fafaf8;
+  --color-background: #fafaf8;
   --color-line: #e6e7ea;
+  --color-border-subtle: #e6e7ea;
   --color-text-2: #5b6270;
   --color-text-3: #8a8f98;
+
+  --color-surface: #f9f9ff;
+  --color-surface-dim: #d3daeb;
+  --color-surface-bright: #f9f9ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f0f3ff;
+  --color-surface-container: #e7eeff;
+  --color-surface-container-high: #e2e8f9;
+  --color-surface-container-highest: #dce2f3;
+  --color-on-surface: #151c28;
+  --color-on-surface-variant: #45474b;
+  --color-outline: #76777b;
+  --color-outline-variant: #c6c6cb;
 
   --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-body: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
@@ -47,4 +67,29 @@ h3 {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
   margin: 0;
+}
+
+.custom-floating-shadow {
+  box-shadow: 0 4px 20px -2px rgba(15, 17, 21, 0.12), 0 2px 6px -1px rgba(15, 17, 21, 0.06);
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  display: inline-block;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  vertical-align: middle;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+}
+
+.material-symbols-outlined.fill-icon {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
 }

@@ -106,12 +106,12 @@ def _translate_openai(err: Exception) -> AiError:
         return err
     if isinstance(err, openai.AuthenticationError):
         return AiError(
-            "Groq rejected the API key. Check GROQ_API_KEY, or add credits/recharge your Groq subscription before trying again.",
+            "Credit limit reached. Please try again later.",
             "auth",
         )
     if isinstance(err, openai.RateLimitError):
         return AiError(
-            "Groq's credit or rate limit has been reached. Add credits or recharge your Groq subscription, then try again.",
+            "Credit limit reached. Please try again later.",
             "rate_limit",
         )
     if isinstance(err, openai.APIConnectionError):
@@ -155,7 +155,7 @@ class GroqAiClient:
 
             if res.status_code in (401, 403):
                 raise AiError(
-                    "Groq rejected the API key. Check GROQ_API_KEY, or add credits/recharge your Groq subscription before trying again.",
+                    "Credit limit reached. Please try again later.",
                     "auth",
                 )
 
@@ -171,8 +171,7 @@ class GroqAiClient:
                     continue
                 if res.status_code == 429:
                     raise AiError(
-                        "Groq's credit or rate limit has been reached. Add credits or recharge your Groq "
-                        "subscription, then try again. If you just sent several requests, wait a minute.",
+                        "Credit limit reached. Please try again later.",
                         "rate_limit",
                     )
 

@@ -1,8 +1,6 @@
-import { Briefcase, Calendar, Globe, Send, TrendingUp } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, type CareerMatch, type DiscoveryMessage } from '../api'
-import { FitRing } from '../components/Card'
 
 export function MatchDetail() {
   const { id } = useParams<{ id: string }>()
@@ -10,45 +8,56 @@ export function MatchDetail() {
   const [messages, setMessages] = useState<DiscoveryMessage[]>([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
+  const [choosing, setChoosing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
+    if (!id) return
     api.listMatches().then((all) => setMatch(all.find((m) => m.id === id) ?? null))
     api.mentorMessages().then(setMessages)
   }, [id])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages])
+  }, [messages, sending])
 
   async function chooseDirection() {
     if (!id) return
+    setChoosing(true)
     try {
       await api.chooseDirection(id)
       navigate('/roadmap')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save this direction. Please retry.')
+    } finally {
+      setChoosing(false)
     }
   }
 
-  async function send() {
-    const text = input.trim()
+  async function send(textToSend?: string) {
+    const text = (textToSend ?? input).trim()
     if (!text || sending || !id) return
     setInput('')
     setMessages((m) => [...m, { role: 'user', content: text }])
     setSending(true)
     setMessages((m) => [...m, { role: 'assistant', content: '' }])
-    try { await api.sendMentorMessage(text, id, {
-      onChunk: (chunk) =>
-        setMessages((m) => {
-          const copy = [...m]
-          copy[copy.length - 1] = { role: 'assistant', content: copy[copy.length - 1].content + chunk }
-          return copy
-        }),
-      onDone: () => setSending(false),
-    }) } catch (err) {
+
+    try {
+      await api.sendMentorMessage(text, id, {
+        onChunk: (chunk) =>
+          setMessages((m) => {
+            const copy = [...m]
+            copy[copy.length - 1] = {
+              role: 'assistant',
+              content: copy[copy.length - 1].content + chunk,
+            }
+            return copy
+          }),
+        onDone: () => setSending(false),
+      })
+    } catch (err) {
       setMessages((m) => m.slice(0, -1))
       setError(err instanceof Error ? err.message : 'Connection failed. Please retry.')
       setSending(false)
@@ -57,92 +66,309 @@ export function MatchDetail() {
 
   if (!match) return null
 
+  const circumference = 2 * Math.PI * 15.9155
+  const strokeOffset = circumference * (1 - match.fit_score / 100)
+
   return (
-    <main className="mx-auto grid w-full max-w-5xl gap-4 px-4 py-6 md:grid-cols-[1fr_360px] md:px-6 md:py-8">
-      <div>
-        <div className="flex items-start gap-4 rounded-card border border-line bg-white p-5">
-          <FitRing value={match.fit_score} size={64} />
-          <div>
-            <h1 className="text-[24px] font-semibold">{match.title}</h1>
-            <p className="mt-1 text-[14px] leading-6 text-text-2">{match.why}</p>
-            <p className="mt-2 text-[12px] italic text-text-3">Uncertainty: {match.uncertainty_note}</p>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-card border border-line bg-white p-4">
-            <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-              <Briefcase size={14} /> Salary
-            </div>
-            <p className="mt-1 text-[14px]">{match.salary}</p>
-          </div>
-          <div className="rounded-card border border-line bg-white p-4">
-            <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-              <Globe size={14} /> Remote
-            </div>
-            <p className="mt-1 text-[14px]">{match.remote}</p>
-          </div>
-          <div className="rounded-card border border-line bg-white p-4">
-            <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-              <TrendingUp size={14} /> Demand
-            </div>
-            <p className="mt-1 text-[14px]">{match.demand}</p>
-          </div>
-          <div className="rounded-card border border-line bg-white p-4">
-            <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-              <Calendar size={14} /> Source
-            </div>
-            <p className="mt-1 text-[13px]">
-              {match.source} <span className="text-text-3">· {match.as_of}</span>
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={chooseDirection}
-          className="mt-4 h-11 w-full rounded-card bg-ink text-[15px] font-medium text-white hover:bg-ink-hover"
+    <main className="mx-auto w-full max-w-[1280px] p-6 md:p-8">
+      {/* Breadcrumb / Back Link */}
+      <div className="mb-4">
+        <Link
+          to="/matches"
+          className="inline-flex items-center gap-1.5 font-body text-[13px] font-medium text-[#1E3A8A] hover:underline"
         >
-          Choose this direction
-        </button>
-        {error && <p role="alert" className="mt-2 text-[13px] text-danger">{error}</p>}
+          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+          <span>All matches</span>
+        </Link>
       </div>
 
-      <div className="flex min-h-[420px] flex-col rounded-card border border-line bg-white">
-        <div className="border-b border-line p-3 text-[13px] font-semibold">Ask the mentor about this path</div>
-        <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-3">
-          {messages.length === 0 && <p className="text-[12px] text-text-3">Ask anything about this direction.</p>}
-          {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div
-                className={[
-                  'max-w-[90%] rounded-card px-3 py-2 text-[13px] leading-5',
-                  m.role === 'user' ? 'bg-ink text-white' : 'border border-line bg-page',
-                ].join(' ')}
-              >
-                {m.content || (sending && i === messages.length - 1 ? '…' : '')}
+      {/* Role Title Header Banner */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E6E7EA] pb-6">
+        <div className="flex items-center gap-4">
+          <h1 className="font-display text-[28px] font-bold tracking-tight text-[#0F1115] md:text-[32px]">
+            {match.title}
+          </h1>
+          <div className="flex items-center gap-2">
+            <span className="rounded bg-[#E8EDF9] px-2.5 py-1 font-body text-[11px] font-semibold tracking-wider uppercase text-[#1E3A8A]">
+              {match.rank === 1 ? 'TOP MATCH' : `RANK ${match.rank}`}
+            </span>
+          </div>
+        </div>
+
+        {/* Fit Ring Indicator */}
+        <div className="flex items-center gap-3 rounded-lg border border-[#E6E7EA] bg-white px-3.5 py-2">
+          <div className="relative flex h-10 w-10 items-center justify-center">
+            <svg className="h-10 w-10 -rotate-90 transform" viewBox="0 0 36 36">
+              <path
+                className="text-[#E6E7EA]"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+              />
+              <path
+                className="text-[#1E3A8A]"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke="currentColor"
+                strokeDasharray={`${circumference}`}
+                strokeDashoffset={`${strokeOffset}`}
+                strokeLinecap="round"
+                strokeWidth="3"
+              />
+            </svg>
+            <span className="absolute font-display text-[12px] font-bold text-[#0F1115]">
+              {match.fit_score}%
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="font-body text-[11px] uppercase text-[#5B6270]">Role Fit Score</span>
+            <span className="font-body text-[13px] font-medium text-[#0F1115]">
+              Strong Trajectory
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Two-Column Workspace: Left 7 cols / Right 5 cols */}
+      <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        {/* Left Column: Deep Path Insights */}
+        <div className="flex flex-col gap-6 lg:col-span-7">
+          {/* 1. Why this fits you */}
+          <div className="flex flex-col gap-4 rounded-lg border border-[#E6E7EA] bg-white p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#1E3A8A]">verified</span>
+                <h2 className="font-display text-[18px] font-semibold text-[#0F1115]">
+                  Why this fits you
+                </h2>
+              </div>
+              <span className="font-body text-[11px] text-[#5B6270]">
+                Synthesized from conversation & CV
+              </span>
+            </div>
+            <div className="space-y-4 pt-1">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 rounded bg-[#E8EDF9] px-2 py-0.5 font-body text-[11px] font-medium text-[#1E3A8A]">
+                  CORE SIGNAL
+                </span>
+                <p className="font-body text-[14px] leading-relaxed text-[#151C28]">
+                  {match.why}
+                </p>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* 2. Where we're less sure */}
+          <div className="flex flex-col gap-4 rounded-lg border border-[#E6E7EA] bg-white p-6">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#F59E0B]">help_outline</span>
+              <h2 className="font-display text-[18px] font-semibold text-[#0F1115]">
+                Where we're less sure
+              </h2>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-3">
+                <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#76777B]">
+                  calendar_month
+                </span>
+                <p className="font-body text-[13.5px] leading-relaxed text-[#5B6270]">
+                  <strong className="font-medium text-[#0F1115]">Signal gap:</strong>{' '}
+                  {match.uncertainty_note}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Market context */}
+          <div className="flex flex-col gap-4 rounded-lg border border-[#E6E7EA] bg-white p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#0F1115]">query_stats</span>
+                <h2 className="font-display text-[18px] font-semibold text-[#0F1115]">
+                  Market context
+                </h2>
+              </div>
+              <span className="font-body text-[11px] text-[#76777B]">
+                Source: {match.source} · {match.as_of}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="flex flex-col gap-1 rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-4">
+                <span className="font-body text-[11px] uppercase text-[#5B6270]">
+                  Median Compensation
+                </span>
+                <span className="font-display text-[20px] font-bold text-[#0F1115]">
+                  {match.salary}
+                </span>
+                <span className="font-body text-[11px] text-[#76777B]">Base market average</span>
+              </div>
+              <div className="flex flex-col gap-1 rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-4">
+                <span className="font-body text-[11px] uppercase text-[#5B6270]">
+                  Remote Availability
+                </span>
+                <span className="font-display text-[20px] font-bold text-[#0F1115]">
+                  {match.remote}
+                </span>
+                <span className="font-body text-[11px] text-[#76777B]">Hybrid/remote roles</span>
+              </div>
+              <div className="flex flex-col gap-1 rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-4">
+                <span className="font-body text-[11px] uppercase text-[#5B6270]">
+                  Demand Growth
+                </span>
+                <span className="font-display text-[20px] font-bold text-[#1E3A8A]">
+                  {match.demand}
+                </span>
+                <span className="font-body text-[11px] text-[#76777B]">Projected expansion</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Typical day in the role */}
+          <div className="flex flex-col gap-4 rounded-lg border border-[#E6E7EA] bg-white p-6">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#0F1115]">play_circle</span>
+              <h2 className="font-display text-[18px] font-semibold text-[#0F1115]">
+                Typical day in the role
+              </h2>
+            </div>
+            <div className="relative flex h-44 w-full items-center justify-center overflow-hidden rounded-lg border border-[#E6E7EA] bg-slate-900">
+              <div className="relative z-10 flex flex-col items-center gap-2 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#0F1115] shadow-sm transition-transform hover:scale-105">
+                  <span className="material-symbols-outlined ml-0.5 text-[26px]">play_arrow</span>
+                </div>
+                <span className="rounded-full bg-black/50 px-3 py-1 font-body text-[13px] font-medium text-white backdrop-blur-sm">
+                  A day as a {match.title} · 4 min overview
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 5. Bottom pinned action */}
+          <div className="flex flex-col items-start justify-between gap-4 rounded-lg border border-[#E6E7EA] bg-white p-6 sm:flex-row sm:items-center">
+            <div className="flex flex-col">
+              <span className="font-display text-[18px] font-semibold text-[#0F1115]">
+                Ready to align your trajectory?
+              </span>
+              <span className="font-body text-[13px] text-[#5B6270]">
+                Sets this as your active roadmap and configures tailored daily habits.
+              </span>
+            </div>
+            <button
+              type="button"
+              disabled={choosing}
+              onClick={chooseDirection}
+              className="h-10 rounded-lg bg-[#0F1115] px-5 font-body text-[14px] font-medium text-white transition-colors hover:bg-[#1C1F26] disabled:opacity-60"
+            >
+              {choosing ? 'Saving…' : 'Choose this direction'}
+            </button>
+          </div>
+          {error && <p className="text-[13px] text-[#DC2626]">{error}</p>}
         </div>
-        <div className="flex items-center gap-2 border-t border-line p-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && send()}
-            placeholder="Ask a question…"
-            disabled={sending}
-            className="h-9 flex-1 rounded-card border border-line px-3 text-[13px] outline-none focus:border-ink disabled:opacity-60"
-          />
-          <button
-            type="button"
-            onClick={send}
-            disabled={sending || !input.trim()}
-            aria-label="Send message to mentor"
-            className="grid h-9 w-9 place-items-center rounded-card bg-ink text-white disabled:opacity-40"
-          >
-            <Send size={14} />
-          </button>
+
+        {/* Right Column: Sticky AI Mentor Chat (5 cols) */}
+        <div className="sticky top-20 lg:col-span-5">
+          <div className="flex h-[720px] flex-col overflow-hidden rounded-lg border border-[#E6E7EA] bg-white shadow-sm">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#E6E7EA] bg-white p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-1.5">
+                  <img
+                    src="/brand/bosla-mark.png"
+                    alt="Bosla"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-display text-[15px] font-semibold text-[#0F1115]">
+                    Ask Bosla about this path
+                  </span>
+                  <span className="flex items-center gap-1.5 font-body text-[11px] text-[#1E3A8A]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#1E3A8A]" />
+                    AI Career Mentor · Focused on {match.title}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Prompts */}
+            <div className="flex flex-wrap gap-1.5 border-b border-[#E6E7EA] bg-[#FAFAF8] p-3">
+              <button
+                type="button"
+                onClick={() => send(`What does a typical junior workday look like as a ${match.title}?`)}
+                className="rounded border border-[#E6E7EA] bg-white px-2.5 py-1 text-left font-body text-[11px] text-[#0F1115] transition-colors hover:border-[#1E3A8A]"
+              >
+                Workday routine
+              </button>
+              <button
+                type="button"
+                onClick={() => send(`How steep is the transition into ${match.title} from my background?`)}
+                className="rounded border border-[#E6E7EA] bg-white px-2.5 py-1 text-left font-body text-[11px] text-[#0F1115] transition-colors hover:border-[#1E3A8A]"
+              >
+                Transition difficulty
+              </button>
+              <button
+                type="button"
+                onClick={() => send(`What portfolio project would prove readiness for ${match.title}?`)}
+                className="rounded border border-[#E6E7EA] bg-white px-2.5 py-1 text-left font-body text-[11px] text-[#0F1115] transition-colors hover:border-[#1E3A8A]"
+              >
+                Portfolio project ideas
+              </button>
+            </div>
+
+            {/* Messages */}
+            <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
+              {messages.length === 0 && (
+                <div className="py-8 text-center font-body text-[13px] text-[#8A8F98]">
+                  Ask any questions about {match.title} salary, day-to-day work, or portfolio requirements.
+                </div>
+              )}
+              {messages.map((m, i) => (
+                <div
+                  key={i}
+                  className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-lg p-3 font-body text-[13px] leading-relaxed ${
+                      m.role === 'user'
+                        ? 'bg-[#0F1115] text-white'
+                        : 'border border-[#E6E7EA] border-l-[3px] border-l-[#1E3A8A] bg-[#FAFAF8] text-[#0F1115]'
+                    }`}
+                  >
+                    <span className="whitespace-pre-wrap">{m.content}</span>
+                    {i === messages.length - 1 && sending && m.role === 'assistant' && (
+                      <span className="ml-1 inline-block h-3.5 w-1 animate-pulse bg-[#1E3A8A] align-middle" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Input */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                send()
+              }}
+              className="flex items-center gap-2 border-t border-[#E6E7EA] p-3"
+            >
+              <input
+                type="text"
+                value={input}
+                disabled={sending}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={`Ask about ${match.title}…`}
+                className="h-9 flex-1 rounded-lg border border-[#E6E7EA] bg-white px-3 font-body text-[13px] text-[#0F1115] placeholder-[#8A8F98] outline-none transition-colors focus:border-[#1E3A8A]"
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || sending}
+                className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0F1115] text-white transition-colors hover:bg-[#1C1F26] disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[16px]">send</span>
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </main>
