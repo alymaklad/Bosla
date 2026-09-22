@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -14,7 +15,9 @@ class Settings(BaseSettings):
     groq_model: str = "openai/gpt-oss-120b"
     groq_research_model: str = "groq/compound"
 
-    database_url: str = "sqlite+aiosqlite:///./bosla.db"
+    # Vercel's Neon integration provides POSTGRES_URL. DATABASE_URL remains
+    # the explicit override for local development and other providers.
+    database_url: str = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL") or "sqlite+aiosqlite:///./bosla.db"
     cors_origins: str = "http://localhost:5173"
     goal_planner_max_iterations: int = 3
     goal_planner_verify_links: bool = True
