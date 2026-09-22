@@ -33,9 +33,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [refreshUser])
 
   useEffect(() => {
-    document.documentElement.lang = user?.language ?? 'en'
-    document.documentElement.dir = user?.language === 'ar' ? 'rtl' : 'ltr'
-  }, [user?.language])
+    document.documentElement.lang = 'en'
+    document.documentElement.dir = 'ltr'
+  }, [])
 
   const signOut = useCallback(async () => {
     await api.signOut()

@@ -7,7 +7,7 @@ import { useApp } from '../context/AppContext'
 const PROVIDER_LABEL: Record<AiStatus['provider'], string> = { anthropic: 'Anthropic (Claude)', groq: 'Groq' }
 
 export function Settings() {
-  const { user, signOut, refreshUser } = useApp()
+  const { user, signOut } = useApp()
   const navigate = useNavigate()
   const [aiStatus, setAiStatus] = useState<AiStatus | null>(null)
 
@@ -16,11 +16,6 @@ export function Settings() {
   }, [])
 
   if (!user) return null
-
-  async function changeLanguage(language: 'en' | 'ar') {
-    await api.setLanguage(language)
-    await refreshUser()
-  }
 
   async function removeAccount() {
     if (!window.confirm('Delete your account and all career, CV, habit, and chat data? This cannot be undone.')) return
@@ -45,14 +40,6 @@ export function Settings() {
           <div className="flex justify-between">
             <dt className="text-text-3">Where you are</dt>
             <dd className="capitalize">{user.persona ?? '—'}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-text-3">Language</dt>
-            <dd>{user.language === 'ar' ? 'العربية' : 'English'}</dd>
-          </div>
-          <div className="flex gap-2 pt-2">
-            <button type="button" onClick={() => changeLanguage('en')} className="rounded-card border border-line px-2 py-1 text-[12px] hover:bg-page">English</button>
-            <button type="button" onClick={() => changeLanguage('ar')} className="rounded-card border border-line px-2 py-1 text-[12px] hover:bg-page">العربية</button>
           </div>
         </dl>
       </Card>

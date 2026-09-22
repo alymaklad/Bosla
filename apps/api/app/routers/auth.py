@@ -13,7 +13,7 @@ from ..db import get_db
 from ..config import get_settings
 from ..deps import get_current_user
 from ..models import Assessment, CareerMatch, CvUpload, DiscoveryMessage, DiscoveryProfile, Goal, Habit, MentorMessage, Occurrence, Roadmap, User
-from ..schemas import ConsentRequest, LanguageRequest, RegisterRequest, SignInRequest, UserOut
+from ..schemas import ConsentRequest, RegisterRequest, SignInRequest, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 SESSION_AGE = 60 * 60 * 24 * 30
@@ -103,7 +103,8 @@ async def google_callback(code: str, state: str, request: Request, db: AsyncSess
         db.add(user)
         await db.commit()
         await db.refresh(user)
-    response = RedirectResponse("http://localhost:5173/onboarding/consent" if not user.consent_given else "http://localhost:5173/dashboard")
+    destination = "/onboarding/consent" if not user.consent_given else "/dashboard"
+    response = RedirectResponse(f"{settings.web_app_url.rstrip('/')}{destination}")
     _set_session(response, user)
     response.delete_cookie("bosla_oauth_state")
     return response
@@ -118,16 +119,6 @@ async def me(user: User = Depends(get_current_user)) -> User:
 async def set_consent(body: ConsentRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> User:
     user.consent_given = body.consent_given
     user.persona = body.persona
-    await db.commit()
-    await db.refresh(user)
-    return user
-
-
-@router.put("/language", response_model=UserOut)
-async def set_language(body: LanguageRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> User:
-    if body.language not in {"en", "ar"}:
-        raise HTTPException(422, "Language must be 'en' or 'ar'.")
-    user.language = body.language
     await db.commit()
     await db.refresh(user)
     return user

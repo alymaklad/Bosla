@@ -36,9 +36,6 @@ function get<T>(path: string) {
 function post<T>(path: string, body?: unknown) {
   return request<T>(path, { method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) })
 }
-function put<T>(path: string, body?: unknown) {
-  return request<T>(path, { method: 'PUT', body: body === undefined ? undefined : JSON.stringify(body) })
-}
 function del<T>(path: string) {
   return request<T>(path, { method: 'DELETE' })
 }
@@ -105,7 +102,6 @@ export interface User {
   email: string
   name: string
   persona: string | null
-  language: string
   consent_given: boolean
 }
 
@@ -282,7 +278,6 @@ export const api = {
   me: () => get<User>('/auth/me'),
   setConsent: (consent_given: boolean, persona: string) => post<User>('/auth/consent', { consent_given, persona }),
   signOut: () => post<{ ok: boolean }>('/auth/signout'),
-  setLanguage: (language: 'en' | 'ar') => put<User>('/auth/language', { language }),
   deleteAccount: () => del<void>('/auth/account'),
 
   uploadCv: async (file: File) => {
