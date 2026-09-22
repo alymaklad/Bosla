@@ -39,6 +39,7 @@ def _valid_password(password: str, encoded: str | None) -> bool:
 def _set_session(response: Response, user: User) -> None:
     response.set_cookie(
         "bosla_user", user.id, httponly=True, samesite=get_settings().session_cookie_samesite,
+        secure=get_settings().session_cookie_secure,
         max_age=SESSION_AGE,
     )
 

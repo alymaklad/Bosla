@@ -7,23 +7,27 @@ const PERSONAS = [
   { key: 'student', label: 'Student', hint: 'Still studying, exploring directions' },
   { key: 'graduate', label: 'Graduate', hint: 'Recently finished, looking for a start' },
   { key: 'early-career', label: 'Early career', hint: 'A year or two in, finding footing' },
-  { key: 'switcher', label: 'Switcher', hint: 'Changing direction entirely' },
+  { key: 'switcher', label: 'Shifting career', hint: 'Changing direction entirely' },
 ]
 
 export function Consent() {
   const [persona, setPersona] = useState<string | null>(null)
   const [agreed, setAgreed] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const { refreshUser } = useApp()
   const navigate = useNavigate()
 
   async function submit() {
     if (!persona || !agreed) return
     setBusy(true)
+    setError(null)
     try {
       await api.setConsent(true, persona)
       await refreshUser()
       navigate('/onboarding/cv')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'We could not save your consent. Please try again.')
     } finally {
       setBusy(false)
     }
@@ -33,14 +37,6 @@ export function Consent() {
     <div className="mx-auto flex min-h-full max-w-lg flex-col justify-center px-6 py-16">
       <h1 className="text-[26px] font-semibold">Before we start</h1>
       <p className="mt-1 text-text-2">A quick consent, and where you're standing right now.</p>
-
-      <label className="mt-6 flex items-start gap-3 rounded-card border border-line p-4">
-        <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-4 w-4" />
-        <span className="text-[13px] text-text-2">
-          I agree that Bosla can use what I share in this conversation — and my CV, if I upload one — to generate
-          career guidance and habit plans. I can export or delete my data at any time from Settings.
-        </span>
-      </label>
 
       <h2 className="mt-6 text-[15px] font-semibold">Where are you right now?</h2>
       <div className="mt-3 grid grid-cols-2 gap-3">
@@ -59,6 +55,16 @@ export function Consent() {
           </button>
         ))}
       </div>
+
+      <label className="mt-6 flex items-start gap-3 rounded-card border border-line p-4">
+        <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-4 w-4" />
+        <span className="text-[13px] text-text-2">
+          I agree that Bosla can use what I share in this conversation — and my CV, if I upload one — to generate
+          career guidance and habit plans. I can export or delete my data at any time from Settings.
+        </span>
+      </label>
+
+      {error && <p className="mt-4 text-[13px] text-danger" role="alert">{error}</p>}
 
       <button
         type="button"

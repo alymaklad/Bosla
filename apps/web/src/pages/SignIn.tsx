@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api } from '../api'
+import { api, apiBaseUrl } from '../api'
 import { useApp } from '../context/AppContext'
 
 export function SignIn() {
@@ -37,6 +37,17 @@ export function SignIn() {
         <p className="mt-1 text-[13px] text-text-2">Your career direction and progress stay private to your account.</p>
 
         <form onSubmit={submit} className="mt-5 space-y-3">
+          {isRegistering && <div>
+            <label className="text-[13px] font-medium text-text-2">Name</label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 h-10 w-full rounded-card border border-line px-3 text-[14px] outline-none focus:border-ink"
+              placeholder="Your name"
+            />
+          </div>}
           <div>
             <label className="text-[13px] font-medium text-text-2">Email</label>
             <input
@@ -48,26 +59,16 @@ export function SignIn() {
               placeholder="you@example.com"
             />
           </div>
-          {isRegistering && <div>
+          <div>
             <label className="text-[13px] font-medium text-text-2">Password</label>
             <input
               type="password"
               required
-              minLength={8}
+              minLength={isRegistering ? 8 : undefined}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 h-10 w-full rounded-card border border-line px-3 text-[14px] outline-none focus:border-ink"
               placeholder="At least 8 characters"
-            />
-          </div>}
-          <div>
-            <label className="text-[13px] font-medium text-text-2">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 h-10 w-full rounded-card border border-line px-3 text-[14px] outline-none focus:border-ink"
-              placeholder="Your name"
             />
           </div>
           {error && <p className="text-[13px] text-danger">{error}</p>}
@@ -81,7 +82,7 @@ export function SignIn() {
           <button type="button" onClick={() => { setIsRegistering((v) => !v); setError(null) }} className="w-full text-[13px] text-indigo-brand hover:underline">
             {isRegistering ? 'Already have an account? Sign in' : 'New to Bosla? Create an account'}
           </button>
-          <a href="/api/auth/google/start" className="block w-full text-center text-[13px] text-text-2 hover:underline">Continue with Google</a>
+          <a href={`${apiBaseUrl}/auth/google/start`} className="block w-full text-center text-[13px] text-text-2 hover:underline">Continue with Google</a>
         </form>
       </div>
     </div>
