@@ -22,19 +22,26 @@ async def get_current_user(
 
 def ai_provider_configured(settings: Settings) -> bool:
     if settings.ai_provider == "groq":
-        return bool(settings.groq_api_key)
+        return bool(_provider_keys(settings.groq_api_key, settings.groq_api_keys))
     return bool(settings.anthropic_api_key)
+
+
+def _provider_keys(primary: str, backups: str) -> list[str]:
+    """Return unique keys in priority order without logging their values."""
+    keys = [primary, *(backups.split(",") if backups else [])]
+    return list(dict.fromkeys(key.strip() for key in keys if key.strip()))
 
 
 def get_ai_client() -> AiClient:
     settings = get_settings()
     if settings.ai_provider == "groq":
-        if not settings.groq_api_key:
+        api_keys = _provider_keys(settings.groq_api_key, settings.groq_api_keys)
+        if not api_keys:
             raise HTTPException(
                 503,
-                "Groq AI is not configured. Add a valid GROQ_API_KEY in Vercel Environment Variables, then redeploy.",
+                "Groq AI is not configured. Add GROQ_API_KEY or GROQ_API_KEYS in Vercel Environment Variables, then redeploy.",
             )
-        return GroqAiClient(api_key=settings.groq_api_key, model=settings.groq_model, research_model=settings.groq_research_model)
+        return GroqAiClient(api_keys=api_keys, model=settings.groq_model, research_model=settings.groq_research_model)
     if not settings.anthropic_api_key:
         raise HTTPException(500, "ANTHROPIC_API_KEY is not configured on the server.")
     return AnthropicAiClient(api_key=settings.anthropic_api_key, model=settings.anthropic_model)

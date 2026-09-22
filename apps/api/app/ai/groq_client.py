@@ -122,8 +122,8 @@ def _translate_openai(err: Exception) -> AiError:
 
 
 class GroqAiClient:
-    def __init__(self, api_key: str, model: str | None = None, research_model: str | None = None):
-        self.api_key = api_key
+    def __init__(self, api_keys: list[str], model: str | None = None, research_model: str | None = None):
+        self.api_keys = api_keys
         self.model = model or GROQ_DEFAULT_MODEL
         self.research_model = research_model or GROQ_RESEARCH_MODEL
         self._http = httpx.AsyncClient(timeout=60.0)
@@ -134,7 +134,7 @@ class GroqAiClient:
         # budget as the answer - keep it light, the Reflexion loop supplies the second thoughts.
         return {"reasoning_effort": "low", "include_reasoning": False} if re.search(r"gpt-oss", for_model, re.I) else {}
 
-    async def _chat(self, request: dict, *, allow_truncated: bool = False) -> str:
+    async def _chat_for_key(self, api_key: str, request: dict, *, allow_truncated: bool = False) -> str:
         body = {**self._reasoning_params(str(request["model"])), **request}
         shrunk = False
         attempt = 0
@@ -143,7 +143,7 @@ class GroqAiClient:
             try:
                 res = await self._http.post(
                     f"{BASE}/chat/completions",
-                    headers={"authorization": f"Bearer {self.api_key}", "content-type": "application/json"},
+                    headers={"authorization": f"Bearer {api_key}", "content-type": "application/json"},
                     json=body,
                 )
             except httpx.HTTPError as err:
@@ -217,6 +217,31 @@ class GroqAiClient:
             if not content:
                 raise AiError("Groq returned an empty response.", "malformed")
             return content
+
+    @staticmethod
+    def _can_fail_over(error: AiError) -> bool:
+        return error.kind in {"auth", "rate_limit", "network"} or (error.status is not None and error.status >= 500)
+
+    async def _chat(self, request: dict, *, allow_truncated: bool = False) -> str:
+        """Try each configured key when a credential or provider capacity fails."""
+        failures: list[AiError] = []
+        for api_key in self.api_keys:
+            try:
+                return await self._chat_for_key(api_key, request, allow_truncated=allow_truncated)
+            except AiError as error:
+                if not self._can_fail_over(error):
+                    raise
+                failures.append(error)
+
+        if failures and failures[-1].kind == "auth":
+            raise AiError(
+                "All configured Groq API keys were rejected. Replace a key, or add credits/recharge the Groq subscription behind a valid key.",
+                "auth",
+            )
+        raise AiError(
+            "All configured Groq API keys are out of credits, rate-limited, or unavailable. Add credits or recharge your Groq subscription, then try again.",
+            "rate_limit",
+        )
 
     async def _structured_named(self, system: str, user: str, output_format: type[T], name: str, max_tokens: int) -> T:
         json_schema = to_strict_schema(output_format)
@@ -356,28 +381,40 @@ class GroqAiClient:
     ) -> AsyncGenerator[str, None]:
         import openai
 
-        client = openai.AsyncOpenAI(api_key=self.api_key, base_url=BASE)
-        try:
-            kwargs: dict = dict(
-                model=self.model,
-                messages=[{"role": "system", "content": system}, *messages],
-                stream=True,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
-            if stop:
-                kwargs["stop"] = stop
-            # gpt-oss models reason before answering and the reasoning spends the same
-            # output budget as the answer - on a small max_tokens cap (discovery turns
-            # use 300) reasoning alone can exhaust it, leaving no room for visible
-            # content and yielding an empty stream. Keep reasoning light, same as _chat().
-            if re.search(r"gpt-oss", self.model, re.I):
-                kwargs["reasoning_effort"] = "low"
-                kwargs["extra_body"] = {"include_reasoning": False}
-            stream = await client.chat.completions.create(**kwargs)
-            async for chunk in stream:
-                delta = chunk.choices[0].delta.content if chunk.choices else None
-                if delta:
-                    yield delta
-        except Exception as err:
-            raise _translate_openai(err) from err
+        kwargs: dict = dict(
+            model=self.model,
+            messages=[{"role": "system", "content": system}, *messages],
+            stream=True,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        if stop:
+            kwargs["stop"] = stop
+        if re.search(r"gpt-oss", self.model, re.I):
+            kwargs["reasoning_effort"] = "low"
+            kwargs["extra_body"] = {"include_reasoning": False}
+
+        failures: list[AiError] = []
+        for api_key in self.api_keys:
+            client = openai.AsyncOpenAI(api_key=api_key, base_url=BASE)
+            emitted = False
+            try:
+                stream = await client.chat.completions.create(**kwargs)
+                async for chunk in stream:
+                    delta = chunk.choices[0].delta.content if chunk.choices else None
+                    if delta:
+                        emitted = True
+                        yield delta
+                return
+            except Exception as err:
+                error = _translate_openai(err)
+                # A retry after output would duplicate a partial reply for the user.
+                if emitted or not self._can_fail_over(error):
+                    raise error from err
+                failures.append(error)
+            finally:
+                await client.close()
+
+        if failures and failures[-1].kind == "auth":
+            raise AiError("All configured Groq API keys were rejected. Replace a key or recharge a valid Groq subscription.", "auth")
+        raise AiError("All configured Groq API keys are out of credits, rate-limited, or unavailable. Add credits or recharge your Groq subscription.", "rate_limit")

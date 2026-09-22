@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-opus-5"
 
     groq_api_key: str = ""
+    # Comma-separated backup keys. The primary GROQ_API_KEY is tried first.
+    groq_api_keys: str = ""
     groq_model: str = "openai/gpt-oss-120b"
     groq_research_model: str = "groq/compound"
 
