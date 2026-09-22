@@ -15,8 +15,8 @@ export function MatchDetail() {
 
   useEffect(() => {
     if (!id) return
-    api.listMatches().then((all) => setMatch(all.find((m) => m.id === id) ?? null))
-    api.mentorMessages().then(setMessages)
+    api.listMatches().then((all) => setMatch(all.find((m) => m.id === id) ?? null)).catch(() => setMatch(null))
+    api.mentorMessages().then(setMessages).catch(() => {})
   }, [id])
 
   useEffect(() => {
@@ -64,7 +64,25 @@ export function MatchDetail() {
     }
   }
 
-  if (!match) return null
+  if (!match) {
+    return (
+      <main className="mx-auto w-full max-w-[1280px] p-6 md:p-8">
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
+          <span className="material-symbols-outlined text-[36px] text-[#8A8F98]">search_off</span>
+          <h2 className="font-display text-[22px] font-semibold text-[#0F1115]">Match not found</h2>
+          <p className="font-body text-[14px] text-[#5B6270]">
+            This match may have been removed or the link is invalid.
+          </p>
+          <Link
+            to="/matches"
+            className="mt-2 flex h-10 items-center rounded-lg bg-[#0F1115] px-5 font-body text-[14px] font-medium text-white hover:bg-[#1C1F26]"
+          >
+            Back to matches
+          </Link>
+        </div>
+      </main>
+    )
+  }
 
   const circumference = 2 * Math.PI * 15.9155
   const strokeOffset = circumference * (1 - match.fit_score / 100)

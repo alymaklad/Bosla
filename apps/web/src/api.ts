@@ -291,7 +291,16 @@ export const api = {
     const form = new FormData()
     form.append('file', file)
     const res = await fetch(`${BASE}/career/cv`, { method: 'POST', credentials: 'include', body: form })
-    if (!res.ok) throw new ApiError(res.statusText, res.status)
+    if (!res.ok) {
+      let message = res.statusText
+      try {
+        const body = await res.json()
+        message = body.detail ?? message
+      } catch {
+        /* ignore */
+      }
+      throw new ApiError(sanitizeErrorMessage(message), res.status)
+    }
     return res.json() as Promise<{ text: string; truncated: boolean; ok: boolean; error: string | null }>
   },
 

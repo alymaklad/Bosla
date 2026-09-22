@@ -18,6 +18,8 @@ export function TodayHabits() {
   const load = () => {
     if (scope === 'week') {
       api.weekHabits().then(setOccs).catch(() => {})
+    } else if (scope === 'all') {
+      api.weekHabits().then(setOccs).catch(() => {})
     } else {
       api.todayHabits().then(setOccs).catch(() => {})
     }
@@ -42,31 +44,47 @@ export function TodayHabits() {
   }, [timerRunning])
 
   async function toggle(o: Occurrence) {
-    await api.logOccurrence(o.id, { completed: o.status !== 'complete' })
-    load()
+    try {
+      await api.logOccurrence(o.id, { completed: o.status !== 'complete' })
+      load()
+    } catch {
+      // silently handle
+    }
   }
 
   async function finishTimer(id: string) {
-    const minutes = Math.max(1, Math.round(timerSeconds / 60))
-    await api.logOccurrence(id, { minutes, origin: 'timer', completed: true })
-    setActiveTimerId(null)
-    setTimerRunning(false)
-    setTimerSeconds(0)
-    load()
+    try {
+      const minutes = Math.max(1, Math.round(timerSeconds / 60))
+      await api.logOccurrence(id, { minutes, origin: 'timer', completed: true })
+      setActiveTimerId(null)
+      setTimerRunning(false)
+      setTimerSeconds(0)
+      load()
+    } catch {
+      // silently handle
+    }
   }
 
   async function submitSkip(id: string) {
     if (!skipReason.trim()) return
-    await api.skipOccurrence(id, skipReason.trim())
-    setSkippingId(null)
-    setSkipReason('')
-    load()
+    try {
+      await api.skipOccurrence(id, skipReason.trim())
+      setSkippingId(null)
+      setSkipReason('')
+      load()
+    } catch {
+      // silently handle
+    }
   }
 
   async function submitLog(id: string) {
-    await api.logOccurrence(id, { minutes: manualMinutes, origin: 'manual', completed: true })
-    setLoggingId(null)
-    load()
+    try {
+      await api.logOccurrence(id, { minutes: manualMinutes, origin: 'manual', completed: true })
+      setLoggingId(null)
+      load()
+    } catch {
+      // silently handle
+    }
   }
 
   const todayFormatted = new Intl.DateTimeFormat('en-US', {

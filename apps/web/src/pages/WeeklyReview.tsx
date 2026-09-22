@@ -25,7 +25,7 @@ export function WeeklyReview() {
       await api.acceptDifficulty(habitId, accept)
       setDecisions((d) => ({ ...d, [habitId]: accept }))
     } catch {
-      setDecisions((d) => ({ ...d, [habitId]: accept }))
+      // Do not update decisions on failure — user can retry
     }
   }
 

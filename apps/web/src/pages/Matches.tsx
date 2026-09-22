@@ -6,6 +6,7 @@ export function Matches() {
   const [matches, setMatches] = useState<CareerMatch[] | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [busyChoice, setBusyChoice] = useState<string | null>(null)
+  const [chooseError, setChooseError] = useState<string | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -15,7 +16,7 @@ export function Matches() {
         const chosen = list.find((m) => m.chosen)
         setSelectedId(chosen ? chosen.id : list[0].id)
       }
-    })
+    }).catch(() => setMatches([]))
   }, [])
 
   async function choose(id: string) {
@@ -24,7 +25,7 @@ export function Matches() {
       await api.chooseDirection(id)
       navigate('/roadmap')
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Could not choose this direction. Please retry.')
+      setChooseError(err instanceof Error ? err.message : 'Could not choose this direction. Please retry.')
     } finally {
       setBusyChoice(null)
     }
@@ -118,7 +119,7 @@ export function Matches() {
         <div className="space-y-6 lg:col-span-8">
           {matches?.map((m) => {
             const circumference = 2 * Math.PI * 28
-            const strokeDashoffset = circumference * (1 - m.fit_score / 100)
+            const strokeDashoffset = circumference * (1 - (m.fit_score ?? 0) / 100)
 
             return (
               <div
@@ -336,6 +337,7 @@ export function Matches() {
               </div>
             </div>
           </div>
+          {chooseError && <p className="text-[13px] text-[#DC2626] mt-2">{chooseError}</p>}
         </div>
       </div>
     </main>

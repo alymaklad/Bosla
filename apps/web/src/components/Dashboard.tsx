@@ -13,11 +13,22 @@ export function Dashboard() {
   }, [])
 
   async function toggle(id: string, done: boolean) {
-    await api.logOccurrence(id, { completed: !done })
-    api.dashboard().then(setData)
+    try {
+      await api.logOccurrence(id, { completed: !done })
+      api.dashboard().then(setData).catch(() => {})
+    } catch {
+      // silently handle – occurrence state will refresh on next load
+    }
   }
 
-  if (!data) return null
+  if (!data) return (
+    <div className="mx-auto w-full max-w-[1280px] space-y-6 px-6 py-8">
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3">
+        <span className="material-symbols-outlined animate-spin text-[32px] text-[#1E3A8A]">refresh</span>
+        <p className="font-body text-[14px] text-[#5B6270]">Loading your dashboard…</p>
+      </div>
+    </div>
+  )
 
   const firstName = (user?.name || user?.email || 'there').split(' ')[0]
   const todayFormatted = new Intl.DateTimeFormat('en-US', {

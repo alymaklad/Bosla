@@ -10,11 +10,11 @@ export function Roadmap() {
   useEffect(() => {
     api.getRoadmap().then((r) => {
       if (!r.steps || r.steps.length === 0) {
-        api.generateRoadmap().then(setRoadmap)
+        api.generateRoadmap().then(setRoadmap).catch(() => {})
       } else {
         setRoadmap(r)
       }
-    })
+    }).catch(() => {})
   }, [])
 
   const direction = roadmap?.direction || 'Data Analyst'

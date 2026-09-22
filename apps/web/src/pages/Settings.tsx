@@ -25,8 +25,12 @@ export function Settings() {
       )
     )
       return
-    await api.deleteAccount()
-    navigate('/')
+    try {
+      await api.deleteAccount()
+      navigate('/')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Could not delete account. Please try again.')
+    }
   }
 
   async function exportData() {
@@ -40,6 +44,8 @@ export function Settings() {
       a.download = `bosla-export-${user?.id ?? 'user'}.json`
       a.click()
       URL.revokeObjectURL(url)
+    } catch {
+      alert('Could not export data. Please try again.')
     } finally {
       setExporting(false)
     }

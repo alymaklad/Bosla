@@ -9,7 +9,7 @@ const PHASE_LABEL: Record<GoalPlanProgressEvent['phase'], string> = {
   reviewing: 'Validating against schedule conflicts and verifying links…',
 }
 
-const DAY_NAMES = ['', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+const DAY_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 
 export function HabitWizard() {
   const location = useLocation() as { state?: { title?: string; description?: string } }

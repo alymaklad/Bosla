@@ -29,7 +29,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    refreshUser().finally(() => setLoading(false))
+    refreshUser().catch(() => setUser(null)).finally(() => setLoading(false))
   }, [refreshUser])
 
   useEffect(() => {

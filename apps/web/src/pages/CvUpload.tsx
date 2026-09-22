@@ -17,6 +17,10 @@ export function CvUpload() {
   const navigate = useNavigate()
 
   async function onFile(f: File) {
+    if (f.size > 10 * 1024 * 1024) {
+      setError('File exceeds 10 MB. Please choose a smaller PDF.')
+      return
+    }
     setFile(f)
     setBusy(true)
     setError(null)
@@ -72,6 +76,16 @@ export function CvUpload() {
             {/* Large Dashed Drop Zone */}
             <div
               onClick={() => inputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                const f = e.dataTransfer.files?.[0]
+                if (f) onFile(f)
+              }}
               className="group cursor-pointer rounded-lg border-2 border-dashed border-[#E6E7EA] bg-[#F9F9FF] p-8 text-center transition-colors hover:border-[#1E3A8A]"
             >
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#E7EEFF] text-[#1E3A8A] transition-transform group-hover:scale-105">

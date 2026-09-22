@@ -186,12 +186,13 @@ async def get_assessment(user: User = Depends(get_current_user), db: AsyncSessio
 # ------------------------------------------------------------------------ matches
 
 @router.post("/matches/generate", response_model=list[dict])
-async def generate_matches(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), ai: AiClient = Depends(get_ai_client)) -> list[dict]:
+async def generate_matches(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> list[dict]:
     res = await db.execute(select(Assessment).where(Assessment.user_id == user.id).order_by(Assessment.created_at.desc()))
     assessment = res.scalars().first()
     if assessment is None:
         raise HTTPException(400, "Run the assessment before generating matches.")
 
+    ai = get_ai_client()
     pres = await db.execute(select(DiscoveryProfile).where(DiscoveryProfile.user_id == user.id))
     profile = pres.scalar_one_or_none()
 
@@ -244,12 +245,13 @@ async def choose_direction(body: ChooseDirectionRequest, user: User = Depends(ge
 # ----------------------------------------------------------------------- roadmap
 
 @router.post("/roadmap/generate", response_model=dict)
-async def generate_roadmap_endpoint(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), ai: AiClient = Depends(get_ai_client)) -> dict:
+async def generate_roadmap_endpoint(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> dict:
     res = await db.execute(select(CareerMatch).where(CareerMatch.user_id == user.id, CareerMatch.chosen == True))  # noqa: E712
     match = res.scalar_one_or_none()
     if match is None:
         raise HTTPException(400, "Choose a direction before building a roadmap.")
 
+    ai = get_ai_client()
     pres = await db.execute(select(DiscoveryProfile).where(DiscoveryProfile.user_id == user.id))
     profile = pres.scalar_one_or_none()
 

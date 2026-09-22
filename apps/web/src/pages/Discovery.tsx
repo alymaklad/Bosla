@@ -34,7 +34,7 @@ export function Discovery() {
         setMessages(existing)
         api.discoveryProfile().then(setProfile).catch(() => {})
       }
-    })
+    }).catch(() => setError('Could not load conversation. Check your connection and retry.'))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -85,7 +85,10 @@ export function Discovery() {
           assessmentText = text
         },
       })
-      if (!assessmentText) return
+      if (!assessmentText) {
+        setError('Assessment could not be completed. Please try again.')
+        return
+      }
       setPreparing('Ranking career directions…')
       await api.generateMatches()
       navigate('/matches')
