@@ -122,9 +122,13 @@ def _translate_openai(err: Exception) -> AiError:
 
 
 class GroqAiClient:
-    def __init__(self, api_keys: list[str], model: str | None = None, research_model: str | None = None):
+    def __init__(
+        self, api_keys: list[str], model: str | None = None, fallback_models: list[str] | None = None,
+        research_model: str | None = None,
+    ):
         self.api_keys = api_keys
         self.model = model or GROQ_DEFAULT_MODEL
+        self.fallback_models = fallback_models or []
         self.research_model = research_model or GROQ_RESEARCH_MODEL
         self._http = httpx.AsyncClient(timeout=60.0)
 
@@ -225,13 +229,15 @@ class GroqAiClient:
     async def _chat(self, request: dict, *, allow_truncated: bool = False) -> str:
         """Try each configured key when a credential or provider capacity fails."""
         failures: list[AiError] = []
-        for api_key in self.api_keys:
-            try:
-                return await self._chat_for_key(api_key, request, allow_truncated=allow_truncated)
-            except AiError as error:
-                if not self._can_fail_over(error):
-                    raise
-                failures.append(error)
+        models = list(dict.fromkeys([str(request["model"]), *self.fallback_models]))
+        for model in models:
+            for api_key in self.api_keys:
+                try:
+                    return await self._chat_for_key(api_key, {**request, "model": model}, allow_truncated=allow_truncated)
+                except AiError as error:
+                    if not self._can_fail_over(error):
+                        raise
+                    failures.append(error)
 
         if failures and failures[-1].kind == "auth":
             raise AiError(
@@ -395,25 +401,26 @@ class GroqAiClient:
             kwargs["extra_body"] = {"include_reasoning": False}
 
         failures: list[AiError] = []
-        for api_key in self.api_keys:
-            client = openai.AsyncOpenAI(api_key=api_key, base_url=BASE)
-            emitted = False
-            try:
-                stream = await client.chat.completions.create(**kwargs)
-                async for chunk in stream:
-                    delta = chunk.choices[0].delta.content if chunk.choices else None
-                    if delta:
-                        emitted = True
-                        yield delta
-                return
-            except Exception as err:
-                error = _translate_openai(err)
-                # A retry after output would duplicate a partial reply for the user.
-                if emitted or not self._can_fail_over(error):
-                    raise error from err
-                failures.append(error)
-            finally:
-                await client.close()
+        for model in dict.fromkeys([self.model, *self.fallback_models]):
+            for api_key in self.api_keys:
+                client = openai.AsyncOpenAI(api_key=api_key, base_url=BASE)
+                emitted = False
+                try:
+                    stream = await client.chat.completions.create(**{**kwargs, "model": model})
+                    async for chunk in stream:
+                        delta = chunk.choices[0].delta.content if chunk.choices else None
+                        if delta:
+                            emitted = True
+                            yield delta
+                    return
+                except Exception as err:
+                    error = _translate_openai(err)
+                    # A retry after output would duplicate a partial reply for the user.
+                    if emitted or not self._can_fail_over(error):
+                        raise error from err
+                    failures.append(error)
+                finally:
+                    await client.close()
 
         if failures and failures[-1].kind == "auth":
             raise AiError("All configured Groq API keys were rejected. Replace a key or recharge a valid Groq subscription.", "auth")

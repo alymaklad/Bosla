@@ -41,7 +41,13 @@ def get_ai_client() -> AiClient:
                 503,
                 "Groq AI is not configured. Add GROQ_API_KEY or GROQ_API_KEYS in Vercel Environment Variables, then redeploy.",
             )
-        return GroqAiClient(api_keys=api_keys, model=settings.groq_model, research_model=settings.groq_research_model)
+        fallback_models = [model.strip() for model in settings.groq_fallback_models.split(",") if model.strip()]
+        return GroqAiClient(
+            api_keys=api_keys,
+            model=settings.groq_model,
+            fallback_models=fallback_models,
+            research_model=settings.groq_research_model,
+        )
     if not settings.anthropic_api_key:
         raise HTTPException(500, "ANTHROPIC_API_KEY is not configured on the server.")
     return AnthropicAiClient(api_key=settings.anthropic_api_key, model=settings.anthropic_model)
