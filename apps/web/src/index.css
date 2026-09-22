@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+/* Bosla "Compass" design tokens — see ../../design/stitch for the Stitch design system.
+   Ink-first: the monochrome logo is the darkest thing on the page. Indigo = guidance,
+   amber = progress only. */
+@theme {
+  --color-ink: #0f1115;
+  --color-ink-hover: #1c1f26;
+  --color-indigo-brand: #1e3a8a;
+  --color-indigo-tint: #e8edf9;
+  --color-amber-brand: #f59e0b;
+  --color-amber-tint: #fef3c7;
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+  --color-page: #fafaf8;
+  --color-line: #e6e7ea;
+  --color-text-2: #5b6270;
+  --color-text-3: #8a8f98;
+
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 8px;
+  --radius-chip: 4px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  margin: 0;
+}

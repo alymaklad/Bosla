@@ -60,7 +60,7 @@ first session, then have a reason to come back tomorrow.
 | 7 | Choose direction | Confirmation moment; sets the "compass" | Build my roadmap | Cheap to change later |
 | 8 | Roadmap | Study path, foundational subjects, skills, portfolio steps as a stepper | Turn a step into a habit | Each step has "Make it a habit" |
 | 9 | Turn a step into a habit | Goal title/target date/weekly budget → AI plan (sessions, milestones, resources) → Intervenor findings (schedule conflicts, dead links) → confirm | Add to my week | Progress phases shown: researching → drafting → reviewing (GoalPlanProgress) |
-| 10 | Dashboard | Streak, week completion, direction, today's habits, top matches, next roadmap steps | (contextual) | Already built in `bosla-web` |
+| 10 | Dashboard | Streak, week completion, direction, today's habits, top matches, next roadmap steps | (contextual) | Already built in `apps/web` |
 | 11 | Today's habits | Tick / start timer / log minutes / justified skip | — | ASSUMED badge on untimed ticks; skip asks for a reason |
 | 12 | Weekly review | Completion %, points, worst weekday, streaks; adaptive-difficulty proposal | Accept / Keep as is | Proposal explains itself (rationale string from `proposeAdjustment`) |
 | 13 | Progress | Level + XP bar, streak history, achievements grid, personal records | — | Native Habit Tracker level curve for MVP (PRD §15) |
