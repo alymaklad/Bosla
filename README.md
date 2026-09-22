@@ -42,6 +42,17 @@ reference/       Capability-source prototypes; not part of the deployed runtime
 
 Open `http://localhost:5173`.
 
+## Deploy on Vercel
+
+Deploy this monorepo as two Vercel projects. Set each project's Root Directory during import:
+
+| Project | Root Directory | Framework | Required production variables |
+| --- | --- | --- |
+| `bosla-api` | `apps/api` | FastAPI | `AI_PROVIDER`, matching AI key, `DATABASE_URL` (external Postgres), `CORS_ORIGINS=https://YOUR_WEB_DOMAIN` |
+| `bosla-web` | `apps/web` | Vite | `VITE_API_URL=https://YOUR_API_DOMAIN` |
+
+Deploy the API first, then copy its production URL into `VITE_API_URL` on the web project. Never use SQLite on Vercel: serverless filesystem storage is not durable. Add every value in Vercel Project Settings → Environment Variables for Production and Preview, then redeploy both projects.
+
 ## Authentication and integrations
 
 - Email/password registration uses PBKDF2 password hashes and secure HTTP-only sessions.

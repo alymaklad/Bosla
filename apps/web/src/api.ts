@@ -1,4 +1,5 @@
-const BASE = '/api'
+// Local Vite uses /api proxying; production receives the deployed API URL from Vercel.
+const BASE = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
 
 export class ApiError extends Error {
   status: number
