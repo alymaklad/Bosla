@@ -14,7 +14,7 @@ export function Landing() {
       </p>
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
         <Link
-          to="/signin"
+          to="/signin?mode=signup"
           className="inline-flex h-11 items-center gap-2 rounded-card bg-ink px-5 text-[15px] font-medium text-white hover:bg-ink-hover"
         >
           Get started <ArrowRight size={16} />

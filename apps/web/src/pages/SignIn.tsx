@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { api, apiBaseUrl } from '../api'
 import { useApp } from '../context/AppContext'
 
@@ -7,7 +7,8 @@ export function SignIn() {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
-  const [isRegistering, setIsRegistering] = useState(false)
+  const location = useLocation()
+  const [isRegistering, setIsRegistering] = useState(() => new URLSearchParams(location.search).get('mode') === 'signup')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { refreshUser } = useApp()

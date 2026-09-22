@@ -105,9 +105,15 @@ def _translate_openai(err: Exception) -> AiError:
     if isinstance(err, AiError):
         return err
     if isinstance(err, openai.AuthenticationError):
-        return AiError("Groq rejected the API key. Check it in Settings.", "auth")
+        return AiError(
+            "Groq rejected the API key. Check GROQ_API_KEY, or add credits/recharge your Groq subscription before trying again.",
+            "auth",
+        )
     if isinstance(err, openai.RateLimitError):
-        return AiError("Groq is rate-limiting requests. Try again shortly.", "rate_limit")
+        return AiError(
+            "Groq's credit or rate limit has been reached. Add credits or recharge your Groq subscription, then try again.",
+            "rate_limit",
+        )
     if isinstance(err, openai.APIConnectionError):
         return AiError("Could not reach Groq. Check the connection.", "network")
     if isinstance(err, openai.APIStatusError):
@@ -144,7 +150,10 @@ class GroqAiClient:
                 raise AiError("Could not reach Groq. Check the connection.", "network") from err
 
             if res.status_code in (401, 403):
-                raise AiError("Groq rejected the API key. Check it in Settings.", "auth")
+                raise AiError(
+                    "Groq rejected the API key. Check GROQ_API_KEY, or add credits/recharge your Groq subscription before trying again.",
+                    "auth",
+                )
 
             if res.status_code == 429 or res.status_code >= 500:
                 retry_after = res.headers.get("retry-after")
@@ -158,8 +167,8 @@ class GroqAiClient:
                     continue
                 if res.status_code == 429:
                     raise AiError(
-                        "Groq is rate-limiting requests. Free-tier limits are per minute — wait a "
-                        "minute and try again, or pick a smaller model.",
+                        "Groq's credit or rate limit has been reached. Add credits or recharge your Groq "
+                        "subscription, then try again. If you just sent several requests, wait a minute.",
                         "rate_limit",
                     )
 

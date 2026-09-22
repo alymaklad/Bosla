@@ -70,8 +70,9 @@ export function Settings() {
           </div>
           {!aiStatus.configured && (
             <p className="mt-2 text-[12px] leading-5 text-text-3">
-              Set {aiStatus.provider === 'groq' ? 'GROQ_API_KEY' : 'ANTHROPIC_API_KEY'} in the API's .env to
-              enable discovery, matching, mentorship, and habit planning.
+              {aiStatus.provider === 'groq'
+                ? 'In Vercel, open bosla-api → Settings → Environment Variables, add GROQ_API_KEY for Production, Preview, and Development, then redeploy.'
+                : 'Set ANTHROPIC_API_KEY in the API environment to enable discovery, matching, mentorship, and habit planning.'}
             </p>
           )}
         </Card>
