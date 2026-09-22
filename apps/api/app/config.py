@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     goal_planner_verify_links: bool = True
     # Auth is deliberately application-owned: no provider secret ever reaches the web app.
     session_cookie_secure: bool = False
+    session_cookie_samesite: str = "lax"
     google_client_id: str = ""
     google_client_secret: str = ""
     google_redirect_uri: str = "http://localhost:8000/auth/google/callback"

@@ -38,7 +38,7 @@ def _valid_password(password: str, encoded: str | None) -> bool:
 
 def _set_session(response: Response, user: User) -> None:
     response.set_cookie(
-        "bosla_user", user.id, httponly=True, samesite="lax", secure=get_settings().session_cookie_secure,
+        "bosla_user", user.id, httponly=True, samesite=get_settings().session_cookie_samesite,
         max_age=SESSION_AGE,
     )
 
@@ -77,7 +77,7 @@ async def google_start() -> RedirectResponse:
     state = secrets.token_urlsafe(32)
     query = urlencode({"client_id": settings.google_client_id, "redirect_uri": settings.google_redirect_uri, "response_type": "code", "scope": "openid email profile", "state": state, "access_type": "offline", "prompt": "select_account"})
     response = RedirectResponse(f"https://accounts.google.com/o/oauth2/v2/auth?{query}")
-    response.set_cookie("bosla_oauth_state", state, httponly=True, samesite="lax", secure=settings.session_cookie_secure, max_age=600)
+    response.set_cookie("bosla_oauth_state", state, httponly=True, samesite=settings.session_cookie_samesite, secure=settings.session_cookie_secure, max_age=600)
     return response
 
 
