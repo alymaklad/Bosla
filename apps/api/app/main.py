@@ -34,6 +34,17 @@ app.include_router(settings_router.router)
 app.include_router(google_sync.router)
 
 
+@app.get("/")
+async def root() -> dict:
+    """A small, human-readable landing response for the deployed API."""
+    return {
+        "name": "Bosla API",
+        "status": "ok",
+        "health": "/health",
+        "documentation": "/docs",
+    }
+
+
 @app.get("/health")
 async def health() -> dict:
     return {"ok": True}

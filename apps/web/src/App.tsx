@@ -9,6 +9,7 @@ import { HabitWizard } from './pages/HabitWizard'
 import { Landing } from './pages/Landing'
 import { MatchDetail } from './pages/MatchDetail'
 import { Matches } from './pages/Matches'
+import { Mentor } from './pages/Mentor'
 import { Progress } from './pages/Progress'
 import { Roadmap } from './pages/Roadmap'
 import { Settings } from './pages/Settings'
@@ -31,6 +32,7 @@ export default function App() {
       <Route element={<Shell />}>
         <Route path="/matches" element={<Matches />} />
         <Route path="/matches/:id" element={<MatchDetail />} />
+        <Route path="/mentor" element={<Mentor />} />
         <Route path="/roadmap" element={<Roadmap />} />
         <Route path="/habit-wizard" element={<HabitWizard />} />
         <Route path="/dashboard" element={<Dashboard />} />

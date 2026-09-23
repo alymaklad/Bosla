@@ -13,7 +13,7 @@ const NAV: NavItem[] = [
   { to: '/habits', label: 'Habits', icon: 'check_circle' },
   { to: '/roadmap', label: 'Learn', icon: 'school' },
   { to: '/progress', label: 'Progress', icon: 'insights' },
-  { to: '/matches', label: 'Mentor', icon: 'psychology' },
+  { to: '/mentor', label: 'Mentor', icon: 'psychology' },
   { to: '/settings', label: 'Profile', icon: 'person' },
 ]
 
