@@ -90,6 +90,21 @@ async function streamSSE(
         else if (line.startsWith('data:')) data += line.slice(5).trim()
       }
       if (!data) continue
+      if (event === 'error') {
+        let message = 'AI service is temporarily unavailable. Please try again.'
+        try {
+          const parsed = JSON.parse(data)
+          if (typeof parsed?.message === 'string') message = parsed.message
+        } catch {
+          message = data
+        }
+        const errorHandler = handlers.error
+        if (errorHandler) {
+          errorHandler({ message: sanitizeErrorMessage(message) })
+          continue
+        }
+        throw new ApiError(sanitizeErrorMessage(message), 503)
+      }
       const handler = handlers[event]
       if (handler) {
         try {
@@ -140,6 +155,7 @@ export interface CareerMatch {
   why: string
   uncertainty_note: string
   salary: string
+  location: string
   remote: string
   demand: string
   source: string
@@ -271,6 +287,24 @@ export interface AiStatus {
   configured: boolean
 }
 
+export interface GoogleSyncStatus {
+  configured: boolean
+  configuration_error: string | null
+  connected: boolean
+  scopes: string[]
+  last_sync_at: string | null
+}
+
+export interface GoogleSyncResult {
+  occurrences: number
+  created_tasks: number
+  updated_tasks: number
+  created_events: number
+  updated_events: number
+  imported_completions: number
+  last_sync_at: string
+}
+
 export interface GoalPlanProgressEvent {
   phase: 'researching' | 'drafting' | 'reviewing' | 'revising'
   iteration: number
@@ -356,4 +390,8 @@ export const api = {
   dashboard: () => get<DashboardData>('/dashboard'),
 
   aiStatus: () => get<AiStatus>('/settings/ai-status'),
+  googleSyncStatus: () => get<GoogleSyncStatus>('/integrations/google/status'),
+  googleSyncStartUrl: () => `${BASE}/integrations/google/start`,
+  syncGoogle: () => post<GoogleSyncResult>('/integrations/google/sync'),
+  disconnectGoogle: () => del<void>('/integrations/google'),
 }

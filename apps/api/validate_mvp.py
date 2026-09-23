@@ -3,6 +3,8 @@ import io
 import sys
 import httpx
 
+from app import habit_engine as he
+
 BASE_URL = "http://127.0.0.1:8000"
 
 async def run_validation():
@@ -35,6 +37,9 @@ async def run_validation():
         test_email = f"validator_{int(asyncio.get_event_loop().time())}@bosla.test"
         test_password = "SecurePassword123!"
 
+        r = await client.post("/auth/register", json={"email": "not-an-email", "password": test_password, "name": "Invalid Email"})
+        log_test("Reject Invalid Email", r.status_code == 422, f"status: {r.status_code}")
+
         # 2.1 Password length validation (< 8 chars)
         r = await client.post("/auth/register", json={"email": test_email, "password": "short", "name": "Short Pass"})
         log_test("Reject Short Password (<8 chars)", r.status_code == 422, f"status: {r.status_code}")
@@ -65,6 +70,9 @@ async def run_validation():
         # 2.7 Consent Update (/auth/consent)
         r = await client.post("/auth/consent", json={"consent_given": True, "persona": "switcher"}, cookies=cookies)
         log_test("Save User Consent & Persona", r.status_code == 200 and r.json().get("consent_given") is True)
+
+        r = await client.post("/auth/consent", json={"consent_given": True, "persona": "invented"}, cookies=cookies)
+        log_test("Reject Invalid Persona", r.status_code == 422, f"status: {r.status_code}")
 
         # 3. CV Upload
         # Minimal mock PDF bytes
@@ -122,6 +130,16 @@ async def run_validation():
         habit = r.json() if r.status_code == 200 else {}
         log_test("Create Daily Habit", r.status_code == 200 and "id" in habit, f"habit_id: {habit.get('id')}")
 
+        invalid_habits = [
+            {**habit_payload, "name": ""},
+            {**habit_payload, "baseline_minutes": -1},
+            {**habit_payload, "scheduled_time": "not-a-time"},
+            {**habit_payload, "recurrence": {"kind": "everyN", "n": 1, "anchor": "not-a-date"}},
+        ]
+        for index, invalid in enumerate(invalid_habits, start=1):
+            r = await client.post("/habits", json=invalid, cookies=cookies)
+            log_test(f"Reject Invalid Habit Payload #{index}", r.status_code == 422, f"status: {r.status_code}")
+
         # 7.2 List Habits
         r = await client.get("/habits", cookies=cookies)
         habits_list = r.json() if r.status_code == 200 else []
@@ -150,15 +168,21 @@ async def run_validation():
                      f"origin: {occ.get('origin')}, logged: {occ.get('logged_minutes')}")
 
             # 7.6 Recompute Invariant: Untick habit (completed = False) -> should claw back completion
-            r = await client.post(f"/habits/occurrences/{occ_id}/log", json={"completed": False, "minutes": 0}, cookies=cookies)
+            r = await client.post(f"/habits/occurrences/{occ_id}/log", json={"completed": False}, cookies=cookies)
             occ = r.json() if r.status_code == 200 else {}
             log_test("Recompute Reversion Invariant (Claw back completion)", 
-                     r.status_code == 200 and occ.get("completed") is False,
-                     f"completed: {occ.get('completed')}")
+                     r.status_code == 200 and occ.get("completed") is False and occ.get("logged_minutes") == 0 and occ.get("status") != "complete",
+                     f"completed: {occ.get('completed')}, logged: {occ.get('logged_minutes')}")
+
+            r = await client.post(f"/habits/occurrences/{occ_id}/log", json={"minutes": -1, "origin": "manual"}, cookies=cookies)
+            log_test("Reject Negative Effort", r.status_code == 422, f"status: {r.status_code}")
+
+            r = await client.post(f"/habits/occurrences/{occ_id}/log", json={"minutes": 1, "origin": "invented"}, cookies=cookies)
+            log_test("Reject Invalid Effort Origin", r.status_code == 422, f"status: {r.status_code}")
 
             # 7.7 Skip without reason -> Reject 400
             r = await client.post(f"/habits/occurrences/{occ_id}/skip", json={"reason": "   "}, cookies=cookies)
-            log_test("Reject Empty Skip Reason", r.status_code == 400, f"status: {r.status_code}")
+            log_test("Reject Empty Skip Reason", r.status_code == 422, f"status: {r.status_code}")
 
             # 7.8 Justified Skip with reason
             r = await client.post(f"/habits/occurrences/{occ_id}/skip", json={"reason": "Travel day"}, cookies=cookies)
@@ -190,6 +214,16 @@ async def run_validation():
         ai_stat = r.json() if r.status_code == 200 else {}
         log_test("Settings AI Status Probe", r.status_code == 200 and "provider" in ai_stat and "configured" in ai_stat,
                  f"provider: {ai_stat.get('provider')}, configured: {ai_stat.get('configured')}")
+
+        r = await client.get("/integrations/google/status", cookies=cookies)
+        google_status = r.json() if r.status_code == 200 else {}
+        log_test("Google Sync Configuration Status", r.status_code == 200 and "connected" in google_status and "configured" in google_status)
+
+        r = await client.get("/career/report.pdf", cookies=cookies)
+        log_test("Download Valid PDF Summary", r.status_code == 200 and r.content.startswith(b"%PDF-"))
+
+        adjustment = he.propose_adjustment("Validation habit", 30, 1, 100, 7)
+        log_test("90 Percent Completion Proposes Raise Without Applying", adjustment.direction == "raise" and adjustment.proposed_level == 2)
 
         # 10. Cascading Account Deletion
         r = await client.delete("/auth/account", cookies=cookies)

@@ -31,6 +31,16 @@ export function Matches() {
     }
   }
 
+  if (matches === null) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] max-w-[760px] flex-col justify-center gap-4 px-6" aria-live="polite">
+        <div className="h-7 w-52 animate-pulse rounded bg-[#E6E7EA]" />
+        <div className="h-28 animate-pulse rounded-lg border border-[#E6E7EA] bg-white" />
+        <p className="font-body text-[13px] text-[#5B6270]">Loading your saved career matches…</p>
+      </div>
+    )
+  }
+
   if (matches && matches.length === 0) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 px-6 text-center">
@@ -67,7 +77,7 @@ export function Matches() {
             </span>
           </div>
           <div className="font-body text-[12px] text-[#5B6270]">
-            Final synthesis based on diagnostic interview
+            Final synthesis based on your discovery conversation
           </div>
         </div>
 
@@ -176,7 +186,7 @@ export function Matches() {
                         {m.title}
                       </h2>
                       <p className="font-body text-[13px] text-[#5B6270]">
-                        {m.salary || 'Competitive market compensation'}
+                        {m.salary || 'Market compensation not yet verified'}
                       </p>
                     </div>
                   </div>
@@ -199,26 +209,6 @@ export function Matches() {
                       {m.uncertainty_note}
                     </p>
                   </div>
-                </div>
-
-                {/* Media Insight Pill */}
-                <div className="mb-5 flex items-center justify-between rounded border border-[#E6E7EA] bg-[#F0F3FF]/70 p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-[#0F1115] text-white">
-                      <span className="material-symbols-outlined text-[20px]">play_arrow</span>
-                    </div>
-                    <div>
-                      <div className="font-body text-[13px] font-medium text-[#0F1115]">
-                        A day as a {m.title} · 4 min
-                      </div>
-                      <div className="font-body text-[11px] text-[#5B6270]">
-                        Field perspective and typical deliverables
-                      </div>
-                    </div>
-                  </div>
-                  <span className="material-symbols-outlined text-[18px] text-[#76777B]">
-                    open_in_new
-                  </span>
                 </div>
 
                 {/* Actions Row */}
@@ -260,21 +250,26 @@ export function Matches() {
                 </h3>
               </div>
               <span className="rounded bg-[#E8EDF9] px-2 py-0.5 font-body text-[11px] font-medium text-[#1E3A8A]">
-                {activeMatch?.title || 'Data Analyst'}
+                {activeMatch?.title}
               </span>
             </div>
 
             <div className="space-y-4">
-              {/* Metric 1 */}
-              <div>
-                <span className="font-body text-[12px] text-[#5B6270]">Median salary</span>
-                <div className="mt-0.5 font-display text-[24px] font-bold leading-tight text-[#0F1115]">
-                  {activeMatch?.salary || '$84,500 / yr'}
+              {activeMatch?.salary && activeMatch.location && activeMatch.source && activeMatch.as_of ? (
+                <div>
+                  <span className="font-body text-[12px] text-[#5B6270]">Salary range</span>
+                  <div className="mt-0.5 font-display text-[24px] font-bold leading-tight text-[#0F1115]">
+                    {activeMatch.salary}
+                  </div>
+                  <div className="mt-1 font-body text-[11px] text-[#76777B]">
+                    {activeMatch.location} · Source: {activeMatch.source} · Updated {activeMatch.as_of}
+                  </div>
                 </div>
-                <div className="mt-1 font-body text-[11px] text-[#76777B]">
-                  Source: {activeMatch?.source || 'ILOSTAT'} · updated {activeMatch?.as_of || 'recent'}
-                </div>
-              </div>
+              ) : (
+                <p className="font-body text-[12px] text-[#5B6270]">
+                  Verified salary data is not available for this location.
+                </p>
+              )}
 
               <div className="h-[1px] bg-[#E6E7EA]" />
 
@@ -282,10 +277,7 @@ export function Matches() {
               <div>
                 <span className="font-body text-[12px] text-[#5B6270]">Remote potential</span>
                 <div className="mt-1 font-display text-[16px] font-semibold text-[#0F1115]">
-                  {activeMatch?.remote || 'High (68% hybrid/remote listings)'}
-                </div>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#E6E7EA]">
-                  <div className="h-full rounded-full bg-[#1E3A8A]" style={{ width: '68%' }} />
+                  {activeMatch?.remote || 'Not verified'}
                 </div>
               </div>
 
@@ -295,11 +287,7 @@ export function Matches() {
               <div>
                 <span className="font-body text-[12px] text-[#5B6270]">Local demand</span>
                 <div className="mt-1 font-display text-[16px] font-semibold text-[#0F1115]">
-                  {activeMatch?.demand || 'Very High (+18% YoY growth)'}
-                </div>
-                <div className="mt-1 flex items-center gap-1 font-body text-[11px] font-semibold text-[#1E3A8A]">
-                  <span className="material-symbols-outlined text-[16px]">trending_up</span>
-                  <span>Expansion index: Tier 1</span>
+                  {activeMatch?.demand || 'Not verified'}
                 </div>
               </div>
             </div>
@@ -314,7 +302,7 @@ export function Matches() {
               </h3>
             </div>
             <p className="mb-5 font-body text-[13px] text-[#5B6270]">
-              Download your full diagnostic report including signal attribution and skill gaps.
+              Download your career summary including signal attribution and skill gaps.
             </p>
             <a
               href={api.reportPdfUrl()}

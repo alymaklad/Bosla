@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db import get_db
 from ..config import get_settings
 from ..deps import get_current_user
-from ..models import Assessment, CareerMatch, CvUpload, DiscoveryMessage, DiscoveryProfile, Goal, Habit, MentorMessage, Occurrence, Roadmap, User
+from ..models import Assessment, CareerMatch, CvUpload, DiscoveryMessage, DiscoveryProfile, Goal, GoogleIntegration, GoogleSyncLink, Habit, MentorMessage, Occurrence, Roadmap, User
 from ..schemas import ConsentRequest, RegisterRequest, SignInRequest, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -128,6 +128,8 @@ async def set_consent(body: ConsentRequest, user: User = Depends(get_current_use
 async def delete_account(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Response:
     # Explicit ordering works across SQLite and Postgres without relying on FK cascade settings.
     habit_ids = (await db.execute(select(Habit.id).where(Habit.user_id == user.id))).scalars().all()
+    await db.execute(delete(GoogleSyncLink).where(GoogleSyncLink.user_id == user.id))
+    await db.execute(delete(GoogleIntegration).where(GoogleIntegration.user_id == user.id))
     if habit_ids:
         await db.execute(delete(Occurrence).where(Occurrence.habit_id.in_(habit_ids)))
     for model in (CvUpload, DiscoveryMessage, DiscoveryProfile, Assessment, CareerMatch, MentorMessage, Roadmap, Goal, Habit):

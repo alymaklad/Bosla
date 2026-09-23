@@ -9,7 +9,7 @@ from ..ai import career_discovery as cd
 from ..ai.base import AiClient
 from ..ai.pdf_report import ChatHistoryEntry, generate_pdf_report
 from ..db import get_db
-from ..deps import get_ai_client, get_current_user
+from ..deps import ai_error_message, get_ai_client, get_current_user
 from ..models import Assessment, CareerMatch, CvUpload, DiscoveryMessage, DiscoveryProfile, MentorMessage, Roadmap, User
 from ..schemas import (
     ChooseDirectionRequest,
@@ -22,6 +22,7 @@ from ..schemas import (
 )
 
 router = APIRouter(prefix="/career", tags=["career"])
+MAX_CV_BYTES = 10 * 1024 * 1024
 
 
 def _sse(event: str, data: dict | str) -> bytes:
@@ -33,7 +34,11 @@ def _sse(event: str, data: dict | str) -> bytes:
 
 @router.post("/cv")
 async def upload_cv(file: UploadFile, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> dict:
-    data = await file.read()
+    if file.content_type != "application/pdf" or not (file.filename or "").lower().endswith(".pdf"):
+        raise HTTPException(415, "Upload a PDF file.")
+    data = await file.read(MAX_CV_BYTES + 1)
+    if len(data) > MAX_CV_BYTES:
+        raise HTTPException(413, "PDF must be 10 MB or smaller.")
     result = cd.extract_text_from_pdf(data)
     upload = CvUpload(
         user_id=user.id, filename=file.filename or "resume.pdf",
@@ -106,33 +111,36 @@ async def send_discovery_message(
     cv_text = await _latest_cv_text(db, user.id)
 
     async def gen():
-        full = ""
-        async for chunk in cd.stream_discovery_turn(ai, persona=user.persona, cv_text=cv_text, history=history):
-            full += chunk
-            yield _sse("chunk", {"text": chunk})
+        try:
+            full = ""
+            async for chunk in cd.stream_discovery_turn(ai, persona=user.persona, cv_text=cv_text, history=history):
+                full += chunk
+                yield _sse("chunk", {"text": chunk})
 
-        db.add(DiscoveryMessage(user_id=user.id, role="assistant", content=full))
-        await db.commit()
+            db.add(DiscoveryMessage(user_id=user.id, role="assistant", content=full))
+            await db.commit()
 
-        updated_history = history + [{"role": "assistant", "content": full}]
-        profile = await cd.extract_profile(ai, history=updated_history, previous=None)
-        ready = cd.discovery_ready(profile)
+            updated_history = history + [{"role": "assistant", "content": full}]
+            profile = await cd.extract_profile(ai, history=updated_history, previous=None)
+            ready = cd.discovery_ready(profile)
 
-        res = await db.execute(select(DiscoveryProfile).where(DiscoveryProfile.user_id == user.id))
-        row = res.scalar_one_or_none()
-        if row is None:
-            row = DiscoveryProfile(user_id=user.id)
-            db.add(row)
-        row.interests, row.interests_confidence = profile.interests.text, profile.interests.confidence
-        row.strengths, row.strengths_confidence = profile.strengths.text, profile.strengths.confidence
-        row.skills, row.skills_confidence = profile.skills.text, profile.skills.confidence
-        row.experience, row.experience_confidence = profile.experience.text, profile.experience.confidence
-        row.motivations, row.motivations_confidence = profile.motivations.text, profile.motivations.confidence
-        row.exchange_count = profile.exchange_count
-        row.status = "complete" if ready else "in_progress"
-        await db.commit()
-
-        yield _sse("done", _profile_to_out(row).model_dump())
+            res = await db.execute(select(DiscoveryProfile).where(DiscoveryProfile.user_id == user.id))
+            row = res.scalar_one_or_none()
+            if row is None:
+                row = DiscoveryProfile(user_id=user.id)
+                db.add(row)
+            row.interests, row.interests_confidence = profile.interests.text, profile.interests.confidence
+            row.strengths, row.strengths_confidence = profile.strengths.text, profile.strengths.confidence
+            row.skills, row.skills_confidence = profile.skills.text, profile.skills.confidence
+            row.experience, row.experience_confidence = profile.experience.text, profile.experience.confidence
+            row.motivations, row.motivations_confidence = profile.motivations.text, profile.motivations.confidence
+            row.exchange_count = profile.exchange_count
+            row.status = "complete" if ready else "in_progress"
+            await db.commit()
+            yield _sse("done", _profile_to_out(row).model_dump())
+        except Exception as err:  # noqa: BLE001
+            await db.rollback()
+            yield _sse("error", {"message": ai_error_message(err)})
 
     return StreamingResponse(gen(), media_type="text/event-stream")
 
@@ -165,13 +173,17 @@ async def run_assessment(user: User = Depends(get_current_user), db: AsyncSessio
     )
 
     async def gen():
-        full = ""
-        async for chunk in cd.run_assessment(ai, student):
-            full += chunk
-            yield _sse("chunk", {"text": chunk})
-        db.add(Assessment(user_id=user.id, text=full))
-        await db.commit()
-        yield _sse("done", {"text": full})
+        try:
+            full = ""
+            async for chunk in cd.run_assessment(ai, student):
+                full += chunk
+                yield _sse("chunk", {"text": chunk})
+            db.add(Assessment(user_id=user.id, text=full))
+            await db.commit()
+            yield _sse("done", {"text": full})
+        except Exception as err:  # noqa: BLE001
+            await db.rollback()
+            yield _sse("error", {"message": ai_error_message(err)})
 
     return StreamingResponse(gen(), media_type="text/event-stream")
 
@@ -203,7 +215,7 @@ async def generate_matches(user: User = Depends(get_current_user), db: AsyncSess
     for i, m in enumerate(matches):
         row = CareerMatch(
             user_id=user.id, rank=i + 1, title=m.title, fit_score=m.fit_score, why=m.why,
-            uncertainty_note=m.uncertainty_note, salary=m.market.salary, remote=m.market.remote,
+            uncertainty_note=m.uncertainty_note, salary=m.market.salary, location=m.market.location, remote=m.market.remote,
             demand=m.market.demand, source=m.market.source, as_of=m.market.as_of,
         )
         db.add(row)
@@ -217,7 +229,7 @@ async def generate_matches(user: User = Depends(get_current_user), db: AsyncSess
 def _match_dict(r: CareerMatch) -> dict:
     return {
         "id": r.id, "rank": r.rank, "title": r.title, "fit_score": r.fit_score, "why": r.why,
-        "uncertainty_note": r.uncertainty_note, "salary": r.salary, "remote": r.remote,
+        "uncertainty_note": r.uncertainty_note, "salary": r.salary, "location": r.location, "remote": r.remote,
         "demand": r.demand, "source": r.source, "as_of": r.as_of, "chosen": r.chosen,
     }
 
@@ -292,13 +304,17 @@ async def mentor_chat(
     await db.commit()
 
     async def gen():
-        full = ""
-        async for chunk in cd.run_mentorship_turn(ai, user_message=body.message, assessment_context=assessment_context, history=history):
-            full += chunk
-            yield _sse("chunk", {"text": chunk})
-        db.add(MentorMessage(user_id=user.id, match_id=body.match_id, role="assistant", content=full))
-        await db.commit()
-        yield _sse("done", {"text": full})
+        try:
+            full = ""
+            async for chunk in cd.run_mentorship_turn(ai, user_message=body.message, assessment_context=assessment_context, history=history):
+                full += chunk
+                yield _sse("chunk", {"text": chunk})
+            db.add(MentorMessage(user_id=user.id, match_id=body.match_id, role="assistant", content=full))
+            await db.commit()
+            yield _sse("done", {"text": full})
+        except Exception as err:  # noqa: BLE001
+            await db.rollback()
+            yield _sse("error", {"message": ai_error_message(err)})
 
     return StreamingResponse(gen(), media_type="text/event-stream")
 

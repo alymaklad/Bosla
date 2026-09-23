@@ -3,6 +3,7 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,10 +11,10 @@ from ..ai import goal_planner as gp
 from ..ai.base import AiClient
 from ..config import get_settings
 from ..db import get_db
-from ..deps import get_ai_client, get_current_user
+from ..deps import ai_error_message, get_ai_client, get_current_user
 from ..habit_engine import Recurrence, expand, target_for_level
 from ..models import Goal, Habit, User
-from ..schemas import CommitGoalRequest, GoalDraftRequest, GoalOut
+from ..schemas import CommitGoalRequest, GoalDraftRequest, GoalOut, HabitCreateRequest
 
 router = APIRouter(prefix="/goals", tags=["goals"])
 
@@ -30,11 +31,14 @@ async def _planning_context(db: AsyncSession, user_id: str) -> gp.PlanningContex
     occupied: list[gp.OccupiedBlock] = []
     committed = 0
     for h in habits:
-        rec = Recurrence.from_dict(h.recurrence)
+        try:
+            rec = Recurrence.from_dict(h.recurrence)
+            start = gp.to_minutes(h.scheduled_time)
+        except (TypeError, ValueError):
+            continue
         if rec.kind != "weekly":
             continue
         target = target_for_level(h.baseline_minutes, h.difficulty_level)
-        start = gp.to_minutes(h.scheduled_time)
         occupied.append(gp.OccupiedBlock(name=h.name, days=rec.days, start=start, end=start + target))
         committed += len(rec.days) * target
 
@@ -72,7 +76,8 @@ async def plan_goal_endpoint(
                         "id": goal.id, "plan": goal.plan, "iterations": goal.iterations, "warnings": goal.warnings,
                     })
         except Exception as err:  # noqa: BLE001
-            yield _sse("error", {"message": str(err)})
+            await db.rollback()
+            yield _sse("error", {"message": ai_error_message(err)})
 
     return StreamingResponse(gen(), media_type="text/event-stream")
 
@@ -101,10 +106,17 @@ async def commit_goal(body: CommitGoalRequest, user: User = Depends(get_current_
 
     created = []
     for s in goal.plan.get("sessions", []):
+        try:
+            validated = HabitCreateRequest(
+                name=s["name"], recurrence={"kind": "weekly", "days": s["days"]},
+                scheduled_time=s["scheduledTime"], baseline_minutes=s["targetMinutes"], goal_id=goal.id,
+            )
+        except (KeyError, TypeError, ValidationError) as err:
+            raise HTTPException(422, "The generated goal plan contains an invalid habit session. Regenerate it.") from err
         habit = Habit(
-            user_id=user.id, goal_id=goal.id, name=s["name"],
-            recurrence={"kind": "weekly", "days": s["days"]},
-            scheduled_time=s["scheduledTime"], baseline_minutes=s["targetMinutes"], difficulty_level=1,
+            user_id=user.id, goal_id=goal.id, name=validated.name,
+            recurrence=validated.recurrence.model_dump(), scheduled_time=validated.scheduled_time,
+            baseline_minutes=validated.baseline_minutes, difficulty_level=1,
         )
         db.add(habit)
         created.append(habit)

@@ -51,3 +51,8 @@ def get_ai_client() -> AiClient:
     if not settings.anthropic_api_key:
         raise HTTPException(503, "Credit limit reached. Please try again later.")
     return AnthropicAiClient(api_key=settings.anthropic_api_key, model=settings.anthropic_model)
+
+
+def ai_error_message(_: Exception) -> str:
+    """Keep provider credentials/details out of user-visible streaming errors."""
+    return "AI service is temporarily unavailable or out of credits. Please retry shortly or recharge the configured provider."

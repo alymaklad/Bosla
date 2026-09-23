@@ -32,7 +32,7 @@ const PERSONAS: PersonaOption[] = [
   },
   {
     key: 'switcher',
-    title: 'Career switcher',
+    title: 'Shifting career',
     subtitle: 'Reusing my skills in a new field',
     icon: 'swap_horiz',
   },
@@ -84,12 +84,12 @@ export function Consent() {
             </p>
           </div>
 
-          {/* Two-Column Form Layout */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* Persona first, then explicit consent */}
+          <div className="flex flex-col gap-6">
             {/* Left Column: Consent */}
             <section
               aria-labelledby="consent-title"
-              className="flex flex-col justify-between rounded-lg border border-[#E6E7EA] bg-white p-6"
+              className="order-2 flex flex-col justify-between rounded-lg border border-[#E6E7EA] bg-white p-6"
             >
               <div>
                 <div className="mb-4 flex items-center justify-between border-b border-[#E6E7EA] pb-4">
@@ -172,14 +172,14 @@ export function Consent() {
 
               <div className="mt-6 flex items-center gap-2 border-t border-[#E6E7EA] pt-4 text-[#5B6270]">
                 <span className="material-symbols-outlined text-[16px] text-[#76777B]">shield</span>
-                <span className="font-body text-[11px]">Standard zero-knowledge retention protocol</span>
+                <span className="font-body text-[11px]">Encrypted transport and user-controlled deletion</span>
               </div>
             </section>
 
             {/* Right Column: Where are you right now? */}
             <section
               aria-labelledby="status-title"
-              className="flex flex-col justify-between rounded-lg border border-[#E6E7EA] bg-white p-6"
+              className="order-1 flex flex-col justify-between rounded-lg border border-[#E6E7EA] bg-white p-6"
             >
               <div>
                 <div className="mb-4 flex items-center justify-between border-b border-[#E6E7EA] pb-4">

@@ -88,6 +88,7 @@ class CareerMatch(Base):
     why: Mapped[str] = mapped_column(Text)
     uncertainty_note: Mapped[str] = mapped_column(Text)
     salary: Mapped[str] = mapped_column(String(255), default="")
+    location: Mapped[str] = mapped_column(String(255), default="")
     remote: Mapped[str] = mapped_column(String(255), default="")
     demand: Mapped[str] = mapped_column(String(255), default="")
     source: Mapped[str] = mapped_column(String(255), default="")
@@ -165,3 +166,28 @@ class Occurrence(Base):
     origin: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     habit: Mapped["Habit"] = relationship(back_populates="occurrences")
+
+
+class GoogleIntegration(Base):
+    __tablename__ = "google_integrations"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    user_id: Mapped[str] = mapped_column(String(32), ForeignKey("users.id"), unique=True)
+    refresh_token_encrypted: Mapped[str] = mapped_column(Text)
+    scopes: Mapped[str] = mapped_column(Text, default="")
+    tasklist_id: Mapped[str] = mapped_column(String(255), default="@default")
+    calendar_id: Mapped[str] = mapped_column(String(255), default="primary")
+    connected_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class GoogleSyncLink(Base):
+    __tablename__ = "google_sync_links"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    user_id: Mapped[str] = mapped_column(String(32), ForeignKey("users.id"))
+    occurrence_id: Mapped[str] = mapped_column(String(32), ForeignKey("occurrences.id"), unique=True)
+    task_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    calendar_event_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    last_synced_completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

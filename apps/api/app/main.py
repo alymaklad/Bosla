@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
 from .db import init_db
-from .routers import auth, career, dashboard, goals, habits, settings as settings_router
+from .routers import auth, career, dashboard, goals, google_sync, habits, settings as settings_router
 
 
 @asynccontextmanager
@@ -31,6 +31,7 @@ app.include_router(goals.router)
 app.include_router(habits.router)
 app.include_router(dashboard.router)
 app.include_router(settings_router.router)
+app.include_router(google_sync.router)
 
 
 @app.get("/health")

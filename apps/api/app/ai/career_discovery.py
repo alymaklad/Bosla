@@ -206,6 +206,7 @@ async def run_assessment(ai: AiClient, inp: StudentInput) -> AsyncGenerator[str,
 
 class MarketContextOut(BaseModel):
     salary: str
+    location: str
     remote: str
     demand: str
     source: str
@@ -231,8 +232,8 @@ async def generate_career_matches(ai: AiClient, assessment_text: str, profile_su
         "fits the evidence (not all matches should score similarly — differentiate them); a 1-2 sentence "
         "'why' grounded in the assessment; an 'uncertainty_note' naming what evidence is still thin or "
         "assumed; and a market context object with a realistic salary range, remote-work likelihood, "
-        "demand level, a named source type (e.g. 'Bureau of Labor Statistics', 'industry reports'), and "
-        "an as_of period (e.g. '2026'). Never invent a precise citation you cannot stand behind — "
+        "demand level, an explicit location, a named source type (e.g. 'Bureau of Labor Statistics', 'industry reports'), and "
+        "an as_of period (e.g. '2026'). If location/date/source cannot be supported, leave salary empty. Never invent a precise citation you cannot stand behind — "
         "describe the kind of source instead when unsure. Order matches by fit_score, descending."
     )
     user = f"Profile summary:\n{profile_summary}\n\n--- Assessment ---\n{assessment_text}"

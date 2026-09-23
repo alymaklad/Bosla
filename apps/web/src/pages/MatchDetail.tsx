@@ -207,20 +207,22 @@ export function MatchDetail() {
                   Market context
                 </h2>
               </div>
-              <span className="font-body text-[11px] text-[#76777B]">
-                Source: {match.source} · {match.as_of}
-              </span>
+              {match.source && match.as_of && (
+                <span className="font-body text-[11px] text-[#76777B]">
+                  {match.location} · Source: {match.source} · {match.as_of}
+                </span>
+              )}
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="flex flex-col gap-1 rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-4">
+              {match.salary && match.location && match.source && match.as_of ? <div className="flex flex-col gap-1 rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-4">
                 <span className="font-body text-[11px] uppercase text-[#5B6270]">
-                  Median Compensation
+                  Salary range
                 </span>
                 <span className="font-display text-[20px] font-bold text-[#0F1115]">
                   {match.salary}
                 </span>
-                <span className="font-body text-[11px] text-[#76777B]">Base market average</span>
-              </div>
+                <span className="font-body text-[11px] text-[#76777B]">{match.location}</span>
+              </div> : <div className="rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-4 font-body text-[12px] text-[#5B6270]">Verified salary data is unavailable.</div>}
               <div className="flex flex-col gap-1 rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-4">
                 <span className="font-body text-[11px] uppercase text-[#5B6270]">
                   Remote Availability
@@ -242,27 +244,7 @@ export function MatchDetail() {
             </div>
           </div>
 
-          {/* 4. Typical day in the role */}
-          <div className="flex flex-col gap-4 rounded-lg border border-[#E6E7EA] bg-white p-6">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#0F1115]">play_circle</span>
-              <h2 className="font-display text-[18px] font-semibold text-[#0F1115]">
-                Typical day in the role
-              </h2>
-            </div>
-            <div className="relative flex h-44 w-full items-center justify-center overflow-hidden rounded-lg border border-[#E6E7EA] bg-slate-900">
-              <div className="relative z-10 flex flex-col items-center gap-2 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#0F1115] shadow-sm transition-transform hover:scale-105">
-                  <span className="material-symbols-outlined ml-0.5 text-[26px]">play_arrow</span>
-                </div>
-                <span className="rounded-full bg-black/50 px-3 py-1 font-body text-[13px] font-medium text-white backdrop-blur-sm">
-                  A day as a {match.title} · 4 min overview
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* 5. Bottom pinned action */}
+          {/* Bottom pinned action */}
           <div className="flex flex-col items-start justify-between gap-4 rounded-lg border border-[#E6E7EA] bg-white p-6 sm:flex-row sm:items-center">
             <div className="flex flex-col">
               <span className="font-display text-[18px] font-semibold text-[#0F1115]">

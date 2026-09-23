@@ -46,6 +46,7 @@ async def init_db() -> None:
         # The MVP initially shipped without password columns. Keep existing local demo
         # databases usable while production deployments should use a real migration tool.
         await conn.run_sync(_migrate_user_columns)
+        await conn.run_sync(_migrate_career_match_columns)
 
 
 def _migrate_user_columns(connection) -> None:
@@ -54,3 +55,9 @@ def _migrate_user_columns(connection) -> None:
         connection.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)"))
     if "auth_provider" not in columns:
         connection.execute(text("ALTER TABLE users ADD COLUMN auth_provider VARCHAR(32) DEFAULT 'password'"))
+
+
+def _migrate_career_match_columns(connection) -> None:
+    columns = {column["name"] for column in inspect(connection).get_columns("career_matches")}
+    if "location" not in columns:
+        connection.execute(text("ALTER TABLE career_matches ADD COLUMN location VARCHAR(255) DEFAULT ''"))

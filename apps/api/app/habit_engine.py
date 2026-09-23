@@ -65,9 +65,21 @@ class Recurrence:
 
     @staticmethod
     def from_dict(raw: dict) -> "Recurrence":
+        if not isinstance(raw, dict):
+            raise ValueError("Recurrence must be an object.")
         if raw.get("kind") == "everyN":
-            return Recurrence(kind="everyN", n=int(raw.get("n", 1)), anchor=raw.get("anchor"))
-        return Recurrence(kind="weekly", days=list(raw.get("days", [])))
+            n = int(raw.get("n", 0))
+            anchor = raw.get("anchor")
+            if n < 1 or n > 365 or not isinstance(anchor, str):
+                raise ValueError("Invalid every-N-days recurrence.")
+            parse_date(anchor)
+            return Recurrence(kind="everyN", n=n, anchor=anchor)
+        if raw.get("kind") != "weekly":
+            raise ValueError("Unsupported recurrence kind.")
+        days = list(raw.get("days", []))
+        if not days or len(days) > 7 or len(set(days)) != len(days) or any(not isinstance(day, int) or day < 1 or day > 7 for day in days):
+            raise ValueError("Weekly days must be unique ISO weekdays from 1 to 7.")
+        return Recurrence(kind="weekly", days=sorted(days))
 
     def to_dict(self) -> dict:
         if self.kind == "everyN":
@@ -138,7 +150,7 @@ def completion_ratio(f: OccurrenceFacts) -> float:
 
 
 def percent(f: OccurrenceFacts) -> int:
-    return min(100, round(completion_ratio(f) * 100))
+    return min(100, max(0, round(completion_ratio(f) * 100)))
 
 
 def status_of(f: OccurrenceFacts, cfg: ScoringConfig = DEFAULT_SCORING) -> OccurrenceStatus:

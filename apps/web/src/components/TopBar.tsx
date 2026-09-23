@@ -10,8 +10,13 @@ export function TopBar() {
   const initial = (user?.name || user?.email || 'A').slice(0, 1).toUpperCase()
   const displayName = user?.name || user?.email?.split('@')[0] || 'User'
   const personaTrack = user?.persona
-    ? user.persona.charAt(0).toUpperCase() + user.persona.slice(1) + ' Track'
-    : 'Professional Track'
+    ? ({
+        student: 'Secondary-school student',
+        university: 'University student',
+        graduate: 'Recent graduate',
+        switcher: 'Shifting career',
+      }[user.persona] || user.persona)
+    : 'Direction not selected'
 
   return (
     <header className="fixed top-0 right-0 left-0 z-30 flex h-14 items-center justify-between border-b border-[#E6E7EA] bg-white px-4 md:left-60 md:px-6">

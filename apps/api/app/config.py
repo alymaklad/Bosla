@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     google_client_id: str = ""
     google_client_secret: str = ""
     google_redirect_uri: str = "http://localhost:8000/auth/google/callback"
+    google_sync_client_id: str = ""
+    google_sync_client_secret: str = ""
+    google_sync_redirect_uri: str = "http://localhost:8000/integrations/google/callback"
+    google_token_encryption_key: str = ""
+    google_calendar_id: str = "primary"
+    google_tasks_list_id: str = "@default"
+    google_sync_timezone: str = "Africa/Cairo"
     web_app_url: str = "http://localhost:5173"
 
 

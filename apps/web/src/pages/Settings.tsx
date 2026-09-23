@@ -1,19 +1,24 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { api, type AiStatus } from '../api'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { api, type AiStatus, type GoogleSyncStatus } from '../api'
 import { useApp } from '../context/AppContext'
 
-type SettingsTab = 'account' | 'privacy' | 'ai'
+type SettingsTab = 'account' | 'privacy' | 'integrations' | 'ai'
 
 export function Settings() {
   const { user, signOut } = useApp()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<SettingsTab>('privacy')
+  const [searchParams] = useSearchParams()
+  const [activeTab, setActiveTab] = useState<SettingsTab>(searchParams.has('google') ? 'integrations' : 'privacy')
   const [aiStatus, setAiStatus] = useState<AiStatus | null>(null)
+  const [googleStatus, setGoogleStatus] = useState<GoogleSyncStatus | null>(null)
+  const [syncingGoogle, setSyncingGoogle] = useState(false)
+  const [googleMessage, setGoogleMessage] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     api.aiStatus().then(setAiStatus).catch(() => {})
+    api.googleSyncStatus().then(setGoogleStatus).catch(() => {})
   }, [])
 
   if (!user) return null
@@ -53,9 +58,39 @@ export function Settings() {
 
   const initial = (user.name || user.email || 'A').slice(0, 1).toUpperCase()
   const displayName = user.name || user.email.split('@')[0]
-  const personaTrack = user.persona
-    ? `${user.persona.charAt(0).toUpperCase() + user.persona.slice(1)} · Data Track`
-    : 'Career Switcher · Data Track'
+  const personaLabels: Record<string, string> = {
+    student: 'Secondary-school student',
+    university: 'University student',
+    graduate: 'Recent graduate',
+    switcher: 'Shifting career',
+  }
+  const personaTrack = user.persona ? personaLabels[user.persona] || user.persona : 'Direction not selected'
+
+  async function syncGoogle() {
+    setSyncingGoogle(true)
+    setGoogleMessage(null)
+    try {
+      const result = await api.syncGoogle()
+      setGoogleMessage(`Synced ${result.occurrences} habit occurrences. Imported ${result.imported_completions} completion update${result.imported_completions === 1 ? '' : 's'}.`)
+      setGoogleStatus(await api.googleSyncStatus())
+    } catch (err) {
+      setGoogleMessage(err instanceof Error ? err.message : 'Google sync failed. Please retry.')
+    } finally {
+      setSyncingGoogle(false)
+    }
+  }
+
+  async function disconnectGoogle() {
+    if (!window.confirm('Disconnect Google Calendar and Tasks? Existing Google events and tasks will remain.')) return
+    setGoogleMessage(null)
+    try {
+      await api.disconnectGoogle()
+      setGoogleStatus(await api.googleSyncStatus())
+      setGoogleMessage('Google Calendar and Tasks disconnected.')
+    } catch (err) {
+      setGoogleMessage(err instanceof Error ? err.message : 'Could not disconnect Google.')
+    }
+  }
 
   return (
     <main className="mx-auto w-full max-w-[1280px] px-6 py-8">
@@ -109,6 +144,18 @@ export function Settings() {
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab('integrations')}
+            className={`flex w-full items-center justify-between rounded-lg px-3.5 py-2.5 font-body text-[13px] font-medium transition-colors ${
+              activeTab === 'integrations'
+                ? 'bg-[#E7EEFF] text-[#1E3A8A]'
+                : 'text-[#5B6270] hover:bg-[#FAFAF8] hover:text-[#0F1115]'
+            }`}
+          >
+            <span>Calendar &amp; Tasks</span>
+            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab('account')}
             className={`flex w-full items-center justify-between rounded-lg px-3.5 py-2.5 font-body text-[13px] font-medium transition-colors ${
               activeTab === 'account'
@@ -143,7 +190,7 @@ export function Settings() {
                   Data &amp; privacy
                 </h2>
                 <p className="mt-1 font-body text-[13px] text-[#5B6270]">
-                  Control your data sovereignty, zero-knowledge storage preferences, and retention settings.
+                  Export or delete the profile, career, and habit data stored for your account.
                 </p>
               </div>
 
@@ -184,23 +231,6 @@ export function Settings() {
                 </p>
               </section>
 
-              {/* Audio & Voice Input */}
-              <section className="rounded-lg border border-[#E6E7EA] bg-white p-6">
-                <div className="border-b border-[#E6E7EA] pb-4">
-                  <h3 className="font-display text-[16px] font-semibold text-[#0F1115]">
-                    Audio &amp; Voice Input
-                  </h3>
-                  <p className="mt-1 font-body text-[13px] text-[#5B6270]">
-                    Voice recordings during discovery sessions are transcribed in ephemeral memory and discarded immediately after processing.
-                  </p>
-                </div>
-                <div className="pt-4">
-                  <div className="flex items-center gap-2 font-body text-[12px] text-[#16A34A]">
-                    <span className="material-symbols-outlined text-[16px]">verified</span>
-                    <span>Zero raw audio retention active</span>
-                  </div>
-                </div>
-              </section>
             </>
           )}
 
@@ -236,6 +266,76 @@ export function Settings() {
                     </dd>
                   </div>
                 </dl>
+              </section>
+            </>
+          )}
+
+          {activeTab === 'integrations' && (
+            <>
+              <div className="border-b border-[#E6E7EA] pb-4">
+                <h2 className="font-display text-[20px] font-semibold text-[#0F1115]">Google Calendar &amp; Tasks</h2>
+                <p className="mt-1 font-body text-[13px] text-[#5B6270]">
+                  Mirror scheduled habits to Calendar and synchronize completion in both directions with Google Tasks.
+                </p>
+              </div>
+              <section className="rounded-lg border border-[#E6E7EA] bg-white p-6">
+                <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[#1E3A8A]">event_available</span>
+                      <h3 className="font-display text-[16px] font-semibold text-[#0F1115]">Google workspace sync</h3>
+                    </div>
+                    <p className="mt-2 max-w-xl font-body text-[13px] leading-relaxed text-[#5B6270]">
+                      Calendar is a write-only reminder mirror. Google Tasks completion is synchronized with Bosla using a conflict-safe last-sync marker.
+                    </p>
+                    {googleStatus?.last_sync_at && (
+                      <p className="mt-2 font-body text-[11px] text-[#76777B]">
+                        Last synced {new Date(googleStatus.last_sync_at).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                  <span className={`w-fit rounded-full px-2.5 py-1 font-body text-[11px] font-medium ${googleStatus?.connected ? 'bg-[#DCFCE7] text-[#166534]' : 'bg-[#FEF3C7] text-[#92400E]'}`}>
+                    {googleStatus?.connected ? 'Connected' : 'Not connected'}
+                  </span>
+                </div>
+
+                {!googleStatus?.configured && googleStatus && (
+                  <div className="mt-5 rounded-lg border border-[#F59E0B]/30 bg-[#FEF3C7] p-3 font-body text-[12px] text-[#92400E]">
+                    Google sync is unavailable until the server credentials, redirect URI, and token encryption key are configured.
+                  </div>
+                )}
+
+                <div className="mt-6 flex flex-wrap gap-3 border-t border-[#E6E7EA] pt-5">
+                  {!googleStatus?.connected ? (
+                    <button
+                      type="button"
+                      disabled={!googleStatus?.configured}
+                      onClick={() => window.location.assign(api.googleSyncStartUrl())}
+                      className="h-10 rounded-lg bg-[#0F1115] px-4 font-body text-[13px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Connect Google
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        disabled={syncingGoogle}
+                        onClick={syncGoogle}
+                        className="h-10 rounded-lg bg-[#0F1115] px-4 font-body text-[13px] font-medium text-white disabled:opacity-50"
+                      >
+                        {syncingGoogle ? 'Syncing…' : 'Sync now'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={disconnectGoogle}
+                        className="h-10 rounded-lg border border-[#DC2626] px-4 font-body text-[13px] font-medium text-[#DC2626]"
+                      >
+                        Disconnect
+                      </button>
+                    </>
+                  )}
+                </div>
+                {googleMessage && <p className="mt-4 font-body text-[12px] text-[#45474B]">{googleMessage}</p>}
               </section>
             </>
           )}

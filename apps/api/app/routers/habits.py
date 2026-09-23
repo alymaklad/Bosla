@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import habit_engine as he
 from ..db import get_db
 from ..deps import get_current_user
-from ..models import Habit, Occurrence, User
+from ..models import Goal, Habit, Occurrence, User
 from ..schemas import (
     AcceptDifficultyRequest,
     DifficultyProposalOut,
@@ -41,7 +41,11 @@ def _occurrence_out(o: Occurrence, habit_name: str, difficulty_level: int) -> Oc
 
 
 async def _ensure_occurrences(db: AsyncSession, habit: Habit, frm: str, to: str) -> None:
-    rec = he.Recurrence.from_dict(habit.recurrence)
+    try:
+        rec = he.Recurrence.from_dict(habit.recurrence)
+    except (TypeError, ValueError):
+        # A legacy malformed row must not take down the full dashboard.
+        return
     scheduled_dates = he.expand(rec, frm, to)
     if not scheduled_dates:
         return
@@ -62,8 +66,12 @@ def _week_bounds(today: date) -> tuple[str, str]:
 
 @router.post("", response_model=HabitOut)
 async def create_habit(body: HabitCreateRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Habit:
+    if body.goal_id:
+        goal = await db.get(Goal, body.goal_id)
+        if goal is None or goal.user_id != user.id:
+            raise HTTPException(404, "Goal not found")
     habit = Habit(
-        user_id=user.id, name=body.name, recurrence=body.recurrence, scheduled_time=body.scheduled_time,
+        user_id=user.id, name=body.name, recurrence=body.recurrence.model_dump(), scheduled_time=body.scheduled_time,
         baseline_minutes=body.baseline_minutes, goal_id=body.goal_id,
     )
     db.add(habit)
@@ -125,6 +133,10 @@ async def log_occurrence(occurrence_id: str, body: LogOccurrenceRequest, user: U
             # A tick with no timer run is credited at target and badged ASSUMED - honest-effort rule.
             occ.logged_minutes = occ.target_minutes
             occ.origin = "assumed"
+        elif not body.completed and body.minutes is None:
+            # Unticking is a true reversion, not just a cosmetic boolean flip.
+            occ.logged_minutes = 0
+            occ.origin = None
     occ.justified_skip = False
     occ.skip_reason = None
     await db.commit()
