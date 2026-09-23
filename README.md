@@ -71,6 +71,26 @@ Deploy the API first, then copy its production URL into `VITE_API_URL` on the we
 - Use `SESSION_COOKIE_SECURE=true` behind HTTPS in production.
 - AI keys are server-only. Do not add any `.env` file or API key to Git.
 
+## Personal career evidence and retrieval
+
+Bosla accepts optional **PDF, DOCX, and TXT** documents: CVs/resumes,
+recommendations, certificates, project documentation, thoughts, and journals.
+It extracts text, chunks it, and stores user-isolated vectors in Neon Postgres with
+the `pgvector` extension. Relevant excerpts are retrieved for discovery, assessment,
+career matching, and mentor guidance; the adaptive conversation remains mandatory
+before career matches can be generated.
+
+Users can also import a public GitHub profile. The importer stores public profile details
+and reads documentation/supported text from up to 12 recent, public, non-fork projects
+(80 files total); it never clones or executes code. Private repositories need a separate
+user-authorized GitHub integration; `GITHUB_TOKEN` is optional for public API rate limits
+and must remain server-side.
+
+Native PDF extraction is used first. To enable OCR for scanned PDFs, deploy the companion
+service in `F:\Cultiv\Sahll\cloud_vision_trial` to an authenticated HTTPS endpoint, then set
+`OCR_FALLBACK_URL` and `OCR_FALLBACK_TOKEN` in the API project's Vercel environment. OCR is
+disabled by default; enabling it can incur Google Cloud Vision charges.
+
 ## MVP quality checks
 
 ```powershell

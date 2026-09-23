@@ -115,12 +115,20 @@ export function Matches() {
 
       {/* Page Title Header */}
       <div className="mb-8">
-        <h1 className="font-display text-[32px] font-bold tracking-tight text-[#0F1115] md:text-[36px]">
-          Your top matches
-        </h1>
-        <p className="mt-1 font-body text-[16px] text-[#5B6270]">
-          Ranked by fit. Every match shows why — and where we're less sure.
-        </p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="font-display text-[32px] font-bold tracking-tight text-[#0F1115] md:text-[36px]">
+              Your top matches
+            </h1>
+            <p className="mt-1 font-body text-[16px] text-[#5B6270]">
+              Ranked by fit. Every match shows why — and where we're less sure.
+            </p>
+          </div>
+          <Link to="/onboarding/cv" className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#1E3A8A] px-3 font-body text-[12px] font-medium text-[#1E3A8A] hover:bg-[#F0F3FF]">
+            <span className="material-symbols-outlined text-[16px]">folder_open</span>
+            Manage career evidence
+          </Link>
+        </div>
       </div>
 
       {/* Grid Layout: 70% Content / 30% Contextual Rail */}

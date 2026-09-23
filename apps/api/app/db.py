@@ -1,13 +1,30 @@
 from collections.abc import AsyncGenerator
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from sqlalchemy import inspect, text
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import JSON, inspect, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.types import TypeDecorator
 
 from .config import get_settings
 
 settings = get_settings()
+
+EMBEDDING_DIMENSIONS = settings.embedding_dimensions
+
+
+class EmbeddingVector(TypeDecorator):
+    """Use pgvector in production and JSON vectors in local SQLite development."""
+
+    impl = JSON
+    cache_ok = True
+    comparator_factory = Vector.comparator_factory
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(Vector(EMBEDDING_DIMENSIONS))
+        return dialect.type_descriptor(JSON())
 
 
 def _async_database_url(url: str) -> str:
@@ -42,11 +59,23 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 async def init_db() -> None:
     async with engine.begin() as conn:
+        if conn.dialect.name == "postgresql":
+            # Neon supports pgvector. Creating the extension before the ORM tables
+            # makes a new deployment self-contained instead of relying on a manual
+            # dashboard action.
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)
         # The MVP initially shipped without password columns. Keep existing local demo
         # databases usable while production deployments should use a real migration tool.
         await conn.run_sync(_migrate_user_columns)
         await conn.run_sync(_migrate_career_match_columns)
+        if conn.dialect.name == "postgresql":
+            # HNSW makes per-user cosine retrieval fast once the personal corpus grows.
+            async with conn.begin_nested():
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_document_chunks_embedding_hnsw "
+                    "ON document_chunks USING hnsw (embedding vector_cosine_ops)"
+                ))
 
 
 def _migrate_user_columns(connection) -> None:

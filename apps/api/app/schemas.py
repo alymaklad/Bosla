@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 PERSONAS = Literal["student", "university", "graduate", "switcher"]
+DOCUMENT_TYPES = Literal["cv", "resume", "recommendation", "certificate", "project", "thoughts", "journal", "other"]
 
 
 def _normalise_email(value: str) -> str:
@@ -149,6 +150,18 @@ class MentorChatRequest(BaseModel):
         value = value.strip()
         if not value:
             raise ValueError("Message cannot be empty.")
+        return value
+
+
+class GithubProfileRequest(BaseModel):
+    profile_url: str = Field(min_length=12, max_length=2048)
+
+    @field_validator("profile_url")
+    @classmethod
+    def non_blank_profile_url(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("GitHub profile URL cannot be empty.")
         return value
 
 

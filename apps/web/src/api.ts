@@ -305,6 +305,34 @@ export interface GoogleSyncResult {
   last_sync_at: string
 }
 
+export type DocumentSourceType = 'cv' | 'resume' | 'recommendation' | 'certificate' | 'project' | 'thoughts' | 'journal' | 'other'
+
+export interface PersonalDocument {
+  id: string
+  source_type: DocumentSourceType
+  filename: string
+  mime_type: string
+  source_url: string | null
+  char_count: number
+  chunk_count: number
+  extraction_method: 'native' | 'ocr' | 'github'
+  status: 'ready' | 'failed'
+  error: string | null
+  created_at: string
+  text?: string | null
+  truncated?: boolean
+  ok: boolean
+}
+
+export interface GithubImportResult {
+  profile_url: string
+  repositories_imported: number
+  repositories_skipped: number
+  sources_indexed: number
+  chunks_created: number
+  files_skipped: number
+}
+
 export interface GoalPlanProgressEvent {
   phase: 'researching' | 'drafting' | 'reviewing' | 'revising'
   iteration: number
@@ -321,10 +349,11 @@ export const api = {
   signOut: () => post<{ ok: boolean }>('/auth/signout'),
   deleteAccount: () => del<void>('/auth/account'),
 
-  uploadCv: async (file: File) => {
+  uploadDocument: async (file: File, documentType: DocumentSourceType): Promise<PersonalDocument> => {
     const form = new FormData()
     form.append('file', file)
-    const res = await fetch(`${BASE}/career/cv`, { method: 'POST', credentials: 'include', body: form })
+    form.append('document_type', documentType)
+    const res = await fetch(`${BASE}/career/documents`, { method: 'POST', credentials: 'include', body: form })
     if (!res.ok) {
       let message = res.statusText
       try {
@@ -335,8 +364,14 @@ export const api = {
       }
       throw new ApiError(sanitizeErrorMessage(message), res.status)
     }
-    return res.json() as Promise<{ text: string; truncated: boolean; ok: boolean; error: string | null }>
+    const body = await res.json() as PersonalDocument & { document: PersonalDocument | null }
+    if (!body.document) throw new ApiError(sanitizeErrorMessage(body.error ?? 'Could not extract text from this document.'), 422)
+    return body.document
   },
+  uploadCv: (file: File) => api.uploadDocument(file, 'cv'),
+  listDocuments: () => get<PersonalDocument[]>('/career/documents'),
+  deleteDocument: (id: string) => del<void>(`/career/documents/${id}`),
+  importGithubProfile: (profile_url: string) => post<GithubImportResult>('/career/sources/github', { profile_url }),
 
   startDiscovery: (persona?: string | null) => post<DiscoveryMessage>('/career/discovery/start', { persona }),
   discoveryMessages: () => get<DiscoveryMessage[]>('/career/discovery/messages'),

@@ -1,7 +1,7 @@
 # Bosla — Product Requirements Document
 
 **Document owner:** Product (drafted on behalf of alytarek.maklad@gmail.com)
-**Status:** Draft v1.4 — decision-complete. v1.1 narrowed MVP to Masar.ai + Habit Tracker and enriched Questify from its thesis documentation; v1.2 resolved the six highest-priority pre-implementation decisions; v1.3 resolved every remaining open question inline in its owning section; v1.4 splits the platform plan into a **React web MVP (Phase 1)** followed by a **React Native native mobile app (Phase 2+)**, per explicit stakeholder direction
+**Status:** Draft v1.5 — decision-complete. v1.1 narrowed MVP to Masar.ai + Habit Tracker and enriched Questify from its thesis documentation; v1.2 resolved the six highest-priority pre-implementation decisions; v1.3 resolved every remaining open question inline in its owning section; v1.4 splits the platform plan into a **React web MVP (Phase 1)** followed by a **React Native native mobile app (Phase 2+)**; v1.5 adds consent-scoped personal-document and public-GitHub retrieval to the Phase 1 career-guidance flow, per stakeholder direction.
 **Date:** 2026-09-19 (v1.0 through v1.4)
 
 ---
@@ -299,14 +299,15 @@ This is the single journey every later functional section maps back into.
 | FR-CD-001 | The system shall conduct career discovery as a multi-turn adaptive conversation, not a fixed-order questionnaire. | MOM |
 | FR-CD-002 | The conversation shall gather evidence on: interests, dislikes, working-style preferences, strengths, existing skills, experience, and motivations. | MOM |
 | FR-CD-003 | The system shall detect an unclear/ambiguous user answer and offer a rephrased question rather than proceeding on a low-confidence answer. | MOM |
-| FR-CD-004 | The system shall optionally ingest a CV, LinkedIn profile, or portfolio as additional evidence, subject to explicit consent. | MOM (classified "Could have" in the source MVP table) |
+| FR-CD-004 | The system shall optionally ingest a CV/resume, recommendation letter, certificate, project documentation, thoughts/journal, or public GitHub profile and relevant public project evidence as additional evidence, subject to explicit consent. | MOM + [Brief] (v1.5 expansion) |
 | FR-CD-005 | The system shall persist the evolving user profile (accepted insights, skills, prior conversation state) across sessions. | MOM |
 
 **User flow:** Onboarding → consent screen (data use) → conversational intake (chat-style, voice-optional — mobile note in §12) → optional CV upload → live-updating profile summary panel → "ready for recommendations" checkpoint.
 
 **Business rules**
 - BR-CD-001 **[DECIDED]**: the system must not claim a fixed number of required questions; the conversation ends adaptively once every profile dimension named in FR-CD-002 (interests, dislikes, preferences, strengths, skills, experience, motivations) has at least one signal at medium-or-higher confidence, subject to a minimum of 8 exchanges (so it never ends prematurely on one lucky early answer) and a hard cap of 20 exchanges (so a low-signal user isn't trapped indefinitely — past the cap, the system proceeds with whatever confidence it has and surfaces the lower-confidence dimensions in the recommendation's uncertainty notes, FR-CD-011).
-- BR-CD-002: A user may skip CV/LinkedIn/portfolio ingestion entirely and still receive recommendations from conversational evidence alone. **[MOM]**
+- BR-CD-002: A user may skip all personal-document/GitHub ingestion entirely and still receive recommendations from conversational evidence alone. **[MOM]**
+- BR-CD-003 **(v1.5)**: retrieved documents are supporting evidence only; they do not waive the adaptive conversation's readiness gate or turn recommendations into a deterministic classification. | [Brief] |
 
 **Data requirements:** DR-CD-001 user profile schema (interests, strengths, preferences, skills, experience, constraints, confidence/uncertainty per signal) — **[MOM]** explicitly names this schema as an open action item, not yet defined in detail; DR-CD-002 raw conversation transcript, retained per the consent/retention policy in §24.
 
@@ -399,19 +400,22 @@ Masar.ai's confirmed multi-agent architecture (§9.2) is, alongside the MOM, a p
 
 | ID | Requirement | Source |
 |---|---|---|
-| FR-CD-030 | The system shall ingest an uploaded CV/resume PDF, extracting and normalizing its text as evidence for the discovery profile (DR-CD-001), mirroring Masar.ai's confirmed document-ingestion stage. | Masar.ai |
-| FR-CD-031 | An assessment/skill-gap agent shall evaluate the combined conversational + CV evidence against career/market profiles in a structured pass, producing the career-profile output specified in FR-CD-010–011. | Masar.ai |
-| FR-CD-032 | A mentorship-chat agent shall power the follow-up "why"/comparison chat (FR-CD-012) as a **stateful** conversation that keeps reference to the user's own completed assessment across turns, not a stateless Q&A. | Masar.ai |
-| FR-CD-033 | Chat and assessment responses shall stream token-by-token rather than appear only on full completion, matching Masar.ai's confirmed real-time streaming UX. | Masar.ai |
-| FR-CD-034 | The saveable/downloadable summary (FR-CD-013) shall be exportable as a formatted PDF report, mirroring Masar.ai's confirmed report-compilation agent. | Masar.ai |
+| FR-CD-030 | The system shall ingest a user-selected CV/resume, recommendation letter, certificate, project documentation, thoughts/journal, or a public GitHub profile with relevant public project evidence as extracted text evidence. PDF, DOCX, and TXT uploads are supported; scanned PDFs use an approved OCR fallback when native extraction has no text. | Masar.ai + [Brief] (v1.5 expansion) |
+| FR-CD-031 | The system shall chunk and embed extracted text into a user-isolated pgvector index, retrieving only relevant excerpts for each guidance request. | Questify precedent + [Brief] (v1.5) |
+| FR-CD-032 | An assessment/skill-gap agent shall evaluate the combined conversational + retrieved-evidence signals against career/market profiles in a structured pass, producing the career-profile output specified in FR-CD-010–011. | Masar.ai + [Brief] (v1.5 expansion) |
+| FR-CD-033 | A mentorship-chat agent shall power the follow-up "why"/comparison chat (FR-CD-012) as a **stateful** conversation that keeps reference to the user's own completed assessment and relevant retrieved evidence across turns, not a stateless Q&A. | Masar.ai + [Brief] (v1.5 expansion) |
+| FR-CD-035 | GitHub import shall read only a user-supplied public profile, its public profile fields, and bounded documentation/supported text from its recent public non-fork projects; it shall never execute code. The MVP checks at most 12 projects and 80 files total. Private-repository access requires a separate per-user-authorized OAuth integration. | [Brief] (v1.5) |
+| FR-CD-036 | A user shall be able to list and delete each uploaded/imported source; deletion removes its chunks from retrieval immediately. | [Brief] (v1.5) |
+| FR-CD-034 | Chat and assessment responses shall stream token-by-token rather than appear only on full completion, matching Masar.ai's confirmed real-time streaming UX. | Masar.ai |
+| FR-CD-037 | The saveable/downloadable summary (FR-CD-013) shall be exportable as a formatted PDF report, mirroring Masar.ai's confirmed report-compilation agent. | Masar.ai |
 
 **Business rules:** BR-CD-030 — the assessment agent and the mentorship-chat agent are logically separate stages (assessment first, chat second, grounded in the assessment's own output), mirroring Masar.ai's own agent boundary; the chat agent must not silently re-run or contradict the assessment agent's output without the user re-triggering an assessment.
 
-**Data requirements:** DR-CD-030 parsed-CV text and extraction metadata, linked to the user profile (DR-CD-001) as one evidence source among several (conversation, CV, optional LinkedIn/portfolio per FR-CD-004).
+**Data requirements:** DR-CD-030 extracted text and metadata for each user-selected source, linked to the user profile (DR-CD-001); DR-CD-031 user-id, source type, filename/source URL, chunks, embedding, extraction method, and retention/deletion state. Original upload binaries are not retained by the API unless a separately approved file-storage policy is introduced.
 
-**Technical/AI dependencies:** a document-ingestion/text-extraction service (PDF at minimum, mirroring Masar.ai's confirmed `PyPDF2`-based stage — the exact library is an implementation choice, not fixed by this PRD); a PDF-compilation service for report export (mirroring Masar.ai's confirmed ReportLab/PLATYPUS-based stage); an LLM with streaming-output support.
+**Technical/AI dependencies:** PDF/DOCX/TXT extraction; an approved OCR fallback for scanned PDFs; Neon Postgres with pgvector for per-user retrieval; a bounded public GitHub API crawler; a PDF-compilation service for report export; an LLM with streaming-output support.
 
-**Edge cases:** an uploaded CV is a scanned image with no extractable text (the system must detect this and prompt the user rather than silently proceeding on empty extraction); a user's CV contradicts what they said conversationally (the assessment agent should surface the discrepancy, not silently prefer one source, consistent with the MOM's own explainability principle, §11.2).
+**Edge cases:** an uploaded PDF is a scanned image with no native extractable text (the system attempts configured OCR or clearly reports that it cannot read it); a source contradicts what the user says conversationally (the assessment agent should surface the discrepancy, not silently prefer one source); GitHub is rate-limited, private, binary-heavy, or too large (the importer returns a clear bounded-result status and indexes no executable code).
 
 **Acceptance criteria**
 
@@ -420,6 +424,9 @@ Masar.ai's confirmed multi-agent architecture (§9.2) is, alongside the MOM, a p
 | AC-CD-030 | Given a user uploads a CV, when text extraction succeeds, then the extracted evidence is visibly reflected in the resulting career-profile rationale (AC-CD-010). |
 | AC-CD-031 | Given a user opens the follow-up chat after receiving results, when they ask a question, then the response demonstrably references their specific assessment (not a generic answer), and streams rather than appearing all at once. |
 | AC-CD-032 | Given a user requests their summary as a PDF, when export completes, then a formatted, downloadable PDF is produced. |
+| AC-CD-033 **(v1.5)** | Given a user uploads a supported PDF, DOCX, or TXT source, when extraction succeeds, then it is chunked and retrievable only within that user's guidance session. |
+| AC-CD-034 **(v1.5)** | Given a user has uploaded evidence but has not completed the adaptive conversation, when they request matches, then the system requires the remaining conversation rather than generating matches early. |
+| AC-CD-035 **(v1.5)** | Given a user deletes a source, when they next use discovery or mentor chat, then no chunk from that source is retrieved. |
 
 **Success metrics:** CV-upload attach rate (opt-in, since FR-CD-004 keeps it optional); PDF-export rate as a proxy for perceived value of the summary.
 
@@ -831,6 +838,13 @@ This feature's required flow is stated verbatim in the brief; it is treated as *
 ---
 
 ## 19. Multimodal RAG Agent Requirements [Proposal — entire section responds to the brief's "Define:" list. No source document specifies a *multimodal, cross-domain* RAG implementation, but Questify's confirmed "course-ask" chatbot **[Questify]** — instructor-PDF chunking, local embedding via pgvector, top-k retrieval, "answer solely from the provided material" grounding — is a real, already-evaluated single-course/text-only precedent, not a hypothetical one; Masar.ai's stateful mentorship chat **[Masar.ai]** and the Habit Tracker's Actor/Intervenor loop **[Habit Tracker]** round out the confirmed design patterns this section reuses. What's genuinely net-new for Bosla is the **cross-source, cross-domain, eventually-multimodal** scope FR-RAG-002 asks for — Questify's version never leaves one course's own documents.]
+
+**MVP bridge (v1.5):** Phase 1 now implements the narrow personal-text slice of this
+architecture through §11.5: user-selected PDF/DOCX/TXT sources and public GitHub profile/project text are
+chunked into a user-isolated Neon pgvector index and retrieved for existing discovery,
+assessment, matching, and mentor flows. This does **not** pull the full Phase-7 agent,
+voice/image/video modalities, partner data, community data, or cross-user retrieval into
+the MVP; those remain governed by this section's later-phase requirements.
 
 **User stories**
 - As a user, I want one assistant that knows my career goals, my habits, my course progress, and my quiz results, instead of repeating my context to five different chat boxes.

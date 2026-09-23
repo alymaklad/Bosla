@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .db import Base
+from .db import Base, EmbeddingVector
 
 
 def _id() -> str:
@@ -35,6 +35,40 @@ class CvUpload(Base):
     truncated: Mapped[bool] = mapped_column(Boolean, default=False)
     ok: Mapped[bool] = mapped_column(Boolean, default=False)
     error: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class UserDocument(Base):
+    """A user-owned text source. Original binary files are not retained by the API."""
+
+    __tablename__ = "user_documents"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    user_id: Mapped[str] = mapped_column(String(32), ForeignKey("users.id"), index=True)
+    source_type: Mapped[str] = mapped_column(String(32))
+    filename: Mapped[str] = mapped_column(String(512))
+    mime_type: Mapped[str] = mapped_column(String(127), default="text/plain")
+    source_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+    text: Mapped[str] = mapped_column(Text, default="")
+    char_count: Mapped[int] = mapped_column(Integer, default=0)
+    chunk_count: Mapped[int] = mapped_column(Integer, default=0)
+    extraction_method: Mapped[str] = mapped_column(String(32), default="native")
+    status: Mapped[str] = mapped_column(String(16), default="ready")
+    error: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class DocumentChunk(Base):
+    """A searchable, user-isolated chunk stored as a Neon pgvector row."""
+
+    __tablename__ = "document_chunks"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    document_id: Mapped[str] = mapped_column(String(32), ForeignKey("user_documents.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(32), ForeignKey("users.id"), index=True)
+    chunk_index: Mapped[int] = mapped_column(Integer)
+    content: Mapped[str] = mapped_column(Text)
+    embedding: Mapped[list[float]] = mapped_column(EmbeddingVector())
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

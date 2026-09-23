@@ -57,7 +57,7 @@ left in the app. Streaming screens (Discovery, MatchDetail's mentor chat, HabitW
 /                        Landing (public)
 /signin                  Sign in (public, cookie-based demo auth)
 /onboarding/consent      Consent + persona (redirect target when signed in without consent)
-/onboarding/cv           CV upload (optional)
+/onboarding/cv           Optional career evidence: PDF/DOCX/TXT uploads + public GitHub import
 /onboarding/discovery    Discovery conversation
 /matches, /matches/:id   Career matches, match detail + mentor chat
 /roadmap                 Roadmap (auto-generates once a direction is chosen)

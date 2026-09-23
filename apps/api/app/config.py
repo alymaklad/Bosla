@@ -39,6 +39,13 @@ class Settings(BaseSettings):
     google_tasks_list_id: str = "@default"
     google_sync_timezone: str = "Africa/Cairo"
     web_app_url: str = "http://localhost:5173"
+    # Personal document retrieval uses a local, deterministic embedding by default.
+    # This keeps the MVP usable without a second paid AI provider.
+    embedding_dimensions: int = 384
+    ocr_fallback_url: str = ""
+    ocr_fallback_token: str = ""
+    ocr_fallback_timeout_seconds: int = 60
+    github_token: str = ""
 
 
 @lru_cache

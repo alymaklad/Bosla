@@ -76,9 +76,24 @@ rows.
 ### Career discovery (`app/ai/career_discovery.py`)
 
 Ported from the Masar.ai notebook (via `../../packages/ai-engines/src/career-discovery/`): CV text
-extraction (`pypdf`), the unified assessment prompt (verbatim from the notebook), and the
+extraction, the unified assessment prompt (verbatim from the notebook), and the
 mentorship chat agent with its anti-simulation guardrails (`SIMULATION_MARKERS`, filtered
 both via `stop_sequences` and a client-side backstop for chunk-boundary leaks).
+
+### Personal evidence retrieval
+
+`POST /career/documents` accepts a user-selected PDF, DOCX, or TXT file and a source type
+(`cv`, `resume`, `recommendation`, `certificate`, `project`, `thoughts`, or `journal`).
+Text is chunked and stored in the user's Neon `pgvector` index. `POST /career/sources/github`
+imports public profile details plus bounded, supported text files from up to 12 recent
+public, non-fork projects without executing code.
+The retrieval helper scopes every query to the signed-in user and supplies evidence to
+discovery, assessment, matches, and mentorship; it never bypasses the discovery readiness
+gate. `DELETE /career/documents/{id}` removes both the source and all of its vectors.
+
+Set `OCR_FALLBACK_URL` and `OCR_FALLBACK_TOKEN` only after deploying the companion OCR
+adapter. Native extraction remains the default, and OCR failures are reported without
+exposing provider details.
 
 Three steps are **new** — the notebook's free-form markdown output doesn't produce the
 structured data this UI needs, so these are new structured-output prompts, not silent

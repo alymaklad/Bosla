@@ -1,28 +1,32 @@
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from fastapi.responses import Response, StreamingResponse
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..ai import career_discovery as cd
+from ..ai import personal_knowledge as knowledge
 from ..ai.base import AiClient
 from ..ai.pdf_report import ChatHistoryEntry, generate_pdf_report
+from ..config import get_settings
 from ..db import get_db
 from ..deps import ai_error_message, get_ai_client, get_current_user
-from ..models import Assessment, CareerMatch, CvUpload, DiscoveryMessage, DiscoveryProfile, MentorMessage, Roadmap, User
+from ..models import Assessment, CareerMatch, CvUpload, DiscoveryMessage, DiscoveryProfile, MentorMessage, Roadmap, User, UserDocument
 from ..schemas import (
     ChooseDirectionRequest,
     DiscoveryMessageOut,
     DiscoveryProfileOut,
     DiscoverySendRequest,
     DiscoveryStartRequest,
+    GithubProfileRequest,
     MentorChatRequest,
     ProfileDimensionOut,
 )
 
 router = APIRouter(prefix="/career", tags=["career"])
-MAX_CV_BYTES = 10 * 1024 * 1024
+SUPPORTED_DOCUMENT_TYPES = {"cv", "resume", "recommendation", "certificate", "project", "thoughts", "journal", "other"}
+SUPPORTED_DOCUMENT_EXTENSIONS = {".pdf": "application/pdf", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".txt": "text/plain"}
 
 
 def _sse(event: str, data: dict | str) -> bytes:
@@ -30,29 +34,124 @@ def _sse(event: str, data: dict | str) -> bytes:
     return f"event: {event}\ndata: {payload}\n\n".encode()
 
 
-# --------------------------------------------------------------------- CV upload
+# ----------------------------------------------------------- personal documents
+
+def _document_out(row: UserDocument, *, text: str | None = None, truncated: bool = False) -> dict:
+    return {
+        "id": row.id,
+        "source_type": row.source_type,
+        "filename": row.filename,
+        "mime_type": row.mime_type,
+        "source_url": row.source_url,
+        "char_count": row.char_count,
+        "chunk_count": row.chunk_count,
+        "extraction_method": row.extraction_method,
+        "status": row.status,
+        "error": row.error,
+        "created_at": row.created_at.isoformat(),
+        "text": text,
+        "truncated": truncated,
+        "ok": row.status == "ready",
+    }
+
+
+async def _ingest_upload(
+    *, file: UploadFile, document_type: str, user: User, db: AsyncSession
+) -> dict:
+    if document_type not in SUPPORTED_DOCUMENT_TYPES:
+        raise HTTPException(422, "Choose a valid document category.")
+    filename = file.filename or "document"
+    suffix = filename.lower().rsplit(".", 1)
+    extension = f".{suffix[-1]}" if len(suffix) == 2 else ""
+    if extension not in SUPPORTED_DOCUMENT_EXTENSIONS:
+        raise HTTPException(415, "Upload a PDF, DOCX, or TXT file.")
+    data = await file.read(knowledge.MAX_DOCUMENT_BYTES + 1)
+    if len(data) > knowledge.MAX_DOCUMENT_BYTES:
+        raise HTTPException(413, "Documents must be 10 MB or smaller.")
+    result = await knowledge.extract_document(data, filename, file.content_type)
+    if not result.ok:
+        return {"text": "", "truncated": False, "ok": False, "error": result.error, "document": None}
+
+    mime_type = SUPPORTED_DOCUMENT_EXTENSIONS[extension]
+    row = (await knowledge.store_documents(
+        db,
+        user_id=user.id,
+        sources=[(document_type, filename, mime_type, result.text, None, result.method)],
+    ))[0]
+    # Retain the legacy row for pre-existing report/export compatibility while all
+    # new personalization uses user_documents + document_chunks.
+    if document_type == "cv":
+        db.add(CvUpload(user_id=user.id, filename=filename, text=result.text, truncated=result.truncated, ok=True, error=None))
+        await db.commit()
+    payload = _document_out(row, text=result.text[:7_000], truncated=result.truncated)
+    return {"text": payload["text"], "truncated": result.truncated, "ok": True, "error": None, "document": payload}
+
+
+@router.post("/documents")
+async def upload_document(
+    file: UploadFile,
+    document_type: str = Form("other"),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    return await _ingest_upload(file=file, document_type=document_type, user=user, db=db)
+
 
 @router.post("/cv")
 async def upload_cv(file: UploadFile, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> dict:
-    if file.content_type != "application/pdf" or not (file.filename or "").lower().endswith(".pdf"):
-        raise HTTPException(415, "Upload a PDF file.")
-    data = await file.read(MAX_CV_BYTES + 1)
-    if len(data) > MAX_CV_BYTES:
-        raise HTTPException(413, "PDF must be 10 MB or smaller.")
-    result = cd.extract_text_from_pdf(data)
-    upload = CvUpload(
-        user_id=user.id, filename=file.filename or "resume.pdf",
-        text=result.text, truncated=result.truncated, ok=result.ok, error=result.error,
+    """Backward-compatible CV endpoint, now with PDF/DOCX/TXT and vector indexing."""
+    return await _ingest_upload(file=file, document_type="cv", user=user, db=db)
+
+
+@router.get("/documents")
+async def list_documents(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> list[dict]:
+    result = await db.execute(select(UserDocument).where(UserDocument.user_id == user.id).order_by(UserDocument.created_at.desc()))
+    return [_document_out(row) for row in result.scalars().all()]
+
+
+@router.delete("/documents/{document_id}", status_code=204)
+async def remove_document(document_id: str, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Response:
+    if not await knowledge.delete_document(db, user_id=user.id, document_id=document_id):
+        raise HTTPException(404, "Document not found.")
+    return Response(status_code=204)
+
+
+@router.post("/sources/github")
+async def import_github_profile(
+    body: GithubProfileRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> dict:
+    imported = await knowledge.crawl_github_profile(body.profile_url, get_settings())
+    rows = await knowledge.store_documents(
+        db,
+        user_id=user.id,
+        sources=[
+            ("project", f"{imported.profile_url.removeprefix('https://github.com/')}/{item.path}", "text/plain", item.text, item.source_url, "github")
+            for item in imported.files
+        ],
     )
-    db.add(upload)
-    await db.commit()
-    return {"text": result.text, "truncated": result.truncated, "ok": result.ok, "error": result.error}
+    return {
+        "profile_url": imported.profile_url,
+        "repositories_imported": imported.repositories_imported,
+        "repositories_skipped": imported.repositories_skipped,
+        "sources_indexed": len(rows),
+        "chunks_created": sum(row.chunk_count for row in rows),
+        "files_skipped": imported.files_skipped,
+    }
 
 
 async def _latest_cv_text(db: AsyncSession, user_id: str) -> str | None:
     res = await db.execute(select(CvUpload).where(CvUpload.user_id == user_id, CvUpload.ok == True).order_by(CvUpload.created_at.desc()))  # noqa: E712
     row = res.scalars().first()
     return row.text if row else None
+
+
+async def _personal_context(db: AsyncSession, user_id: str, query: str) -> str:
+    context = await knowledge.retrieve_context(db, user_id=user_id, query=query)
+    if context != "No personal documents have been added yet.":
+        return context
+    # Existing users' historical CV uploads predate the vector tables.
+    legacy_cv = await _latest_cv_text(db, user_id)
+    return f"[Personal source: legacy CV]\n{legacy_cv}" if legacy_cv else context
 
 
 # --------------------------------------------------------------------- discovery
@@ -108,12 +207,12 @@ async def send_discovery_message(
     await db.commit()
 
     history = await _history(db, user.id)
-    cv_text = await _latest_cv_text(db, user.id)
+    document_context = await _personal_context(db, user.id, body.message)
 
     async def gen():
         try:
             full = ""
-            async for chunk in cd.stream_discovery_turn(ai, persona=user.persona, cv_text=cv_text, history=history):
+            async for chunk in cd.stream_discovery_turn(ai, persona=user.persona, evidence_context=document_context, history=history):
                 full += chunk
                 yield _sse("chunk", {"text": chunk})
 
@@ -165,11 +264,13 @@ def _profile_summary_text(p: DiscoveryProfile | None) -> str:
 async def run_assessment(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), ai: AiClient = Depends(get_ai_client)) -> StreamingResponse:
     res = await db.execute(select(DiscoveryProfile).where(DiscoveryProfile.user_id == user.id))
     profile = res.scalar_one_or_none()
-    cv_text = await _latest_cv_text(db, user.id)
+    document_context = await _personal_context(
+        db, user.id, "career background education experience skills projects credentials achievements preferences"
+    )
 
     student = cd.StudentInput(
         name=user.name, major=user.persona or "Undecided",
-        interests=profile.interests if profile else "", skill_level=profile.skills if profile else "", cv_text=cv_text,
+        interests=profile.interests if profile else "", skill_level=profile.skills if profile else "", evidence_context=document_context,
     )
 
     async def gen():
@@ -207,8 +308,13 @@ async def generate_matches(user: User = Depends(get_current_user), db: AsyncSess
     ai = get_ai_client()
     pres = await db.execute(select(DiscoveryProfile).where(DiscoveryProfile.user_id == user.id))
     profile = pres.scalar_one_or_none()
+    if profile is None or profile.status != "complete":
+        raise HTTPException(400, "Continue the discovery conversation before generating matches.")
 
-    matches = await cd.generate_career_matches(ai, assessment.text, _profile_summary_text(profile))
+    document_context = await _personal_context(
+        db, user.id, "career match evidence skills experience strengths interests projects credentials"
+    )
+    matches = await cd.generate_career_matches(ai, assessment.text, _profile_summary_text(profile), document_context)
 
     await db.execute(delete(CareerMatch).where(CareerMatch.user_id == user.id))
     rows = []
@@ -295,7 +401,8 @@ async def mentor_chat(
 ) -> StreamingResponse:
     ares = await db.execute(select(Assessment).where(Assessment.user_id == user.id).order_by(Assessment.created_at.desc()))
     assessment = ares.scalars().first()
-    assessment_context = assessment.text if assessment else ""
+    document_context = await _personal_context(db, user.id, body.message)
+    assessment_context = (assessment.text if assessment else "No completed assessment yet.") + "\n\n" + document_context
 
     hres = await db.execute(select(MentorMessage).where(MentorMessage.user_id == user.id).order_by(MentorMessage.created_at))
     history = [{"role": m.role, "content": m.content} for m in hres.scalars().all()]
