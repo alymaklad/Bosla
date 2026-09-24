@@ -1,8 +1,8 @@
 # Bosla — Product Requirements Document
 
 **Document owner:** Product (drafted on behalf of alytarek.maklad@gmail.com)
-**Status:** Draft v1.5 — decision-complete. v1.1 narrowed MVP to Masar.ai + Habit Tracker and enriched Questify from its thesis documentation; v1.2 resolved the six highest-priority pre-implementation decisions; v1.3 resolved every remaining open question inline in its owning section; v1.4 splits the platform plan into a **React web MVP (Phase 1)** followed by a **React Native native mobile app (Phase 2+)**; v1.5 adds consent-scoped personal-document and public-GitHub retrieval to the Phase 1 career-guidance flow, per stakeholder direction.
-**Date:** 2026-09-19 (v1.0 through v1.4)
+**Status:** Draft v1.6 — decision-complete and aligned to the deployed React web MVP. v1.5 added consent-scoped personal-document and public-GitHub retrieval; v1.6 records the implemented Career Context workflow, production AI failover, direct Google Vision OCR integration, session persistence, English-only MVP scope, and configuration-dependent Google integrations.
+**Date:** 2026-09-24
 
 ---
 
@@ -23,12 +23,28 @@ Every requirement is tagged with a **Source** so confirmed facts are never confu
 | **[Proposal]** | Design/requirement authored in this PRD to fulfill a "Define:" instruction in the brief; not confirmed by any source document — needs stakeholder sign-off |
 | **[Assumption]** | Inferred to fill a gap, flagged so it can be validated or overridden |
 | **[Gap]** | The source material does not cover this; stated explicitly rather than invented |
+| **[Implementation]** | Verified in the current Bosla MVP code/deployment; external credentials or provider approval may still be required where stated |
 
 **Update (v1.1):** `Questify Documentation.pdf` is now available as a converted, readable `Questify Documentation.md` — the official Ain Shams University thesis write-up — and has been fully read and folded into the **[Questify]** tag below; it resolves several gaps flagged in v1.0 and adds substantial confirmed architectural detail (§9.4). `Job_Application_Agent_Report.pdf` was removed from the project folder in this update; Jobify's confirmed capabilities still rely solely on its `README.md`, unchanged from v1.0.
 
 **Scope change (v1.1):** per explicit instruction, **the MVP (Phase 1) is now scoped to Masar.ai and Habit Tracker capabilities only.** Questify, Jobify, CohereVoice Studio, and the brief's later-phase "Define:" features (education partners, career video, community, voice evaluation, the RAG agent, and most of the admin panel) are unchanged in substance below — only their position relative to MVP has shifted; they are now uniformly post-MVP.
 
 **Requirement ID scheme:** `FR-<module>-###` (functional), `NFR-###` (non-functional), `AC-<module>-###` (acceptance criteria), `BR-<module>-###` (business rule), `DR-<module>-###` (data requirement). Modules: `CD` Career Discovery, `EDU` Education Partners, `VID` Career Videos, `HAB` Habit Tracker, `GAM` Gamification/Questify, `COM` Community/Mentorship, `VOI` Voice Evaluation, `RAG` Multimodal Agent, `ADM` Admin Panel, `WEB` React Web MVP Platform, `MOB` Native Mobile Platform, `JOB` Job Readiness.
+
+### v1.6 MVP implementation alignment — 2026-09-24
+
+This is the authoritative scope/status record for the deployed MVP. A status of **configuration-dependent** means the product flow is implemented, but the external provider must be connected and successfully live-tested before it can be claimed as available to end users.
+
+| MVP capability | Current scope and behavior | Status |
+|---|---|---|
+| Onboarding and sessions | English-only onboarding, consent, email/password sign-in, and persistent secure server sessions. Returning users resume their stored account state rather than restarting onboarding. | Implemented |
+| Career Context | Optional, user-managed evidence area for PDF/DOCX/TXT documents and a public GitHub profile. It replaces “CV upload” as the product-level name; **CV** remains one selectable document category. Users can return to it from discovery, add/remove sources, then continue the same conversation. | Implemented |
+| Retrieval and personalization | Text is chunked into a user-isolated vector index and retrieved for discovery, assessment, career matching, and AI mentor replies. Conversation remains required before matches can be generated. | Implemented |
+| OCR | Native PDF/DOCX/TXT extraction runs first. Scanned PDFs use Google Cloud Vision only when native PDF extraction yields no text. The API reports setup, access, quota, and unreadable-scan states without exposing provider internals. Google Vision requires a valid server-side key, enabled Vision API, billing, and compatible key restrictions. | Implemented; configuration-dependent |
+| AI generation | Groq `openai/gpt-oss-120b` is the production primary model. Configured Groq keys are tried in sequence, then `llama-3.3-70b-versatile` is used as the fallback model. AI failures surface a clear retry/credit message rather than crashing the UI. | Implemented; provider-credit-dependent |
+| Habits and planning | Habits, timer/manual completion, progress, weekly review, recompute-honest scoring, roadmap-to-habit actions, and the AI goals planner are available in the web MVP. | Implemented |
+| Google integrations | Google sign-in and separate Google Calendar/Google Tasks OAuth flows are implemented. Calendar mirrors timed reminders; Tasks provides two-way completion semantics. Both require their own production Google Cloud OAuth configuration and live testing. | Implemented; configuration-dependent |
+| Deferred scope | Arabic UI, native mobile, partner learning, community marketplace, voice evaluation, and full multimodal RAG remain outside the English web MVP. | Deferred |
 
 ---
 
@@ -299,10 +315,10 @@ This is the single journey every later functional section maps back into.
 | FR-CD-001 | The system shall conduct career discovery as a multi-turn adaptive conversation, not a fixed-order questionnaire. | MOM |
 | FR-CD-002 | The conversation shall gather evidence on: interests, dislikes, working-style preferences, strengths, existing skills, experience, and motivations. | MOM |
 | FR-CD-003 | The system shall detect an unclear/ambiguous user answer and offer a rephrased question rather than proceeding on a low-confidence answer. | MOM |
-| FR-CD-004 | The system shall optionally ingest a CV/resume, recommendation letter, certificate, project documentation, thoughts/journal, or public GitHub profile and relevant public project evidence as additional evidence, subject to explicit consent. | MOM + [Brief] (v1.5 expansion) |
+| FR-CD-004 | The system shall optionally ingest Career Context: a CV/resume, recommendation letter, certificate, project documentation, thoughts/journal, or public GitHub profile and relevant public project evidence, subject to explicit consent. | MOM + [Brief] (v1.6 terminology alignment) |
 | FR-CD-005 | The system shall persist the evolving user profile (accepted insights, skills, prior conversation state) across sessions. | MOM |
 
-**User flow:** Onboarding → consent screen (data use) → conversational intake (chat-style, voice-optional — mobile note in §12) → optional CV upload → live-updating profile summary panel → "ready for recommendations" checkpoint.
+**User flow:** Onboarding → consent screen (data use) → optional Career Context → conversational intake → “ready for recommendations” checkpoint. From discovery, a user may return to Career Context, add/remove sources, and resume the same persisted conversation.
 
 **Business rules**
 - BR-CD-001 **[DECIDED]**: the system must not claim a fixed number of required questions; the conversation ends adaptively once every profile dimension named in FR-CD-002 (interests, dislikes, preferences, strengths, skills, experience, motivations) has at least one signal at medium-or-higher confidence, subject to a minimum of 8 exchanges (so it never ends prematurely on one lucky early answer) and a hard cap of 20 exchanges (so a low-signal user isn't trapped indefinitely — past the cap, the system proceeds with whatever confidence it has and surfaces the lower-confidence dimensions in the recommendation's uncertainty notes, FR-CD-011).
@@ -321,7 +337,7 @@ This is the single journey every later functional section maps back into.
 |---|---|
 | AC-CD-001 | Given a user completes the adaptive conversation, when they reach the summary checkpoint, then a persisted profile with interests/strengths/preferences/skills/experience/confidence fields exists. |
 | AC-CD-002 | Given the user's answer is flagged low-confidence, when the system detects this, then it offers a rephrased follow-up before moving on. |
-| AC-CD-003 | Given a user declines CV upload, when they proceed, then recommendations are still generated from conversational evidence alone. |
+| AC-CD-003 | Given a user skips Career Context, when they proceed, then recommendations are still generated from conversational evidence alone. |
 
 **Success metrics:** conversation completion rate; average turns to reach recommendation-ready state; % of answers requiring a rephrase (a proxy for question quality, should trend down over releases).
 
@@ -347,7 +363,7 @@ This is the single journey every later functional section maps back into.
 - BR-CD-010: The system must never present output as a validated psychometric or clinical assessment. **[MOM — Key Product Risk: Assessment validity]**
 - BR-CD-011: Any salary/market-demand figure must carry location, date, and source provenance, or must not be shown. **[MOM — Key Product Risk: Data quality]**
 
-**Data requirements:** DR-CD-010 career-profile schema (role, fit rationale, supporting signals, uncertainty notes, activities, required skills, market context, preview-video link); DR-CD-011 career taxonomy/skill framework — **[DECIDED, this revision]** ISCO-08 (the ILO's International Standard Classification of Occupations) as the base occupation taxonomy, cross-walked with ESCO's open-licensed skills/competency taxonomy, localized into Arabic and English by Bosla. This resolves MOM Open Question 4. Licensing **[DECIDED]**: ESCO is published by the European Commission under an open, free-to-reuse license requiring attribution only (no fee); Bosla's ISCO-08+ESCO cross-walk carries that attribution wherever taxonomy data is shown. Localization **[DECIDED]**: an initial Arabic pass covers the ~500 highest-frequency occupations/skills in Phase 0 (enough for the MVP's discovery/recommendation flow), with the long tail localized incrementally through Phase 2.
+**Data requirements:** DR-CD-010 career-profile schema (role, fit rationale, supporting signals, uncertainty notes, activities, required skills, market context, preview-video link); DR-CD-011 career taxonomy/skill framework — **[DECIDED]** ISCO-08 (the ILO's International Standard Classification of Occupations) as the base occupation taxonomy, cross-walked with ESCO's open-licensed skills/competency taxonomy. The MVP exposes English only; Arabic taxonomy localization is deferred with the post-MVP language rollout. ESCO is published by the European Commission under an open, free-to-reuse license requiring attribution only (no fee); Bosla's ISCO-08+ESCO cross-walk carries that attribution wherever taxonomy data is shown.
 
 **Technical/AI dependencies:** LLM reasoning over the user profile against the decided career taxonomy (§11.2 DR-CD-011); retrieval of market-data from the decided sources, ILOSTAT and each market's national statistical agency (FR-CD-014).
 
@@ -392,7 +408,7 @@ This is the single journey every later functional section maps back into.
 Masar.ai's confirmed multi-agent architecture (§9.2) is, alongside the MOM, a primary MVP source per the v1.1 scope instruction. The following capabilities are carried into Bosla's MVP career-discovery module, reusing Masar.ai's confirmed agent decomposition directly rather than treating it only as background inspiration.
 
 **User stories**
-- As a user, I want to upload my CV/resume and have it actually inform my career assessment, not just sit as an attachment. **[Masar.ai]**
+- As a user, I want to add career evidence and have it actually inform my career assessment, not just sit as an attachment. **[Masar.ai]**
 - As a user, I want to keep asking follow-up questions about my results in a chat that remembers my evaluation, not one that forgets context every message. **[Masar.ai]**
 - As a user, I want a polished, exportable report of my results I can keep or share. **[Masar.ai]**
 
@@ -400,7 +416,7 @@ Masar.ai's confirmed multi-agent architecture (§9.2) is, alongside the MOM, a p
 
 | ID | Requirement | Source |
 |---|---|---|
-| FR-CD-030 | The system shall ingest a user-selected CV/resume, recommendation letter, certificate, project documentation, thoughts/journal, or a public GitHub profile with relevant public project evidence as extracted text evidence. PDF, DOCX, and TXT uploads are supported; scanned PDFs use an approved OCR fallback when native extraction has no text. | Masar.ai + [Brief] (v1.5 expansion) |
+| FR-CD-030 | The system shall ingest a user-selected Career Context source: CV/resume, recommendation letter, certificate, project documentation, thoughts/journal, or a public GitHub profile with relevant public project evidence. PDF, DOCX, and TXT uploads are supported; native extraction runs first and scanned PDFs use Google Cloud Vision OCR only when native extraction has no text. | Masar.ai + [Brief] (v1.6 implementation alignment) |
 | FR-CD-031 | The system shall chunk and embed extracted text into a user-isolated pgvector index, retrieving only relevant excerpts for each guidance request. | Questify precedent + [Brief] (v1.5) |
 | FR-CD-032 | An assessment/skill-gap agent shall evaluate the combined conversational + retrieved-evidence signals against career/market profiles in a structured pass, producing the career-profile output specified in FR-CD-010–011. | Masar.ai + [Brief] (v1.5 expansion) |
 | FR-CD-033 | A mentorship-chat agent shall power the follow-up "why"/comparison chat (FR-CD-012) as a **stateful** conversation that keeps reference to the user's own completed assessment and relevant retrieved evidence across turns, not a stateless Q&A. | Masar.ai + [Brief] (v1.5 expansion) |
@@ -413,7 +429,7 @@ Masar.ai's confirmed multi-agent architecture (§9.2) is, alongside the MOM, a p
 
 **Data requirements:** DR-CD-030 extracted text and metadata for each user-selected source, linked to the user profile (DR-CD-001); DR-CD-031 user-id, source type, filename/source URL, chunks, embedding, extraction method, and retention/deletion state. Original upload binaries are not retained by the API unless a separately approved file-storage policy is introduced.
 
-**Technical/AI dependencies:** PDF/DOCX/TXT extraction; an approved OCR fallback for scanned PDFs; Neon Postgres with pgvector for per-user retrieval; a bounded public GitHub API crawler; a PDF-compilation service for report export; an LLM with streaming-output support.
+**Technical/AI dependencies:** PDF/DOCX/TXT extraction; Google Cloud Vision OCR for scanned PDFs; Neon Postgres with pgvector for per-user retrieval; a bounded public GitHub API crawler; a PDF-compilation service for report export; and server-side Groq model routing with key/model fallback. Google Vision must have the Vision API enabled, active billing, and a server-compatible key restriction before OCR can be marked available.
 
 **Edge cases:** an uploaded PDF is a scanned image with no native extractable text (the system attempts configured OCR or clearly reports that it cannot read it); a source contradicts what the user says conversationally (the assessment agent should surface the discrepancy, not silently prefer one source); GitHub is rate-limited, private, binary-heavy, or too large (the importer returns a clear bounded-result status and indexes no executable code).
 
@@ -421,14 +437,16 @@ Masar.ai's confirmed multi-agent architecture (§9.2) is, alongside the MOM, a p
 
 | ID | Criterion |
 |---|---|
-| AC-CD-030 | Given a user uploads a CV, when text extraction succeeds, then the extracted evidence is visibly reflected in the resulting career-profile rationale (AC-CD-010). |
+| AC-CD-030 | Given a user adds a Career Context source, when text extraction succeeds, then the extracted evidence is visibly reflected in the resulting career-profile rationale (AC-CD-010). |
 | AC-CD-031 | Given a user opens the follow-up chat after receiving results, when they ask a question, then the response demonstrably references their specific assessment (not a generic answer), and streams rather than appearing all at once. |
 | AC-CD-032 | Given a user requests their summary as a PDF, when export completes, then a formatted, downloadable PDF is produced. |
 | AC-CD-033 **(v1.5)** | Given a user uploads a supported PDF, DOCX, or TXT source, when extraction succeeds, then it is chunked and retrievable only within that user's guidance session. |
 | AC-CD-034 **(v1.5)** | Given a user has uploaded evidence but has not completed the adaptive conversation, when they request matches, then the system requires the remaining conversation rather than generating matches early. |
 | AC-CD-035 **(v1.5)** | Given a user deletes a source, when they next use discovery or mentor chat, then no chunk from that source is retrieved. |
+| AC-CD-036 **(v1.6)** | Given a user returns from discovery to Career Context, when they add or remove a source and continue, then their existing discovery conversation is retained and the revised source set is available for subsequent retrieval. |
+| AC-CD-037 **(v1.6)** | Given a scanned PDF has no native text and Google Vision rejects the request or reaches quota, when upload fails, then the user sees a plain-language corrective message and no credential or provider response is exposed. |
 
-**Success metrics:** CV-upload attach rate (opt-in, since FR-CD-004 keeps it optional); PDF-export rate as a proxy for perceived value of the summary.
+**Success metrics:** Career Context attach rate (opt-in, since FR-CD-004 keeps it optional); source diversity per opted-in user; PDF-export rate as a proxy for perceived value of the summary.
 
 **Phase:** MVP (Phase 1).
 
@@ -449,7 +467,7 @@ None of the source projects has a confirmed web client either (Habit Tracker is 
 | FR-WEB-001 | The MVP shall ship as a responsive **React** web app (desktop and mobile-browser breakpoints), not a native app. | [DECIDED, this revision] — resolves OQ-1 for the MVP platform |
 | FR-WEB-002 | Authentication shall support email/password and at least one OAuth provider (Google, given Habit Tracker's existing Google OAuth/PKCE integration pattern). | [Habit Tracker] pattern reused |
 | FR-WEB-003 | AI-dependent features (discovery conversation, mentorship chat) shall show a clear "needs connection" / retry state on failure — never a silent failure. | [Proposal], mirrors CohereVoice's "fail closed" principle |
-| FR-WEB-004 | The web app shall support at minimum English and Arabic, including right-to-left (RTL) layout for Arabic. | [CohereVoice] + [Proposal] |
+| FR-WEB-004 **(v1.6)** | The MVP web app shall support English only. Arabic and RTL layout are post-MVP localization work. | Stakeholder direction |
 | FR-WEB-005 | The habit-tracking core's recompute-honest scoring (§15) shall run against the same backend API the eventual native app will use, so no scoring logic is web-only. | [Proposal] — avoids rework when porting to native |
 | FR-WEB-006 | The web app shall meet WCAG 2.1 AA-equivalent accessibility baselines (keyboard navigation, screen-reader labels, contrast) — see §25. | [Proposal] |
 
@@ -577,7 +595,7 @@ FR-EDU-050: Partner-provided content shall be visually distinguishable (partner 
 
 | Tier | Unlocks (cumulative) | Primary phase(s) | Notes |
 |---|---|---|---|
-| **Free** | Career discovery (adaptive conversation, CV ingestion, 3–5 recommendations, mentorship chat, PDF export — §11) + full habit-tracking core on its native engine (§15) | Phase 1–2 | The entire MVP is free — this is the acquisition funnel, matching the MOM's own framing of a self-contained, useful first session **[MOM]** |
+| **Free** | Career discovery (adaptive conversation, optional Career Context, 3–5 recommendations, mentorship chat, PDF export — §11) + full habit-tracking core on its native engine (§15) | Phase 1–2 | The entire MVP is free — this is the acquisition funnel, matching the MOM's own framing of a self-contained, useful first session **[MOM]** |
 | **Plus** | Questify-unified gamification (§16), education-partner course access (§13) up to a bundled catalog allowance, voice-based knowledge evaluation (§18) | Phase 3–5 | The first paid tier; priced to cover LLM/ASR inference cost, which free-tier discovery/chat already incurs, so Plus is where that cost is recovered |
 | **Pro** | Unlimited/expanded partner-course catalog access, community & mentorship (§17), the multimodal RAG agent (§19) | Phase 6–7 | Positioned as the "serious career growth" tier |
 | **Partner-Sponsored / Enterprise** | Negotiated bundle (often Pro-equivalent or custom), sold via a Marketing/Reseller Partner (§13.9) at partner-negotiated pricing, potentially org-branded | Any phase, sold wherever the partner's agreement starts | Not a feature tier so much as a *distribution channel* — the feature set is one of the above three, chosen contractually |
@@ -1046,7 +1064,7 @@ High-level entity map (full field-level schemas belong in engineering design doc
 | `AuditLogEntry` | actor, action, target, before/after, timestamp (**[Proposal]**, baseline) | §20, §22 |
 | `PartnerOrg` | status (pending/active/suspended/offboarded), content ownership (**[Proposal]**) | §13 |
 
-**[DECIDED, this revision]**: `CareerTaxonomy`/skill-framework entity is now specified as an ISCO-08 + ESCO cross-walk (§11.2 DR-CD-011), resolving what was the single highest-leverage open modeling question in v1.0 (formerly OQ-4) — it powers career recommendations (§11.2), community group tagging and mentor matching (§17), and partner content skill-gap mapping (§13). Licensing and localization scope are both decided (§11.2): ESCO's open license requires attribution only, and an initial ~500-item Arabic localization pass ships in Phase 0.
+**[DECIDED, v1.6]**: `CareerTaxonomy`/skill-framework entity is specified as an ISCO-08 + ESCO cross-walk (§11.2 DR-CD-011), resolving what was the single highest-leverage open modeling question in v1.0 (formerly OQ-4) — it powers career recommendations (§11.2), community group tagging and mentor matching (§17), and partner content skill-gap mapping (§13). ESCO's open license requires attribution only. The MVP ships English terminology; Arabic localization is deferred.
 
 ---
 
@@ -1055,8 +1073,8 @@ High-level entity map (full field-level schemas belong in engineering design doc
 | Dependency | Status | Notes |
 |---|---|---|
 | CohereVoice ASR pipeline | **[CohereVoice]** confirmed capability, **not yet a multi-tenant hosted service** | Currently a local, `127.0.0.1`-bound Streamlit/CLI tool; productionizing (hosted API, auth, scaling, media-retention policy beyond its current "delete after job" behavior) is real engineering work, not a detail — **[Gap]** on hosting model |
-| LLM provider(s) for career discovery, RAG agent, voice-evaluation scoring | **[DECIDED, this revision]** Multi-provider via a Bosla-managed abstraction (pattern reused from Habit Tracker's provider-agnostic `AiClient` **[Habit Tracker]**): **OpenAI, Anthropic, OpenRouter, and Groq.** All provider API keys are provisioned, held, and billed centrally by Bosla — never a user-supplied/BYOK key — so every AI feature fails closed exactly as CohereVoice's confirmed design does if Bosla's own configured provider is unavailable **[CohereVoice]**. | OQ-1 resolved; provider-to-feature routing (e.g., which provider powers voice-evaluation scoring vs. the RAG agent) remains an engineering implementation detail |
-| Google Tasks/Calendar OAuth (habit sync) | **[Habit Tracker]** confirmed, optional | Mobile OAuth flow replaces the desktop loopback+PKCE flow |
+| LLM provider(s) for the MVP | **[Implementation]** Groq is the active server-side provider: `openai/gpt-oss-120b` primary, with configured Groq key rotation and `llama-3.3-70b-versatile` fallback. Anthropic remains an optional adapter, not the active MVP route. Bosla holds all provider keys centrally; users never supply keys. | Valid provider credits and network access are required; failures are surfaced clearly and do not crash the UI. |
+| Google sign-in and Google Tasks/Calendar OAuth | **[Implementation]** Optional, separate OAuth web clients. Calendar mirrors timed reminders; Tasks provides two-way completion sync. | Both flows require exact production redirect URIs, granted scopes, encrypted token storage, and live OAuth validation. |
 | Questify-style event bus + background job runner | **[Questify]** confirmed architecture (`pg-boss` in the source project) | Mobile-backend equivalent is an architecture decision (§23) |
 | Jobify's ATS/CV-scoring and job-matching logic | **[Jobify]** confirmed, reused only as scoring/matching intelligence (§8 boundary) | Autonomous multi-site scraping/auto-apply explicitly not adopted |
 | Education-partner content APIs/feeds | **[Gap]**, no source document | Partner-by-partner integration contracts, TBD per partner |
@@ -1121,12 +1139,12 @@ Career/Market   (streak     Habit + Learning              (grounded on
 |---|---|---|
 | MVP web framework | **React** (web app) | FR-WEB-001; ships fast, browser-only, no app-store review cycle for the MVP |
 | Native mobile framework (Phase 2+) | **React Native** (Expo-managed, mirroring Questify's own confirmed Expo/React Native mobile client **[Questify]**) | One codebase for iOS+Android (FR-MOB-001); Questify's app is already built this way, lowering integration risk once Questify joins in Phase 3–4; sharing React as the base across web and native lets data/business-logic hooks carry over |
-| LLM providers | OpenAI, Anthropic, OpenRouter, Groq — Bosla-managed keys, server-side only | See §22; matches Habit Tracker's confirmed provider-agnostic `AiClient` pattern, now with a named roster instead of "TBD" |
-| Backend language/framework | Node.js/TypeScript (Express or NestJS) services | Directly mirrors Questify's own confirmed, already-working Express 5 + Prisma 7 stack **[Questify]** — since Questify's engine is integrated wholesale in Phase 3–4 (§16), matching its language/runtime avoids a costly rewrite-at-the-seam and lets Bosla reuse Questify's own event-bus/job-queue patterns directly |
-| Primary database | PostgreSQL, with the `pgvector` extension for embeddings | Matches Questify's confirmed choice **[Questify]**; one database technology serves both relational data and the RAG agent's (§19) and Questify's course-ask's (§9.4) vector retrieval needs, avoiding a separate vector-database service |
+| LLM providers | Groq server-side routing: `openai/gpt-oss-120b` primary, sequential configured keys, then `llama-3.3-70b-versatile`; Anthropic adapter optional | Matches Habit Tracker's provider-agnostic pattern while documenting the active MVP route (§22) |
+| Backend language/framework | FastAPI / Python serverless API | This is the deployed MVP implementation. A later Questify integration may introduce TypeScript services only where it has a clear integration benefit. |
+| Primary database | Neon PostgreSQL, with the `pgvector` extension for embeddings | Serves relational application data and the user-isolated Career Context retrieval index. |
 | Background jobs | `pg-boss` (Postgres-backed queue) | Matches Questify's confirmed choice **[Questify]** for leaderboard snapshots, streak checks, AI content generation, and RAG ingestion |
-| Object storage | S3-compatible object storage | For CVs, voice recordings, generated PDFs, video assets |
-| Hosting | Managed cloud (e.g., AWS or GCP) — managed Postgres, containerized (Docker) API services, autoscaled behind a load balancer, CDN for video/media delivery | Matches Questify's own confirmed statelessness/horizontal-scaling NFR target (§9.4) so Bosla's backend can absorb Questify's engine without an architecture mismatch |
+| Object storage | Not required for current Career Context ingestion | Extracted text and retrieval chunks are retained; original document binaries are not retained by the API. Object storage becomes necessary for future voice/video features. |
+| Hosting | Vercel: separate React/Vite web and FastAPI projects, backed by Neon Postgres | Current production deployment; future scale architecture can evolve without changing MVP product behavior. |
 | CohereVoice ASR hosting | Separate, GPU-backed managed service, not co-located with the stateless API tier | CohereVoice's confirmed local/`127.0.0.1` deployment is model-inference-heavy (§9.5, §22) and needs different scaling characteristics than the stateless API |
 
 This closes OQ-1 and OQ-2. Residual, lower-priority decisions (exact cloud vendor, exact managed-Postgres product, CI/CD tooling) are an infrastructure-team implementation choice, not re-opened here.
@@ -1173,7 +1191,7 @@ These are proposed defaults consistent with the chosen framework, not a substitu
 |---|---|---|
 | NFR-020 | Career videos carry captions by default. | Brief (§14) |
 | NFR-021 | Voice evaluation always offers a text-input alternative — voice is never the only path to demonstrate understanding. | Proposal (§18), directly protects users who can't or don't want to use voice |
-| NFR-022 | English and Arabic supported at MVP, including Egyptian/dialect Arabic for voice input, per CohereVoice's confirmed model routing. | CohereVoice |
+| NFR-022 **(v1.6)** | The MVP user interface and product copy support English only. Arabic localization, including Egyptian/dialect Arabic voice input, is deferred until the post-MVP voice-evaluation/mobile work. | Stakeholder direction |
 | NFR-023 | Mobile UI meets platform accessibility baselines: dynamic type support, screen-reader labels on all interactive elements, minimum contrast ratios. | Proposal |
 | NFR-024 | AI-generated content (videos, agent responses) is presented in the user's selected language, with translation quality bounded by the underlying provider's confirmed multilingual capability. | CohereVoice (14-language base ASR/translation model) |
 
@@ -1239,7 +1257,7 @@ Sequencing rationale, stated explicitly per the brief's requirement, updated for
 | Phase | Focus | Key deliverables | Primary sources |
 |---|---|---|---|
 | **Phase 0** | Product foundation, architecture, mobile design system | Architecture (§23), consent/privacy framework (§24), analytics instrumentation (§26), provider-agnostic AI client, career-taxonomy decision (resolves MOM OQ-4) | Cross-cutting |
-| **Phase 1** | Bosla **React web** MVP — Masar.ai + Habit Tracker only **(v1.1; web platform decided this revision, §12.1)** | Onboarding, auth, adaptive discovery conversation (§11.1), CV ingestion + assessment/mentorship-chat/PDF-export agents (§11.5), 3–5 explainable recommendations (§11.2), saveable summary; **full habit-tracking core on its native engine** (§15): recurrence, recompute-honest scoring, streaks/XP/levels, adaptive difficulty, optional Google sync, AI Goals planner | MOM, Masar.ai, Habit Tracker |
+| **Phase 1** | Bosla **React web** MVP — Masar.ai + Habit Tracker only | English onboarding/auth/session persistence, Career Context ingestion + assessment/mentor/PDF-export agents (§11.5), 3–5 explainable recommendations (§11.2), roadmap and roadmap-to-habit actions; **full habit-tracking core on its native engine** (§15): recurrence, recompute-honest scoring, streaks/XP/levels, adaptive difficulty, optional Google sync, AI Goals planner | MOM, Masar.ai, Habit Tracker |
 | **Phase 2** | Career discovery + personalized planning + native mobile re-platform begins | Roadmap generation (§11.4), curated role-preview videos (§14, curated-only), optional LinkedIn/portfolio ingestion (CV ingestion itself is now MVP, §11.5); **native mobile app (React Native) development starts here, porting the validated web MVP (§12.2)** | MOM |
 | **Phase 3** | Questify-based gamification unification (Track B) **(v1.1, re-scoped)** | Migrate the MVP's native Habit Tracker engine onto Questify's shared engine (§16 FR-GAM-B01–B06, including the one-time XP/level migration), unlocking unified badges/challenges/leaderboards for habits; roadmap→habit conversion (§11.4) if not already shipped in MVP | Habit Tracker, Questify |
 | **Phase 4** | Education-provider course integrations | Partner onboarding (§13), full Questify course/quest/mastery engine (§16.1) — reusing Questify's already-built, evaluated RAG-chatbot and AI content-generation pipeline (§9.4) — partner-content UX | Proposal, Questify |
@@ -1254,12 +1272,12 @@ Sequencing rationale, stated explicitly per the brief's requirement, updated for
 
 ## 30. MVP Definition
 
-**Scope statement (v1.1):** the MVP is Phase 1, and per explicit instruction is scoped **by source project**: everything confirmed for Habit Tracker (§9.1) and Masar.ai (§9.2), re-platformed to mobile, plus the MOM's discovery-conversation vision that Masar.ai's agents implement. Questify, Jobify, CohereVoice Studio, and every brief-only "Define:" feature (education partners, career video, community, voice evaluation, the RAG agent, and most of the admin panel) are explicitly **not** MVP.
+**Scope statement (v1.6):** the MVP is Phase 1, scoped **by source project** and shipped as an English React web application: the implemented Habit Tracker and Masar.ai capabilities plus the MOM's discovery-conversation vision. Questify, Jobify, CohereVoice Studio, Arabic localization, native mobile, and every brief-only “Define:” feature (education partners, career video, community, voice evaluation, the full multimodal RAG agent, and most of the admin panel) are explicitly **not** MVP.
 
 | MVP includes | Source | Excludes (explicitly) | Reason |
 |---|---|---|---|
 | Conversational onboarding + adaptive questions | MOM | Course matching / step-by-step learning coach | MOM "Later"/out-of-scope |
-| Personality/interest/skill/experience profile, informed by CV ingestion | MOM + Masar.ai | Personalized learning-style detection | MOM "Later" |
+| Personality/interest/skill/experience profile, informed by optional Career Context | MOM + Masar.ai | Personalized learning-style detection | MOM "Later" |
 | 3–5 ranked, explainable career profiles (assessment/skill-gap agent) | MOM + Masar.ai | Generated (AI-synthesized) job-preview video | MOM "Later" (§14 is Phase 2+) |
 | Explanation + evidence for every recommendation | MOM | Fine-tuned proprietary model | MOM Decision #7, §7 |
 | Stateful, streaming mentorship follow-up chat | Masar.ai | Mini-games/work simulations | MOM "Could have" |
@@ -1281,7 +1299,7 @@ Sequencing rationale, stated explicitly per the brief's requirement, updated for
 | AC-MVP-003 | The user can save/download a summary and return later to a persisted profile (AC-CD-001, FR-CD-005). |
 | AC-MVP-004 | No MVP screen presents output as a validated psychometric/clinical diagnosis (BR-CD-010 spot-checked in QA copy review). |
 | AC-MVP-005 | No MVP screen shows a salary/market-demand figure without visible location/date/source (BR-CD-011 spot-checked). |
-| AC-MVP-006 **(v1.1)** | Given a user uploads a CV, when extraction succeeds, then its content measurably informs at least one recommendation's stated rationale (AC-CD-030). |
+| AC-MVP-006 **(v1.6)** | Given a user adds any supported Career Context source, when extraction succeeds, then its content measurably informs at least one recommendation's stated rationale (AC-CD-030). |
 | AC-MVP-007 **(v1.1)** | Given a user requests a PDF summary, when export completes, then a downloadable PDF is produced (AC-CD-032). |
 | AC-MVP-008 **(v1.1, updated for the web-MVP platform)** | Given a user creates a habit and completes/reverts it repeatedly against the web MVP's backend API, then the recomputed score matches exactly what the sequence of actions should produce — no drift, no duplication (AC-HAB-001, NFR-032). Full offline reconciliation (airplane mode) is a native-app capability, tested separately at AC-MOB-001 (§12.2) once Phase 2+ ships. |
 | AC-MVP-009 **(v1.1)** | Given a habit reaches ≥90% weekly completion, when the week closes, then a raise-target proposal is surfaced, never auto-applied (AC-HAB-002). |
