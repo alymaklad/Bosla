@@ -306,23 +306,37 @@ async def accept_difficulty(body: AcceptDifficultyRequest, user: User = Depends(
     return habit
 
 
+# A day's worst outcome decides it: one miss breaks the streak, unfinished-today and skip-only days are neutral.
+_DAY_PRIORITY = ("missed", "partial", "pending", "complete", "skipped")
+
+
+def _day_statuses(statuses_by_day: dict[str, list[str]]) -> list[tuple[str, str]]:
+    return [
+        (day, next(s for s in _DAY_PRIORITY if s in statuses))
+        for day, statuses in statuses_by_day.items()
+    ]
+
+
 @router.get("/progress", response_model=dict)
 async def progress(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> dict:
+    today = date.today().isoformat()
     res = await db.execute(select(Habit).where(Habit.user_id == user.id))
     habits = res.scalars().all()
     by_id = {h.id: h for h in habits}
 
-    res = await db.execute(select(Occurrence).join(Habit).where(Habit.user_id == user.id, Occurrence.date <= date.today().isoformat()))
+    res = await db.execute(select(Occurrence).join(Habit).where(Habit.user_id == user.id, Occurrence.date <= today))
     occs = res.scalars().all()
 
     total_xp = 0
     completed_count = 0
-    logged_minutes = 0
+    logged_minutes = 0.0
     morning_completed = 0
-    streak_days: dict[str, list[tuple[str, str]]] = {}
+    today_due = today_completed = 0
+    statuses_by_day: dict[str, list[str]] = {}
     for o in occs:
         habit = by_id.get(o.habit_id)
-        if habit is None:
+        # Older rows may predate their habit; those days were never really scheduled.
+        if habit is None or o.date < habit.created_at.date().isoformat():
             continue
         facts = _facts(o)
         status = he.status_of(facts)
@@ -332,26 +346,29 @@ async def progress(user: User = Depends(get_current_user), db: AsyncSession = De
             logged_minutes += o.logged_minutes or o.target_minutes
             if habit.scheduled_time < "09:00":
                 morning_completed += 1
-        streak_days.setdefault(o.habit_id, []).append((o.date, status))
+        elif status == "partial":
+            logged_minutes += o.logged_minutes or 0
+        if o.date == today and status != "skipped":
+            today_due += 1
+            today_completed += status == "complete"
+        statuses_by_day.setdefault(o.date, []).append(status)
 
-    best_streak = he.StreakInfo(current=0, longest=0)
-    for habit_id, days in streak_days.items():
-        s = he.compute_streaks(days)
-        if s.longest > best_streak.longest:
-            best_streak = s
-
+    streak = he.compute_streaks(_day_statuses(statuses_by_day))
     info = he.level_info(total_xp)
     return {
         "level": {
-            "level": info.level, "title": info.title, "current_xp": info.current_xp, "level_floor": info.level_floor,
+            "level": info.level, "title": info.title, "next_title": he.level_title(info.level + 1),
+            "current_xp": info.current_xp, "level_floor": info.level_floor,
             "level_ceiling": info.level_ceiling, "xp_to_next": info.xp_to_next, "progress": info.progress,
         },
-        "streak": {"current": best_streak.current, "longest": best_streak.longest},
+        "streak": {"current": streak.current, "longest": streak.longest},
         "total_xp": total_xp,
         "stats": {
             "completed_occurrences": completed_count,
             "logged_minutes": logged_minutes,
             "morning_completed": morning_completed,
             "active_habits": len([habit for habit in habits if not habit.archived]),
+            "today_due": today_due,
+            "today_completed": today_completed,
         },
     }

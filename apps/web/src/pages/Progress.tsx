@@ -34,7 +34,7 @@ function achievementsFor(data: HabitProgress | null): Achievement[] {
     achievement('streak-7', 'First 7-Day Streak', 'Complete habits for 7 days in a row', 'star', streak, 7, `${Math.max(0, 7 - streak)} days to go`),
     achievement('hours-10', '10 Hours Studied', 'Log 10 hours of focused work', 'school', Math.floor(minutes / 60), 10, `${Math.max(0, 10 - Math.floor(minutes / 60))}h remaining`),
     achievement('tasks-50', '50 Sessions Completed', 'Finish 50 planned habit sessions', 'task_alt', completed, 50, `${Math.max(0, 50 - completed)} to go`),
-    achievement('morning', 'Morning Practitioner', 'Complete 20 sessions before 9 AM', 'wb_sunny', morning, 20, `${Math.max(0, 20 - morning)} to go`),
+    achievement('morning', 'Morning Practitioner', 'Complete 20 sessions scheduled before 9 AM', 'wb_sunny', morning, 20, `${Math.max(0, 20 - morning)} to go`),
     achievement('streak-30', '30-Day Streak', 'Sustain a 30-day habit streak', 'local_fire_department', streak, 30, `${Math.max(0, 30 - streak)} days to go`),
     achievement('hours-50', '50 Hours Studied', 'Log 50 hours of focused work', 'schedule', Math.floor(minutes / 60), 50, `${Math.max(0, 50 - Math.floor(minutes / 60))}h remaining`),
     achievement('tasks-100', '100 Sessions Completed', 'Finish 100 planned habit sessions', 'done_all', completed, 100, `${Math.max(0, 100 - completed)} to go`),
@@ -59,6 +59,11 @@ export function Progress() {
   const title = data?.level?.title ?? 'Beginner'
   const currentXp = data?.level?.current_xp ?? 0
   const ceilingXp = data?.level?.level_ceiling ?? 400
+  const floorXp = data?.level?.level_floor ?? 0
+  const nextTitle = data?.level?.next_title ?? 'the next tier'
+  const xpToNext = data?.level?.xp_to_next ?? Math.max(0, ceilingXp - currentXp)
+  const todayDue = data?.stats.today_due ?? 0
+  const todayCompleted = data?.stats.today_completed ?? 0
   const pct = Math.round((data?.level?.progress ?? 0) * 100)
   const streak = data?.streak?.current ?? 0
   const longest = data?.streak?.longest ?? 0
@@ -99,7 +104,7 @@ export function Progress() {
                 </span>
               </div>
               <p className="mt-2 font-body text-[13px] text-[#5B6270]">
-                Next tier: <span className="font-medium text-[#0F1115]">Focused</span> at {ceilingXp.toLocaleString()} XP ({ceilingXp - currentXp} XP remaining)
+                Next tier: <span className="font-medium text-[#0F1115]">{nextTitle}</span> at {ceilingXp.toLocaleString()} XP ({xpToNext.toLocaleString()} XP remaining)
               </p>
             </div>
           </div>
@@ -123,8 +128,8 @@ export function Progress() {
             />
           </div>
           <div className="mt-3 flex items-center justify-between font-body text-[11px] text-[#5B6270]">
-            <span>0 XP</span>
-            <span className="font-medium text-[#0F1115]">{ceilingXp.toLocaleString()} XP unlocks Focused</span>
+            <span>{floorXp.toLocaleString()} XP</span>
+            <span className="font-medium text-[#0F1115]">{ceilingXp.toLocaleString()} XP unlocks {nextTitle}</span>
           </div>
         </div>
       </div>
@@ -140,13 +145,19 @@ export function Progress() {
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-[32px] font-bold text-[#0F1115]">{streak} days</span>
+            <span className="font-display text-[32px] font-bold text-[#0F1115]">{streak} {streak === 1 ? 'day' : 'days'}</span>
           </div>
           <div className="mt-4 flex items-center gap-1.5 border-t border-[#E6E7EA] pt-3 font-body text-[11px] text-[#5B6270]">
-            <span className="material-symbols-outlined text-[16px] text-[#1E3A8A]">
-              check_circle
+            <span className={`material-symbols-outlined text-[16px] ${todayDue > 0 && todayCompleted === todayDue ? 'text-[#16A34A]' : 'text-[#8A8F98]'}`}>
+              {todayDue > 0 && todayCompleted === todayDue ? 'check_circle' : 'schedule'}
             </span>
-            <span>Target logged today</span>
+            <span>
+              {todayDue === 0
+                ? 'Nothing due today'
+                : todayCompleted === todayDue
+                  ? 'Everything due today is done'
+                  : `${todayCompleted} of ${todayDue} due today done — finish them to extend it`}
+            </span>
           </div>
         </div>
 
@@ -158,7 +169,7 @@ export function Progress() {
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-display text-[32px] font-bold text-[#0F1115]">
-              {longest} days
+              {longest} {longest === 1 ? 'day' : 'days'}
             </span>
           </div>
           <div className="mt-4 border-t border-[#E6E7EA] pt-3 font-body text-[11px] text-[#5B6270]">
@@ -180,7 +191,7 @@ export function Progress() {
             </span>
           </div>
           <div className="mt-4 border-t border-[#E6E7EA] pt-3 font-body text-[11px] text-[#5B6270]">
-            Across active roadmaps
+            From completed and partly completed sessions
           </div>
         </div>
       </div>

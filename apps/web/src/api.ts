@@ -254,6 +254,7 @@ export interface Occurrence {
 export interface LevelInfo {
   level: number
   title: string
+  next_title?: string
   current_xp: number
   level_floor: number
   level_ceiling: number
@@ -331,6 +332,8 @@ export interface ProgressStats {
   logged_minutes: number
   morning_completed: number
   active_habits: number
+  today_due: number
+  today_completed: number
 }
 
 export interface HabitProgress {
