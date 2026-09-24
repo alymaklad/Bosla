@@ -42,8 +42,10 @@ MAX_GITHUB_PROFILE_REPOSITORIES = 12
 MAX_GITHUB_FILES = 80
 MAX_GITHUB_FILE_BYTES = 200_000
 MAX_GITHUB_CHARS = 500_000
+MAX_GITHUB_FILE_CHARS = 20_000
 TOKEN_RE = re.compile(r"[\w+#.\-]{2,}", re.UNICODE)
 GITHUB_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$")
+GITHUB_REPO_RE = re.compile(r"^(?!\.\.?$)[A-Za-z0-9._-]{1,100}$")
 SUPPORTED_GITHUB_SUFFIXES = {
     ".md", ".txt", ".py", ".js", ".jsx", ".ts", ".tsx", ".json", ".yaml", ".yml",
     ".toml", ".ini", ".java", ".go", ".rs", ".cs", ".c", ".h", ".cpp", ".hpp",
@@ -392,7 +394,7 @@ async def _crawl_github_project(
     """Read a repository's bounded public text without cloning or executing code."""
     name = repository.get("name")
     branch = repository.get("default_branch")
-    if not isinstance(name, str) or not GITHUB_RE.fullmatch(name) or not isinstance(branch, str) or not branch:
+    if not isinstance(name, str) or not GITHUB_REPO_RE.fullmatch(name) or not isinstance(branch, str) or not branch:
         return [], 1
     api_root = f"https://api.github.com/repos/{quote(owner)}/{quote(name)}"
     repository_url = f"https://github.com/{owner}/{name}"
@@ -428,7 +430,7 @@ async def _crawl_github_project(
         if not text:
             skipped += 1
             continue
-        text = text[:remaining_chars]
+        text = text[:min(remaining_chars, MAX_GITHUB_FILE_CHARS)]
         files.append(GithubTextFile(path=f"{name}/{path}", text=text, source_url=repository_url))
         remaining_chars -= len(text)
     return files, skipped
@@ -466,19 +468,22 @@ async def crawl_github_profile(profile_url: str, settings: Settings) -> GithubPr
             files = [GithubTextFile(path=f"{login}/profile.md", text=_github_profile_text(profile, profile_url=canonical_url), source_url=canonical_url)]
             files_skipped = 0
             repositories_imported = 0
-            for repository in selected:
+            for index, repository in enumerate(selected):
                 remaining_files = MAX_GITHUB_FILES - (len(files) - 1)
                 remaining_chars = MAX_GITHUB_CHARS - sum(len(item.text) for item in files)
                 if remaining_files <= 0 or remaining_chars <= 0:
                     files_skipped += 1
                     break
+                # Split what is left evenly so one large repository cannot starve the rest;
+                # anything a small repository leaves unused rolls over to the next one.
+                repositories_left = len(selected) - index
                 project_files, skipped = await _crawl_github_project(
                     client,
                     owner=login,
                     repository=repository,
                     headers=headers,
-                    remaining_files=remaining_files,
-                    remaining_chars=remaining_chars,
+                    remaining_files=max(1, remaining_files // repositories_left),
+                    remaining_chars=remaining_chars // repositories_left,
                 )
                 files_skipped += skipped
                 if project_files:
