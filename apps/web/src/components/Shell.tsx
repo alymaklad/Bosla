@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { GoogleAutoSync } from '../hooks/useGoogleAutoSync'
 import { MobileTabs } from './MobileTabs'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
@@ -14,6 +15,7 @@ export function Shell() {
 
   return (
     <div className="h-dvh overflow-hidden bg-[#FAFAF8]">
+      <GoogleAutoSync />
       <Sidebar />
       <TopBar />
 

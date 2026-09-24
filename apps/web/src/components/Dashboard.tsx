@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { api, type DashboardData } from '../api'
+import { api, HABITS_CHANGED_EVENT, type DashboardData } from '../api'
 import { useApp } from '../context/AppContext'
 
 export function Dashboard() {
@@ -9,7 +9,10 @@ export function Dashboard() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    api.dashboard().then(setData).catch(() => {})
+    const load = () => void api.dashboard().then(setData).catch(() => {})
+    load()
+    window.addEventListener(HABITS_CHANGED_EVENT, load)
+    return () => window.removeEventListener(HABITS_CHANGED_EVENT, load)
   }, [])
 
   async function toggle(id: string, done: boolean) {

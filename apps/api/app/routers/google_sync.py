@@ -122,6 +122,164 @@ def _merge_task_completion(occurrence: Occurrence, remote_completed: bool, last_
     return True
 
 
+def _task_url(connection: GoogleIntegration, task_id: str | None = None) -> str:
+    base = f"https://tasks.googleapis.com/tasks/v1/lists/{quote(connection.tasklist_id, safe='')}/tasks"
+    return f"{base}/{quote(task_id, safe='')}" if task_id else base
+
+
+def _completion_patch(completed: bool) -> dict:
+    if completed:
+        return {"status": "completed", "completed": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")}
+    return {"status": "needsAction", "completed": None}
+
+
+async def push_occurrence_completion(db: AsyncSession, user_id: str, occurrence: Occurrence) -> None:
+    """Mirror one local tick/untick to its Google Task straight away; the next pull retries failures."""
+    link = (
+        await db.execute(select(GoogleSyncLink).where(GoogleSyncLink.user_id == user_id, GoogleSyncLink.occurrence_id == occurrence.id))
+    ).scalar_one_or_none()
+    if link is None or not link.task_id or link.last_synced_completed == occurrence.completed:
+        return
+    connection = (await db.execute(select(GoogleIntegration).where(GoogleIntegration.user_id == user_id))).scalar_one_or_none()
+    if connection is None:
+        return
+    settings = get_settings()
+    async with httpx.AsyncClient(timeout=8) as client:
+        token = await _access_token(connection, settings, client)
+        response = await client.patch(
+            _task_url(connection, link.task_id),
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json=_completion_patch(occurrence.completed),
+        )
+        if response.status_code >= 400:
+            raise _google_error(response)
+    link.last_synced_completed = occurrence.completed
+    await db.commit()
+
+
+@router.post("/pull")
+async def pull_google(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> dict:
+    """Incremental two-way reconcile for background auto-sync.
+
+    Google Tasks has no push notifications, so the app calls this on open, on focus, and on
+    an interval. It lists only tasks changed since the last sync instead of fetching each one.
+    """
+    settings = get_settings()
+    connection = (await db.execute(select(GoogleIntegration).where(GoogleIntegration.user_id == user.id))).scalar_one_or_none()
+    if connection is None:
+        raise HTTPException(409, "Connect Google Calendar and Tasks before syncing.")
+
+    started_at = datetime.utcnow()
+    links = list((await db.execute(select(GoogleSyncLink).where(GoogleSyncLink.user_id == user.id))).scalars().all())
+    links_by_task = {link.task_id: link for link in links if link.task_id}
+    linked_occurrences = {link.occurrence_id for link in links if link.task_id}
+    imported_completions = pushed_completions = created_tasks = 0
+
+    async with httpx.AsyncClient(timeout=20) as client:
+        token = await _access_token(connection, settings, client)
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+        params = {"showCompleted": "true", "showHidden": "true", "maxResults": "100"}
+        if connection.last_sync_at:
+            # A small overlap covers clock skew; re-reading an unchanged task is a no-op.
+            since = connection.last_sync_at - timedelta(minutes=2)
+            params["updatedMin"] = since.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+        while True:
+            response = await client.get(_task_url(connection), headers=headers, params=params)
+            if response.status_code >= 400:
+                raise _google_error(response)
+            payload = response.json()
+            for task in payload.get("items", []):
+                link = links_by_task.get(task.get("id"))
+                if link is None:
+                    continue
+                occurrence = await db.get(Occurrence, link.occurrence_id)
+                if occurrence is None:
+                    continue
+                remote_completed = task.get("status") == "completed"
+                if _merge_task_completion(occurrence, remote_completed, link.last_synced_completed):
+                    imported_completions += 1
+                elif occurrence.completed != remote_completed:
+                    # The local change wins (it never reached Google, or both sides changed).
+                    patch = await client.patch(_task_url(connection, link.task_id), headers=headers, json=_completion_patch(occurrence.completed))
+                    if patch.status_code >= 400:
+                        raise _google_error(patch)
+                    pushed_completions += 1
+                link.last_synced_completed = occurrence.completed
+            if not payload.get("nextPageToken"):
+                break
+            params["pageToken"] = payload["nextPageToken"]
+
+        # Local ticks whose instant push failed are not in Google's "updated" list; resend them.
+        unsent = (
+            await db.execute(
+                select(GoogleSyncLink, Occurrence)
+                .join(Occurrence, Occurrence.id == GoogleSyncLink.occurrence_id)
+                .where(
+                    GoogleSyncLink.user_id == user.id,
+                    GoogleSyncLink.task_id.is_not(None),
+                    GoogleSyncLink.last_synced_completed != Occurrence.completed,
+                )
+            )
+        ).all()
+        for link, occurrence in unsent:
+            patch = await client.patch(_task_url(connection, link.task_id), headers=headers, json=_completion_patch(occurrence.completed))
+            if patch.status_code == 404:
+                continue
+            if patch.status_code >= 400:
+                raise _google_error(patch)
+            link.last_synced_completed = occurrence.completed
+            pushed_completions += 1
+
+        # Keep the coming week mirrored so auto-sync never runs past the last manual sync window.
+        start_date = date.today()
+        end_date = start_date + timedelta(days=7)
+        habits = list((await db.execute(select(Habit).where(Habit.user_id == user.id, Habit.archived == False))).scalars().all())  # noqa: E712
+        for habit in habits:
+            await _ensure_occurrences(db, habit, start_date.isoformat(), end_date.isoformat())
+        habit_by_id = {habit.id: habit for habit in habits}
+        upcoming = (
+            await db.execute(
+                select(Occurrence)
+                .join(Habit)
+                .where(Habit.user_id == user.id, Occurrence.date >= start_date.isoformat(), Occurrence.date <= end_date.isoformat())
+            )
+        ).scalars().all()
+        existing_links = {link.occurrence_id: link for link in links}
+        for occurrence in upcoming:
+            habit = habit_by_id.get(occurrence.habit_id)
+            if habit is None or occurrence.id in linked_occurrences:
+                continue
+            link = existing_links.get(occurrence.id)
+            if link is None:
+                link = GoogleSyncLink(user_id=user.id, occurrence_id=occurrence.id, last_synced_completed=occurrence.completed)
+                db.add(link)
+            response = await client.post(_task_url(connection), headers=headers, json=_task_body(occurrence, habit))
+            if response.status_code >= 400:
+                raise _google_error(response)
+            link.task_id = str(response.json()["id"])
+            if not link.calendar_event_id:
+                response = await client.post(
+                    f"https://www.googleapis.com/calendar/v3/calendars/{quote(connection.calendar_id, safe='')}/events",
+                    headers=headers,
+                    json=_event_body(occurrence, habit, settings),
+                )
+                if response.status_code >= 400:
+                    raise _google_error(response)
+                link.calendar_event_id = str(response.json()["id"])
+            link.last_synced_completed = occurrence.completed
+            created_tasks += 1
+
+    connection.last_sync_at = started_at
+    await db.commit()
+    return {
+        "imported_completions": imported_completions,
+        "pushed_completions": pushed_completions,
+        "created_tasks": created_tasks,
+        "last_sync_at": connection.last_sync_at.isoformat(),
+    }
+
+
 @router.get("/status")
 async def google_status(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> dict:
     settings = get_settings()

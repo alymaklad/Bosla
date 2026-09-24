@@ -334,6 +334,16 @@ export interface GoogleSyncResult {
   last_sync_at: string
 }
 
+export interface GooglePullResult {
+  imported_completions: number
+  pushed_completions: number
+  created_tasks: number
+  last_sync_at: string
+}
+
+/** Fired on window when habit completions change outside the current page (e.g. from Google). */
+export const HABITS_CHANGED_EVENT = 'bosla:habits-changed'
+
 export type DocumentSourceType = 'cv' | 'resume' | 'recommendation' | 'certificate' | 'project' | 'thoughts' | 'journal' | 'other'
 
 export interface PersonalDocument {
@@ -464,5 +474,6 @@ export const api = {
   googleSyncStatus: () => get<GoogleSyncStatus>('/integrations/google/status'),
   googleSyncStartUrl: () => `${BASE}/integrations/google/start`,
   syncGoogle: () => post<GoogleSyncResult>('/integrations/google/sync'),
+  pullGoogle: () => post<GooglePullResult>('/integrations/google/pull'),
   disconnectGoogle: () => del<void>('/integrations/google'),
 }

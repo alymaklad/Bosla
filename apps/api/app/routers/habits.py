@@ -1,3 +1,4 @@
+import logging
 from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -141,7 +142,16 @@ async def log_occurrence(occurrence_id: str, body: LogOccurrenceRequest, user: U
     occ.skip_reason = None
     await db.commit()
     await db.refresh(occ)
-    return _occurrence_out(occ, habit.name, habit.difficulty_level)
+    result = _occurrence_out(occ, habit.name, habit.difficulty_level)
+    if body.completed is not None:
+        from .google_sync import push_occurrence_completion  # google_sync imports this module
+
+        try:
+            await push_occurrence_completion(db, user.id, occ)
+        except Exception as err:  # noqa: BLE001 - the tick is saved; the next Google pull reconciles it.
+            await db.rollback()
+            logging.getLogger(__name__).warning("google_push_failed: %s", type(err).__name__)
+    return result
 
 
 @router.post("/occurrences/{occurrence_id}/skip", response_model=OccurrenceOut)

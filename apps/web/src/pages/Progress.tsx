@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api, type HabitProgress } from '../api'
+import { api, HABITS_CHANGED_EVENT, type HabitProgress } from '../api'
 import { PageLoading } from '../components/PageLoading'
 
 interface Achievement {
@@ -48,6 +48,9 @@ export function Progress() {
 
   useEffect(() => {
     api.progress().then(setData).catch(() => {}).finally(() => setLoading(false))
+    const refresh = () => void api.progress().then(setData).catch(() => {})
+    window.addEventListener(HABITS_CHANGED_EVENT, refresh)
+    return () => window.removeEventListener(HABITS_CHANGED_EVENT, refresh)
   }, [])
 
   if (loading) return <PageLoading label="Loading your progress…" />

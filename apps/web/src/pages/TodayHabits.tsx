@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { api, type Occurrence } from '../api'
+import { api, HABITS_CHANGED_EVENT, type Occurrence } from '../api'
 import { PageLoading } from '../components/PageLoading'
 
 export function TodayHabits() {
@@ -21,8 +21,8 @@ export function TodayHabits() {
 
   const timerRef = useRef<number | null>(null)
 
-  const load = async () => {
-    setLoading(true)
+  const load = async (quiet = false) => {
+    if (!quiet) setLoading(true)
     try {
       setError(null)
       const [items, progress] = await Promise.all([
@@ -41,6 +41,9 @@ export function TodayHabits() {
 
   useEffect(() => {
     void load()
+    const refresh = () => void load(true)
+    window.addEventListener(HABITS_CHANGED_EVENT, refresh)
+    return () => window.removeEventListener(HABITS_CHANGED_EVENT, refresh)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope])
 
