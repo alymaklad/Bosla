@@ -5,6 +5,8 @@ interface ConfirmDialogProps {
   title: string
   description: string
   confirmLabel: string
+  cancelLabel?: string
+  note?: string
   busy?: boolean
   onCancel: () => void
   onConfirm: () => void
@@ -16,6 +18,8 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel,
+  cancelLabel = 'Keep my account',
+  note = 'Your profile, conversations, documents, habits, and connected integration data will be permanently removed.',
   busy = false,
   onCancel,
   onConfirm,
@@ -66,7 +70,7 @@ export function ConfirmDialog({
         </div>
         <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-[#E6E7EA] bg-[#FAFAF8] px-3.5 py-3 font-body text-[12px] leading-relaxed text-[#5B6270]">
           <span className="material-symbols-outlined mt-0.5 text-[17px] text-[#76777B]">info</span>
-          <span>Your profile, conversations, documents, habits, and connected integration data will be permanently removed.</span>
+          <span>{note}</span>
         </div>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
@@ -76,7 +80,7 @@ export function ConfirmDialog({
             onClick={onCancel}
             className="h-10 rounded-lg border border-[#D7DAE0] bg-white px-4 font-body text-[13px] font-medium text-[#0F1115] hover:border-[#0F1115] hover:bg-[#FAFAF8]"
           >
-            Keep my account
+            {cancelLabel}
           </button>
           <button
             type="button"

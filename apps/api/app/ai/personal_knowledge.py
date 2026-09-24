@@ -300,6 +300,12 @@ async def delete_document(db: AsyncSession, *, user_id: str, document_id: str) -
     return True
 
 
+async def delete_all_documents(db: AsyncSession, *, user_id: str) -> None:
+    await db.execute(delete(DocumentChunk).where(DocumentChunk.user_id == user_id))
+    await db.execute(delete(UserDocument).where(UserDocument.user_id == user_id))
+    await db.commit()
+
+
 def _cosine(left: list[float], right: list[float]) -> float:
     return sum(a * b for a, b in zip(left, right))
 

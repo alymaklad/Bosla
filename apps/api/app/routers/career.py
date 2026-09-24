@@ -122,6 +122,12 @@ async def list_documents(user: User = Depends(get_current_user), db: AsyncSessio
     return [_document_out(row) for row in result.scalars().all()]
 
 
+@router.delete("/documents", status_code=204)
+async def remove_all_documents(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Response:
+    await knowledge.delete_all_documents(db, user_id=user.id)
+    return Response(status_code=204)
+
+
 @router.delete("/documents/{document_id}", status_code=204)
 async def remove_document(document_id: str, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Response:
     if not await knowledge.delete_document(db, user_id=user.id, document_id=document_id):

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, type DocumentSourceType, type OcrStatus, type PersonalDocument } from '../api'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { OnboardingHeader } from '../components/OnboardingHeader'
 import { PageLoading } from '../components/PageLoading'
 
@@ -26,6 +27,8 @@ export function CvUpload() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [ocrStatus, setOcrStatus] = useState<OcrStatus | null>(null)
+  const [confirmingClear, setConfirmingClear] = useState(false)
+  const [clearing, setClearing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
@@ -98,6 +101,23 @@ export function CvUpload() {
     }
   }
 
+  async function clearAllDocuments() {
+    setError(null)
+    setClearing(true)
+    try {
+      await api.deleteAllDocuments()
+      setDocuments([])
+      setLastPreview(null)
+      setNotice(null)
+      setConfirmingClear(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not clear your saved sources.')
+      setConfirmingClear(false)
+    } finally {
+      setClearing(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col justify-between bg-[#FAFAF8] text-[#0F1115] antialiased">
       <OnboardingHeader currentStep={2} />
@@ -157,11 +177,22 @@ export function CvUpload() {
 
           {lastPreview?.text && <section className="rounded-xl border border-[#E6E7EA] bg-white p-5"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><h2 className="font-display text-[16px] font-semibold text-[#0F1115]">Latest extracted text</h2><p className="mt-1 font-body text-[12px] text-[#5B6270]">A preview of what Bosla can retrieve for your guidance.</p></div><span className="rounded-full bg-[#E8EDF9] px-2.5 py-1 font-body text-[11px] font-medium text-[#1E3A8A]">{lastPreview.extraction_method === 'ocr' ? 'Read with OCR' : 'Read directly'}</span></div><div className="max-h-44 overflow-y-auto rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-3 font-mono text-[12px] leading-5 text-[#45474B]">{lastPreview.text}</div></section>}
 
-          <section className="rounded-xl border border-[#E6E7EA] bg-white p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-display text-[18px] font-semibold text-[#0F1115]">Your saved context</h2><p className="mt-1 font-body text-[12px] text-[#5B6270]">Remove any source at any time.</p></div><span className="rounded-full bg-[#F0F1F3] px-2.5 py-1 font-body text-[11px] font-medium text-[#45474B]">{documents.length} item{documents.length === 1 ? '' : 's'}</span></div>{documents.length > 0 ? <ul className="mt-4 grid gap-2 sm:grid-cols-2">{documents.map((document) => <li key={document.id} className="flex items-center gap-3 rounded-lg border border-[#E6E7EA] p-3"><span className="material-symbols-outlined flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F0F3FF] text-[19px] text-[#1E3A8A]">{document.source_url ? 'code' : DOCUMENT_TYPES.find((item) => item.value === document.source_type)?.icon ?? 'description'}</span><div className="min-w-0 flex-1"><p className="truncate font-body text-[13px] font-semibold text-[#0F1115]">{document.filename}</p><p className="mt-0.5 font-body text-[11px] text-[#5B6270]">{labelFor(document.source_type)} · {document.chunk_count} retrieval chunk{document.chunk_count === 1 ? '' : 's'}</p></div><button type="button" onClick={() => void removeDocument(document.id)} className="cursor-pointer rounded-md p-1.5 text-[#5B6270] transition-colors hover:bg-[#FEF2F2] hover:text-[#B91C1C]" aria-label={`Remove ${document.filename}`}><span className="material-symbols-outlined text-[18px]">close</span></button></li>)}</ul> : <div className="mt-4 rounded-lg border border-dashed border-[#D8DCE3] px-4 py-6 text-center"><span className="material-symbols-outlined text-[24px] text-[#8A8F98]">folder_open</span><p className="mt-2 font-body text-[13px] font-medium text-[#45474B]">No sources saved yet</p><p className="mt-1 font-body text-[12px] text-[#5B6270]">Start with a document or public GitHub profile.</p></div>}</section>
+          <section className="rounded-xl border border-[#E6E7EA] bg-white p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-display text-[18px] font-semibold text-[#0F1115]">Your saved context</h2><p className="mt-1 font-body text-[12px] text-[#5B6270]">Remove any source at any time.</p></div><div className="flex items-center gap-2"><span className="rounded-full bg-[#F0F1F3] px-2.5 py-1 font-body text-[11px] font-medium text-[#45474B]">{documents.length} item{documents.length === 1 ? '' : 's'}</span>{documents.length > 0 && <button type="button" onClick={() => setConfirmingClear(true)} className="flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-[#E6E7EA] px-2.5 font-body text-[12px] font-medium text-[#45474B] transition-colors hover:border-[#FECACA] hover:bg-[#FEF2F2] hover:text-[#B91C1C]"><span className="material-symbols-outlined text-[17px]">delete_sweep</span>Clear all</button>}</div></div>{documents.length > 0 ? <ul className="mt-4 grid gap-2 sm:grid-cols-2">{documents.map((document) => <li key={document.id} className="flex items-center gap-3 rounded-lg border border-[#E6E7EA] p-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F0F3FF] text-[#1E3A8A]"><span className="material-symbols-outlined text-[19px]">{document.source_url ? 'code' : DOCUMENT_TYPES.find((item) => item.value === document.source_type)?.icon ?? 'description'}</span></span><div className="min-w-0 flex-1"><p className="truncate font-body text-[13px] font-semibold text-[#0F1115]">{document.filename}</p><p className="mt-0.5 font-body text-[11px] text-[#5B6270]">{labelFor(document.source_type)} · {document.chunk_count} retrieval chunk{document.chunk_count === 1 ? '' : 's'}</p></div><button type="button" onClick={() => void removeDocument(document.id)} className="cursor-pointer rounded-md p-1.5 text-[#5B6270] transition-colors hover:bg-[#FEF2F2] hover:text-[#B91C1C]" aria-label={`Remove ${document.filename}`}><span className="material-symbols-outlined text-[18px]">close</span></button></li>)}</ul> : <div className="mt-4 rounded-lg border border-dashed border-[#D8DCE3] px-4 py-6 text-center"><span className="material-symbols-outlined text-[24px] text-[#8A8F98]">folder_open</span><p className="mt-2 font-body text-[13px] font-medium text-[#45474B]">No sources saved yet</p><p className="mt-1 font-body text-[12px] text-[#5B6270]">Start with a document or public GitHub profile.</p></div>}</section>
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2"><p className="font-body text-[12px] text-[#5B6270]">You can add more context later from discovery.</p><button type="button" onClick={() => navigate('/onboarding/discovery')} className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#0F1115] px-5 font-body text-[14px] font-semibold text-white transition-colors hover:bg-[#252936]"><span>Continue to conversation</span><span className="material-symbols-outlined text-[16px]">arrow_forward</span></button></div>
         </div>
       </main>
+      <ConfirmDialog
+        open={confirmingClear}
+        title="Clear all saved context?"
+        description={`This removes all ${documents.length} saved source${documents.length === 1 ? '' : 's'}, including uploaded documents and imported GitHub files.`}
+        confirmLabel="Clear all"
+        cancelLabel="Keep them"
+        note="Bosla will stop using these sources to personalize guidance. Your conversations, matches, and roadmap are not affected."
+        busy={clearing}
+        onCancel={() => setConfirmingClear(false)}
+        onConfirm={() => void clearAllDocuments()}
+      />
       <footer className="border-t border-[#E6E7EA] py-6 text-center font-body text-[11px] text-[#5B6270]">Your documents are indexed only for your own Bosla guidance. You can remove them at any time.</footer>
     </div>
   )

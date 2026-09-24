@@ -406,6 +406,7 @@ export const api = {
   listDocuments: () => get<PersonalDocument[]>('/career/documents'),
   ocrStatus: () => get<OcrStatus>('/career/documents/ocr-status'),
   deleteDocument: (id: string) => del<void>(`/career/documents/${id}`),
+  deleteAllDocuments: () => del<void>('/career/documents'),
   importGithubProfile: (profile_url: string) => post<GithubImportResult>('/career/sources/github', { profile_url }),
 
   startDiscovery: (persona?: string | null) => post<DiscoveryMessage>('/career/discovery/start', { persona }),
