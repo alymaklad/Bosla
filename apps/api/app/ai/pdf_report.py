@@ -8,6 +8,7 @@ flowables rather than dumped line by line.
 from __future__ import annotations
 
 import io
+import html
 import re
 import unicodedata
 from dataclasses import dataclass
@@ -54,7 +55,15 @@ def _clean(text: str) -> str:
 
 def _inline(text: str) -> str:
     """Markdown inline syntax -> ReportLab paragraph markup."""
-    parts = re.split(r"<br\s*/?>", _clean(text), flags=re.I)
+    # Model replies can contain Markdown, HTML, or HTML escaped as text. Normalize
+    # all of those first; otherwise a PDF literally prints <br>, <p>, or <li>.
+    source = html.unescape(_clean(text))
+    source = re.sub(r"<\s*br\s*/?\s*>", "\n", source, flags=re.I)
+    source = re.sub(r"<\s*/?\s*(?:p|div|li|tr|h[1-6])\b[^>]*>", "\n", source, flags=re.I)
+    source = re.sub(r"<\s*(?:ul|ol|table|thead|tbody|td|th)\b[^>]*>", "", source, flags=re.I)
+    source = re.sub(r"<\s*/?\s*(?:ul|ol|table|thead|tbody|td|th)\s*>", "", source, flags=re.I)
+    source = re.sub(r"</?[A-Za-z][^>]*>", "", source)
+    parts = source.split("\n")
     rendered = []
     for part in parts:
         s = part.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")

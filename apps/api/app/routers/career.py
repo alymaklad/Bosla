@@ -1,4 +1,5 @@
 import json
+import logging
 
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from fastapi.responses import Response, StreamingResponse
@@ -25,6 +26,7 @@ from ..schemas import (
 )
 
 router = APIRouter(prefix="/career", tags=["career"])
+logger = logging.getLogger(__name__)
 SUPPORTED_DOCUMENT_TYPES = {"cv", "resume", "recommendation", "certificate", "project", "thoughts", "journal", "other"}
 SUPPORTED_DOCUMENT_EXTENSIONS = {".pdf": "application/pdf", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".txt": "text/plain"}
 
@@ -397,7 +399,7 @@ async def get_roadmap(user: User = Depends(get_current_user), db: AsyncSession =
 
 @router.post("/mentor/chat")
 async def mentor_chat(
-    body: MentorChatRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), ai: AiClient = Depends(get_ai_client)
+    body: MentorChatRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> StreamingResponse:
     ares = await db.execute(select(Assessment).where(Assessment.user_id == user.id).order_by(Assessment.created_at.desc()))
     assessment = ares.scalars().first()
@@ -411,17 +413,25 @@ async def mentor_chat(
     await db.commit()
 
     async def gen():
+        full = ""
         try:
-            full = ""
+            ai = get_ai_client()
             async for chunk in cd.run_mentorship_turn(ai, user_message=body.message, assessment_context=assessment_context, history=history):
                 full += chunk
                 yield _sse("chunk", {"text": chunk})
-            db.add(MentorMessage(user_id=user.id, match_id=body.match_id, role="assistant", content=full))
-            await db.commit()
-            yield _sse("done", {"text": full})
         except Exception as err:  # noqa: BLE001
             await db.rollback()
-            yield _sse("error", {"message": ai_error_message(err)})
+            logger.warning("mentor_live_provider_unavailable", extra={"error_type": type(err).__name__})
+            fallback = cd.mentorship_fallback(user_message=body.message, assessment_context=assessment_context)
+            # Avoid repeating a complete-looking partial answer when a provider drops
+            # mid-stream, but always leave the user with an actionable response.
+            if full:
+                fallback = "\n\nThe live response stopped early. " + fallback
+            full += fallback
+            yield _sse("chunk", {"text": fallback})
+        db.add(MentorMessage(user_id=user.id, match_id=body.match_id, role="assistant", content=full))
+        await db.commit()
+        yield _sse("done", {"text": full})
 
     return StreamingResponse(gen(), media_type="text/event-stream")
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api, type LevelInfo, type StreakInfo } from '../api'
+import { api, type HabitProgress } from '../api'
 
 interface Achievement {
   id: string
@@ -12,102 +12,51 @@ interface Achievement {
   footer: string
 }
 
-const ACHIEVEMENTS: Achievement[] = [
-  {
-    id: 'streak-7',
-    title: 'First 7-Day Streak',
-    desc: 'Completed 7 days in a row',
-    icon: 'star',
-    unlocked: true,
-    footer: 'Unlocked recently',
-  },
-  {
-    id: 'hours-10',
-    title: '10 Hours Studied',
-    desc: 'Logged 10 hours of verified study',
-    icon: 'school',
-    unlocked: true,
-    footer: 'Unlocked 18 Aug',
-  },
-  {
-    id: 'tasks-50',
-    title: '50 Tasks Completed',
-    desc: 'Finish 50 curriculum milestones',
-    icon: 'task_alt',
-    unlocked: false,
-    progressText: '34 / 50',
-    progressPct: 68,
-    footer: '16 to go',
-  },
-  {
-    id: 'morning',
-    title: 'Morning Practitioner',
-    desc: 'Complete 20 morning sessions before 9 AM',
-    icon: 'wb_sunny',
-    unlocked: false,
-    progressText: '18 / 20',
-    progressPct: 90,
-    footer: '2 to go',
-  },
-  {
-    id: 'streak-30',
-    title: '30-Day Streak',
-    desc: 'Sustain uninterrupted monthly cadence',
-    icon: 'local_fire_department',
-    unlocked: false,
-    progressText: '7 / 30',
-    progressPct: 23,
-    footer: '23 to go',
-  },
-  {
-    id: 'hours-50',
-    title: '50 Hours Studied',
-    desc: 'Deep focus milestone across all roadmaps',
-    icon: 'schedule',
-    unlocked: false,
-    progressText: '41 / 50',
-    progressPct: 82,
-    footer: '9h remaining',
-  },
-  {
-    id: 'tasks-100',
-    title: '100 Tasks Completed',
-    desc: 'Centurion milestone in career execution',
-    icon: 'done_all',
-    unlocked: false,
-    progressText: '34 / 100',
-    progressPct: 34,
-    footer: '66 to go',
-  },
-  {
-    id: 'pioneer',
-    title: 'Direction Pioneer',
-    desc: 'Formulate roadmap and schedule first week',
-    icon: 'explore',
-    unlocked: true,
-    footer: 'Unlocked on onboarding',
-  },
-]
+function achievement(id: string, title: string, desc: string, icon: string, value: number, target: number, footer: string): Achievement {
+  const current = Math.min(value, target)
+  const unlocked = current >= target
+  return {
+    id, title, desc, icon, unlocked,
+    progressText: `${current} / ${target}`,
+    progressPct: Math.round((current / target) * 100),
+    footer: unlocked ? 'Unlocked from your activity' : footer,
+  }
+}
+
+function achievementsFor(data: HabitProgress | null): Achievement[] {
+  const completed = data?.stats.completed_occurrences ?? 0
+  const minutes = data?.stats.logged_minutes ?? 0
+  const morning = data?.stats.morning_completed ?? 0
+  const streak = data?.streak.longest ?? 0
+  const activeHabits = data?.stats.active_habits ?? 0
+  return [
+    achievement('streak-7', 'First 7-Day Streak', 'Complete habits for 7 days in a row', 'star', streak, 7, `${Math.max(0, 7 - streak)} days to go`),
+    achievement('hours-10', '10 Hours Studied', 'Log 10 hours of focused work', 'school', Math.floor(minutes / 60), 10, `${Math.max(0, 10 - Math.floor(minutes / 60))}h remaining`),
+    achievement('tasks-50', '50 Sessions Completed', 'Finish 50 planned habit sessions', 'task_alt', completed, 50, `${Math.max(0, 50 - completed)} to go`),
+    achievement('morning', 'Morning Practitioner', 'Complete 20 sessions before 9 AM', 'wb_sunny', morning, 20, `${Math.max(0, 20 - morning)} to go`),
+    achievement('streak-30', '30-Day Streak', 'Sustain a 30-day habit streak', 'local_fire_department', streak, 30, `${Math.max(0, 30 - streak)} days to go`),
+    achievement('hours-50', '50 Hours Studied', 'Log 50 hours of focused work', 'schedule', Math.floor(minutes / 60), 50, `${Math.max(0, 50 - Math.floor(minutes / 60))}h remaining`),
+    achievement('tasks-100', '100 Sessions Completed', 'Finish 100 planned habit sessions', 'done_all', completed, 100, `${Math.max(0, 100 - completed)} to go`),
+    achievement('pioneer', 'Direction Pioneer', 'Save your first weekly habit plan', 'explore', activeHabits > 0 ? 1 : 0, 1, 'Save a weekly plan to unlock'),
+  ]
+}
 
 export function Progress() {
-  const [data, setData] = useState<{
-    level: LevelInfo
-    streak: StreakInfo
-    total_xp: number
-  } | null>(null)
+  const [data, setData] = useState<HabitProgress | null>(null)
 
   useEffect(() => {
     api.progress().then(setData).catch(() => {})
   }, [])
 
-  const level = data?.level?.level ?? 3
-  const title = data?.level?.title ?? 'Disciplined'
-  const currentXp = data?.level?.current_xp ?? 620
-  const ceilingXp = data?.level?.level_ceiling ?? 1000
-  const pct = Math.round(data?.level?.progress ? data.level.progress * 100 : 62)
-  const streak = data?.streak?.current ?? 7
-  const longest = data?.streak?.longest ?? 12
-  const totalXp = data?.total_xp ?? 1420
+  const level = data?.level?.level ?? 1
+  const title = data?.level?.title ?? 'Beginner'
+  const currentXp = data?.level?.current_xp ?? 0
+  const ceilingXp = data?.level?.level_ceiling ?? 400
+  const pct = Math.round((data?.level?.progress ?? 0) * 100)
+  const streak = data?.streak?.current ?? 0
+  const longest = data?.streak?.longest ?? 0
+  const totalXp = data?.total_xp ?? 0
+  const achievements = achievementsFor(data)
 
   return (
     <main className="mx-auto w-full max-w-[1280px] px-6 py-8">
@@ -236,7 +185,7 @@ export function Progress() {
 
         {/* 8 Achievement Badges Grid */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {ACHIEVEMENTS.map((item) => (
+          {achievements.map((item) => (
             <div
               key={item.id}
               className={`flex flex-col justify-between rounded-lg border border-[#E6E7EA] bg-white p-5 transition-colors hover:border-[#0F1115] ${

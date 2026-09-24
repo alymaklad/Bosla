@@ -1,4 +1,5 @@
-// Local Vite uses /api proxying; production receives the deployed API URL from Vercel.
+// Requests stay same-origin in both local and production. This prevents mobile
+// browsers from treating Bosla's auth cookie as a third-party cookie.
 const BASE = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
 export const apiBaseUrl = BASE
 
@@ -287,6 +288,20 @@ export interface AiStatus {
   configured: boolean
 }
 
+export interface ProgressStats {
+  completed_occurrences: number
+  logged_minutes: number
+  morning_completed: number
+  active_habits: number
+}
+
+export interface HabitProgress {
+  level: LevelInfo
+  streak: StreakInfo
+  total_xp: number
+  stats: ProgressStats
+}
+
 export interface GoogleSyncStatus {
   configured: boolean
   configuration_error: string | null
@@ -420,7 +435,7 @@ export const api = {
   skipOccurrence: (id: string, reason: string) => post<Occurrence>(`/habits/occurrences/${id}/skip`, { reason }),
   weeklyReview: () => get<WeeklyReview>('/habits/review'),
   acceptDifficulty: (habit_id: string, accept: boolean) => post<Habit>('/habits/review/accept', { habit_id, accept }),
-  progress: () => get<{ level: LevelInfo; streak: StreakInfo; total_xp: number }>('/habits/progress'),
+  progress: () => get<HabitProgress>('/habits/progress'),
 
   dashboard: () => get<DashboardData>('/dashboard'),
 

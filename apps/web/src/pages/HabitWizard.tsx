@@ -66,9 +66,24 @@ export function HabitWizard() {
   async function addToWeek() {
     if (!result) return
     setCommitting(true)
+    setError(null)
     try {
-      await api.commitGoal(result.id)
-      navigate('/dashboard')
+      const habits = await api.commitGoal(result.id)
+      let notice = `${habits.length} weekly habit${habits.length === 1 ? '' : 's'} saved. Complete each scheduled session from this page.`
+      try {
+        const sync = await api.googleSyncStatus()
+        if (sync.connected) {
+          const synced = await api.syncGoogle()
+          const calendarCount = synced.created_events + synced.updated_events
+          const taskCount = synced.created_tasks + synced.updated_tasks
+          notice += ` Synced ${calendarCount} Calendar event${calendarCount === 1 ? '' : 's'} and ${taskCount} Google Task${taskCount === 1 ? '' : 's'}.`
+        } else if (sync.configured) {
+          notice += ' Connect Google Calendar and Tasks in Settings to mirror these sessions.'
+        }
+      } catch {
+        notice += ' Habits were saved; Google sync can be retried from Settings.'
+      }
+      navigate('/habits', { state: { scope: 'week', notice } })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not commit plan. Please retry.')
     } finally {
@@ -241,7 +256,7 @@ export function HabitWizard() {
               {/* Header */}
               <div className="flex flex-col gap-1">
                 <h1 className="font-display text-[22px] font-semibold tracking-tight text-[#0F1115]">
-                  Here's a plan — review before adding
+                  Your weekly habit draft — save it when it looks right
                 </h1>
                 <p className="font-body text-[14px] text-[#5B6270]">
                   {result.plan.summary ||
@@ -393,7 +408,7 @@ export function HabitWizard() {
                   onClick={addToWeek}
                   className="h-10 rounded-lg bg-[#0F1115] px-4 font-body text-[14px] font-medium text-white transition-colors hover:bg-[#1C1F26] disabled:opacity-60"
                 >
-                  {committing ? 'Adding to week…' : 'Add to my week'}
+                  {committing ? 'Saving weekly habits…' : `Save ${result.plan.sessions.length} habits & open week`}
                 </button>
               </div>
             </>

@@ -104,6 +104,13 @@ async def commit_goal(body: CommitGoalRequest, user: User = Depends(get_current_
     if goal is None or goal.user_id != user.id:
         raise HTTPException(404, "Goal not found")
 
+    # The wizard can be retried after a slow network response. Returning the
+    # already-created habits makes this action idempotent instead of duplicating
+    # a weekly schedule every time the user presses the save button.
+    existing = list((await db.execute(select(Habit).where(Habit.goal_id == goal.id, Habit.user_id == user.id))).scalars().all())
+    if existing:
+        return [{"id": h.id, "name": h.name, "recurrence": h.recurrence, "scheduled_time": h.scheduled_time, "baseline_minutes": h.baseline_minutes} for h in existing]
+
     created = []
     for s in goal.plan.get("sessions", []):
         try:
@@ -120,6 +127,7 @@ async def commit_goal(body: CommitGoalRequest, user: User = Depends(get_current_
         )
         db.add(habit)
         created.append(habit)
+    goal.status = "committed"
     await db.commit()
     for h in created:
         await db.refresh(h)

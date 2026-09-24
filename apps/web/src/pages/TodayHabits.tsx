@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { api, type Occurrence } from '../api'
 
 export function TodayHabits() {
+  const location = useLocation() as { state?: { scope?: 'week'; notice?: string } }
   const [occs, setOccs] = useState<Occurrence[] | null>(null)
-  const [scope, setScope] = useState<'today' | 'week' | 'all'>('today')
+  const [scope, setScope] = useState<'today' | 'week'>(location.state?.scope === 'week' ? 'week' : 'today')
+  const [notice] = useState<string | null>(location.state?.notice ?? null)
+  const [error, setError] = useState<string | null>(null)
+  const [currentStreak, setCurrentStreak] = useState(0)
   const [activeTimerId, setActiveTimerId] = useState<string | null>(null)
-  const [timerSeconds, setTimerSeconds] = useState(760) // 12:40 default demo elapsed
+  const [timerSeconds, setTimerSeconds] = useState(0)
   const [timerRunning, setTimerRunning] = useState(false)
   const [skippingId, setSkippingId] = useState<string | null>(null)
   const [skipReason, setSkipReason] = useState('')
@@ -15,18 +19,23 @@ export function TodayHabits() {
 
   const timerRef = useRef<number | null>(null)
 
-  const load = () => {
-    if (scope === 'week') {
-      api.weekHabits().then(setOccs).catch(() => {})
-    } else if (scope === 'all') {
-      api.weekHabits().then(setOccs).catch(() => {})
-    } else {
-      api.todayHabits().then(setOccs).catch(() => {})
+  const load = async () => {
+    try {
+      setError(null)
+      const [items, progress] = await Promise.all([
+        scope === 'week' ? api.weekHabits() : api.todayHabits(),
+        api.progress(),
+      ])
+      setOccs(items)
+      setCurrentStreak(progress.streak.current)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load your habits. Please refresh and try again.')
+      setOccs([])
     }
   }
 
   useEffect(() => {
-    load()
+    void load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope])
 
@@ -46,9 +55,9 @@ export function TodayHabits() {
   async function toggle(o: Occurrence) {
     try {
       await api.logOccurrence(o.id, { completed: o.status !== 'complete' })
-      load()
-    } catch {
-      // silently handle
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update this habit.')
     }
   }
 
@@ -59,9 +68,9 @@ export function TodayHabits() {
       setActiveTimerId(null)
       setTimerRunning(false)
       setTimerSeconds(0)
-      load()
-    } catch {
-      // silently handle
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save the timer result.')
     }
   }
 
@@ -71,9 +80,9 @@ export function TodayHabits() {
       await api.skipOccurrence(id, skipReason.trim())
       setSkippingId(null)
       setSkipReason('')
-      load()
-    } catch {
-      // silently handle
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not skip this habit.')
     }
   }
 
@@ -81,9 +90,9 @@ export function TodayHabits() {
     try {
       await api.logOccurrence(id, { minutes: manualMinutes, origin: 'manual', completed: true })
       setLoggingId(null)
-      load()
-    } catch {
-      // silently handle
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save those minutes.')
     }
   }
 
@@ -136,19 +145,11 @@ export function TodayHabits() {
           >
             Week
           </button>
-          <button
-            type="button"
-            onClick={() => setScope('all')}
-            className={`rounded-md px-3 py-1.5 font-body text-[13px] font-medium transition-colors ${
-              scope === 'all'
-                ? 'bg-[#0F1115] text-white'
-                : 'text-[#5B6270] hover:text-[#0F1115]'
-            }`}
-          >
-            All
-          </button>
         </div>
       </div>
+
+      {notice && <p className="mb-6 rounded-lg border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 font-body text-[13px] text-[#166534]">{notice}</p>}
+      {error && <p className="mb-6 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 font-body text-[13px] text-[#B91C1C]">{error}</p>}
 
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
@@ -260,7 +261,9 @@ export function TodayHabits() {
                             {o.habit_name}
                           </h2>
                           <span className="rounded bg-[#F4F4F5] px-1.5 py-0.5 font-body text-[11px] text-[#5B6270]">
-                            DAILY
+                            {scope === 'week'
+                              ? new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date(`${o.date}T12:00:00`))
+                              : 'SCHEDULED TODAY'}
                           </span>
                           {isAssumed && (
                             <span className="rounded border border-[#F59E0B] bg-[#FEF3C7] px-2 py-0.5 font-body text-[10px] font-semibold uppercase tracking-wider text-[#B45309]">
@@ -438,7 +441,7 @@ export function TodayHabits() {
                 local_fire_department
               </span>
             </div>
-            <div className="mb-1 font-display text-[26px] font-bold text-[#0F1115]">7 Days Active</div>
+            <div className="mb-1 font-display text-[26px] font-bold text-[#0F1115]">{currentStreak} {currentStreak === 1 ? 'Day' : 'Days'} Active</div>
             <p className="font-body text-[12px] text-[#5B6270]">
               Completing all scheduled sessions today maintains your streak.
             </p>

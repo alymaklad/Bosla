@@ -251,6 +251,9 @@ async def progress(user: User = Depends(get_current_user), db: AsyncSession = De
     occs = res.scalars().all()
 
     total_xp = 0
+    completed_count = 0
+    logged_minutes = 0
+    morning_completed = 0
     streak_days: dict[str, list[tuple[str, str]]] = {}
     for o in occs:
         habit = by_id.get(o.habit_id)
@@ -259,6 +262,11 @@ async def progress(user: User = Depends(get_current_user), db: AsyncSession = De
         facts = _facts(o)
         status = he.status_of(facts)
         total_xp += he.xp_for(status, facts, habit.difficulty_level)
+        if status == "complete":
+            completed_count += 1
+            logged_minutes += o.logged_minutes or o.target_minutes
+            if habit.scheduled_time < "09:00":
+                morning_completed += 1
         streak_days.setdefault(o.habit_id, []).append((o.date, status))
 
     best_streak = he.StreakInfo(current=0, longest=0)
@@ -275,4 +283,10 @@ async def progress(user: User = Depends(get_current_user), db: AsyncSession = De
         },
         "streak": {"current": best_streak.current, "longest": best_streak.longest},
         "total_xp": total_xp,
+        "stats": {
+            "completed_occurrences": completed_count,
+            "logged_minutes": logged_minutes,
+            "morning_completed": morning_completed,
+            "active_habits": len([habit for habit in habits if not habit.archived]),
+        },
     }

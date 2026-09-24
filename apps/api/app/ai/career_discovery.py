@@ -317,3 +317,37 @@ async def run_mentorship_turn(
     raw = ai.stream_chat(system, messages, stop=SIMULATION_MARKERS, temperature=0.6, max_tokens=600)
     async for chunk in filter_on_markers(raw, SIMULATION_MARKERS):
         yield chunk
+
+
+def mentorship_fallback(*, user_message: str, assessment_context: str) -> str:
+    """Useful, local continuity when every configured LLM provider is unavailable.
+
+    This deliberately makes no career claims or fabricated assessment. It keeps the
+    mentor usable while clearly asking the user to validate the next small action.
+    """
+    question = user_message.strip()
+    background = "completed assessment" if "No completed assessment" not in assessment_context else "current goals"
+    lower = question.lower()
+    if any(word in lower for word in ("week", "plan", "focus", "next")):
+        steps = [
+            "Choose one outcome you can finish this week.",
+            "Reserve two focused sessions in Habits and complete the first one today.",
+            "At the end of the week, record what felt easy, difficult, and worth repeating.",
+        ]
+    elif any(word in lower for word in ("strength", "skill", "experience")):
+        steps = [
+            "List one skill you can demonstrate with a concrete example.",
+            "Turn that example into a small portfolio artifact or case-study note.",
+            "Use the result to test one target role against your own evidence.",
+        ]
+    else:
+        steps = [
+            "Write down the decision you need to make in one sentence.",
+            "List the evidence you already have and the one missing fact you need.",
+            "Take one 30-minute action that reduces that uncertainty today.",
+        ]
+    return (
+        "The live AI service is unavailable, so here is a practical fallback based on your "
+        f"{background}:\n\n" + "\n".join(f"{index}. {step}" for index, step in enumerate(steps, start=1))
+        + f"\n\nYou asked: {question}\n\nWhen the AI service is available again, ask me to refine this using your full profile."
+    )
