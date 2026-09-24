@@ -44,7 +44,9 @@ def _async_database_url(url: str) -> str:
 
 database_url = _async_database_url(settings.database_url)
 postgres_connect_args = {"ssl": True} if database_url.startswith("postgresql+asyncpg://") else {}
-engine = create_async_engine(database_url, echo=False, connect_args=postgres_connect_args)
+# Serverless instances sit idle between requests and Neon closes idle connections,
+# so test each pooled connection before reuse instead of failing the request.
+engine = create_async_engine(database_url, echo=False, connect_args=postgres_connect_args, pool_pre_ping=True)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
