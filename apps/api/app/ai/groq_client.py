@@ -394,7 +394,8 @@ class GroqAiClient:
             max_tokens=max_tokens,
         )
         if stop:
-            kwargs["stop"] = stop
+            # Groq rejects more than 4 stop sequences with a 400; callers still filter the full list client-side.
+            kwargs["stop"] = stop[:4]
         if re.search(r"gpt-oss", self.model, re.I):
             kwargs["reasoning_effort"] = "low"
             kwargs["extra_body"] = {"include_reasoning": False}
