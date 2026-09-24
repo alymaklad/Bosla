@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, type WeeklyReview as WeeklyReviewType } from '../api'
+import { PageLoading } from '../components/PageLoading'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const DEMO_MINUTES = [
@@ -14,11 +15,14 @@ const DEMO_MINUTES = [
 
 export function WeeklyReview() {
   const [review, setReview] = useState<WeeklyReviewType | null>(null)
+  const [loading, setLoading] = useState(true)
   const [decisions, setDecisions] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
-    api.weeklyReview().then(setReview).catch(() => {})
+    api.weeklyReview().then(setReview).catch(() => {}).finally(() => setLoading(false))
   }, [])
+
+  if (loading) return <PageLoading label="Calculating your weekly review…" />
 
   async function handleProposal(habitId: string, accept: boolean) {
     try {

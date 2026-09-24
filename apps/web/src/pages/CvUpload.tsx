@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, type DocumentSourceType, type PersonalDocument } from '../api'
 import { OnboardingHeader } from '../components/OnboardingHeader'
+import { PageLoading } from '../components/PageLoading'
 
 const DOCUMENT_TYPES: { value: DocumentSourceType; label: string }[] = [
   { value: 'cv', label: 'CV' }, { value: 'resume', label: 'Resume' },
@@ -23,6 +24,7 @@ export function CvUpload() {
   const [lastPreview, setLastPreview] = useState<PersonalDocument | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
@@ -34,9 +36,11 @@ export function CvUpload() {
     let active = true
     api.listDocuments().then((items) => {
       if (active) setDocuments(items)
-    }).catch(() => {})
+    }).catch(() => {}).finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])
+
+  if (loading) return <PageLoading label="Loading your private context…" />
 
   async function uploadFiles(files: FileList | File[]) {
     const selected = Array.from(files)
@@ -96,9 +100,9 @@ export function CvUpload() {
       <OnboardingHeader currentStep={2} />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-12 pt-24">
         <div className="mb-8">
-          <span className="rounded bg-[#E7EEFF] px-2 py-0.5 font-body text-[11px] uppercase text-[#1E3A8A]">Career evidence</span>
+          <span className="rounded bg-[#E7EEFF] px-2 py-0.5 font-body text-[11px] uppercase text-[#1E3A8A]">Career context</span>
           <h1 className="mt-3 font-display text-[28px] font-bold tracking-tight text-[#0F1115]">Add what tells your story</h1>
-          <p className="mt-1 font-body text-[14px] leading-relaxed text-[#45474B]">Add a CV, certificates, project notes, or a public GitHub profile. Bosla retrieves relevant excerpts to personalize guidance, while the conversation still determines your matches.</p>
+          <p className="mt-1 font-body text-[14px] leading-relaxed text-[#45474B]">Add documents, certificates, project notes, personal reflections, or a public GitHub profile. Bosla retrieves relevant excerpts to personalize guidance, while the conversation still determines your matches.</p>
         </div>
 
         <div className="space-y-5">
@@ -128,7 +132,7 @@ export function CvUpload() {
 
           {documents.length > 0 && <section className="rounded-lg border border-[#E6E7EA] bg-white p-5"><h2 className="mb-3 font-display text-[17px] font-semibold text-[#0F1115]">Added to your private context</h2><ul className="divide-y divide-[#E6E7EA]">{documents.map((document) => <li key={document.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"><span className="material-symbols-outlined text-[19px] text-[#1E3A8A]">{document.source_url ? 'code' : 'description'}</span><div className="min-w-0 flex-1"><p className="truncate font-body text-[13px] font-medium text-[#0F1115]">{document.filename}</p><p className="font-body text-[11px] text-[#5B6270]">{labelFor(document.source_type)} · {document.chunk_count} retrieval chunk{document.chunk_count === 1 ? '' : 's'}</p></div><button type="button" onClick={() => void removeDocument(document.id)} className="rounded p-1 text-[#5B6270] hover:bg-[#FEF2F2] hover:text-[#B91C1C]" aria-label={`Remove ${document.filename}`}><span className="material-symbols-outlined text-[18px]">close</span></button></li>)}</ul></section>}
 
-          <div className="flex items-center justify-between gap-4 pt-3"><button type="button" onClick={() => navigate('/onboarding/discovery')} className="h-10 rounded-lg border border-[#0F1115] bg-white px-5 font-body text-[14px] font-medium text-[#0F1115] hover:bg-[#F0F3FF]">Skip for now</button><button type="button" onClick={() => navigate('/onboarding/discovery')} className="flex h-10 items-center gap-2 rounded-lg bg-[#0F1115] px-6 font-body text-[14px] font-medium text-white hover:bg-[#1C1F26]"><span>Continue to conversation</span><span className="material-symbols-outlined text-[16px]">arrow_forward</span></button></div>
+          <div className="flex items-center justify-between gap-4 pt-3"><button type="button" onClick={() => navigate('/onboarding/discovery')} className="h-10 rounded-lg border border-[#0F1115] bg-white px-5 font-body text-[14px] font-medium text-[#0F1115] hover:bg-[#F0F3FF]">Return to conversation</button><button type="button" onClick={() => navigate('/onboarding/discovery')} className="flex h-10 items-center gap-2 rounded-lg bg-[#0F1115] px-6 font-body text-[14px] font-medium text-white hover:bg-[#1C1F26]"><span>Continue to conversation</span><span className="material-symbols-outlined text-[16px]">arrow_forward</span></button></div>
         </div>
       </main>
       <footer className="border-t border-[#E6E7EA] py-6 text-center font-body text-[11px] text-[#5B6270]">Your documents are indexed only for your own Bosla guidance. You can remove them at any time.</footer>

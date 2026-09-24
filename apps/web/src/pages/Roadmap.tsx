@@ -1,26 +1,53 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, type Roadmap } from '../api'
+import { PageLoading } from '../components/PageLoading'
 
 export function Roadmap() {
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null)
-  const [selectedSkill, setSelectedSkill] = useState<string>('SQL')
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    api.getRoadmap().then((r) => {
-      if (!r.steps || r.steps.length === 0) {
-        api.generateRoadmap().then(setRoadmap).catch(() => {})
-      } else {
-        setRoadmap(r)
+    async function loadRoadmap() {
+      try {
+        const existing = await api.getRoadmap()
+        setRoadmap(existing.steps.length > 0 ? existing : await api.generateRoadmap())
+      } catch (err) {
+        setLoadError(err instanceof Error ? err.message : 'Your roadmap could not be loaded.')
+      } finally {
+        setLoading(false)
       }
-    }).catch(() => {})
+    }
+    void loadRoadmap()
   }, [])
 
-  const direction = roadmap?.direction || 'Data Analyst'
-  const studySteps = roadmap?.steps.filter((s) => s.category === 'study') || []
-  const skillSteps = roadmap?.steps.filter((s) => s.category === 'skill') || []
-  const portfolioSteps = roadmap?.steps.filter((s) => s.category === 'portfolio') || []
+  if (loading) return <PageLoading label="Loading your learning roadmap…" />
+
+  if (!roadmap) {
+    return (
+      <main className="mx-auto flex min-h-[56vh] w-full max-w-[760px] flex-col items-center justify-center px-6 text-center">
+        <span className="material-symbols-outlined text-[34px] text-[#1E3A8A]">route</span>
+        <h1 className="mt-4 font-display text-[24px] font-semibold text-[#0F1115]">Your roadmap is not ready yet</h1>
+        <p className="mt-2 max-w-md font-body text-[14px] leading-relaxed text-[#5B6270]">{loadError || 'Choose a career direction first, then Bosla can create a focused learning path.'}</p>
+        <button type="button" onClick={() => navigate('/matches')} className="mt-5 rounded-xl bg-[#0F1115] px-4 py-2.5 font-body text-[13px] font-medium text-white hover:bg-[#1C1F26]">Explore career matches</button>
+      </main>
+    )
+  }
+
+  const direction = roadmap.direction || 'your selected direction'
+  const studySteps = roadmap.steps.filter((s) => s.category === 'study')
+  const skillSteps = roadmap.steps.filter((s) => s.category === 'skill')
+  const portfolioSteps = roadmap.steps.filter((s) => s.category === 'portfolio')
+  const activeSkill = skillSteps.find((step) => step.title === selectedSkill) || skillSteps[0]
+  const stages = [
+    { title: 'Foundations', detail: studySteps.length ? `${studySteps.length} learning module${studySteps.length === 1 ? '' : 's'} mapped` : 'Learning modules appear here', icon: 'menu_book', state: 'Current' },
+    { title: 'Skill practice', detail: skillSteps.length ? `${skillSteps.length} skill focus${skillSteps.length === 1 ? '' : 'es'} mapped` : 'Build your core capabilities', icon: 'construction', state: 'Next' },
+    { title: 'Portfolio proof', detail: portfolioSteps.length ? `${portfolioSteps.length} project${portfolioSteps.length === 1 ? '' : 's'} mapped` : 'Turn practice into proof of work', icon: 'folder_open', state: 'Next' },
+    { title: 'Career readiness', detail: 'Apply, interview, and refine your direction', icon: 'rocket_launch', state: 'Later' },
+  ]
 
   function turnIntoHabit(stepTitle: string, description: string) {
     navigate('/habit-wizard', { state: { title: stepTitle, description } })
@@ -57,76 +84,26 @@ export function Roadmap() {
         </div>
       </div>
 
-      {/* Horizontal 4-Stage Milestone Card */}
+      {/* Data-based 4-stage learning progression */}
       <div className="rounded-2xl border border-[#E6E7EA] bg-white p-6 shadow-[0_10px_24px_-24px_rgba(15,17,21,0.38)]">
         <div className="mb-6 flex items-center justify-between border-b border-[#EEF0F3] pb-5">
           <h2 className="font-display text-[18px] font-semibold text-[#0F1115]">
-            Milestones overview
+            Learning progression
           </h2>
           <span className="rounded-full bg-[#F0F3FF] px-2.5 py-1 font-body text-[11px] font-medium text-[#1E3A8A]">
-            1 of 4 stages finished
+            4-stage path
           </span>
         </div>
-        <div className="relative grid grid-cols-1 gap-4 md:grid-cols-4">
-          <div className="absolute top-7 right-12 left-12 z-0 hidden h-0.5 bg-[#E6E7EA] md:block" />
-
-          {/* Stage 1 */}
-          <div className="relative z-10 flex flex-col items-start rounded-xl border border-[#E6E7EA] bg-white p-4 md:border-transparent">
-            <div className="mb-3 flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0F1115] text-white">
-                <span className="material-symbols-outlined text-[16px]">check</span>
-              </div>
-              <span className="rounded-full bg-[#FEF3C7] px-2 py-0.5 font-body text-[11px] font-medium text-[#B45309]">
-                Done
-              </span>
-            </div>
-            <h3 className="font-body text-[14px] font-medium text-[#0F1115]">
-              Foundations of SQL
-            </h3>
-            <p className="mt-1 font-body text-[11px] text-[#5B6270]">Completed fundamentals</p>
-          </div>
-
-          {/* Stage 2 */}
-          <div className="relative z-10 flex flex-col items-start rounded-xl border border-[#1E3A8A] bg-[#FAFAF8] p-4 md:border-transparent md:bg-transparent">
-            <div className="mb-3 flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#1E3A8A] bg-[#E8EDF9] font-body text-[12px] font-semibold text-[#1E3A8A]">
-                2
-              </div>
-              <span className="rounded-full bg-[#E8EDF9] px-2 py-0.5 font-body text-[11px] font-medium text-[#1E3A8A]">
-                In Progress
-              </span>
-            </div>
-            <h3 className="font-body text-[14px] font-medium text-[#0F1115]">Python for data</h3>
-            <p className="mt-1 font-body text-[11px] font-medium text-[#1E3A8A]">Current focus · 45%</p>
-          </div>
-
-          {/* Stage 3 */}
-          <div className="relative z-10 flex flex-col items-start rounded-xl border border-[#E6E7EA] bg-white p-4 opacity-85 md:border-transparent">
-            <div className="mb-3 flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E6E7EA] bg-white font-body text-[12px] text-[#76777B]">
-                3
-              </div>
-              <span className="rounded-full bg-[#F0F3FF] px-2 py-0.5 font-body text-[11px] text-[#5B6270]">
-                Upcoming
-              </span>
-            </div>
-            <h3 className="font-body text-[14px] font-medium text-[#0F1115]">Portfolio project</h3>
-            <p className="mt-1 font-body text-[11px] text-[#5B6270]">Target: Nov 2026</p>
-          </div>
-
-          {/* Stage 4 */}
-          <div className="relative z-10 flex flex-col items-start rounded-xl border border-[#E6E7EA] bg-white p-4 opacity-85 md:border-transparent">
-            <div className="mb-3 flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E6E7EA] bg-white font-body text-[12px] text-[#76777B]">
-                4
-              </div>
-              <span className="rounded-full bg-[#F0F3FF] px-2 py-0.5 font-body text-[11px] text-[#5B6270]">
-                Upcoming
-              </span>
-            </div>
-            <h3 className="font-body text-[14px] font-medium text-[#0F1115]">Mock interviews</h3>
-            <p className="mt-1 font-body text-[11px] text-[#5B6270]">Target: Dec 2026</p>
-          </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+          {stages.map((stage, index) => {
+            const current = index === 0
+            return <article key={stage.title} className={`relative overflow-hidden rounded-xl border p-4 ${current ? 'border-[#AFC2FA] bg-[#F4F7FF]' : 'border-[#E6E7EA] bg-white'}`}>
+              <div className="flex items-center justify-between"><div className={`flex h-8 w-8 items-center justify-center rounded-lg ${current ? 'bg-[#1E3A8A] text-white' : 'bg-[#F4F5F7] text-[#5B6270]'}`}><span className="material-symbols-outlined text-[17px]">{stage.icon}</span></div><span className={`font-body text-[10px] font-semibold uppercase tracking-[0.08em] ${current ? 'text-[#1E3A8A]' : 'text-[#76777B]'}`}>Stage {index + 1}</span></div>
+              <p className="mt-4 font-body text-[13px] font-semibold text-[#0F1115]">{stage.title}</p>
+              <p className="mt-1 min-h-9 font-body text-[11px] leading-relaxed text-[#5B6270]">{stage.detail}</p>
+              <span className={`mt-3 inline-flex rounded-full px-2 py-0.5 font-body text-[10px] font-medium ${current ? 'bg-[#E8EDF9] text-[#1E3A8A]' : 'bg-[#F4F5F7] text-[#5B6270]'}`}>{stage.state}</span>
+            </article>
+          })}
         </div>
       </div>
 
@@ -141,7 +118,7 @@ export function Roadmap() {
             </div>
           </div>
           <span className="font-body text-[12px] text-[#5B6270]">
-            {studySteps.length || 2} modules configured
+            {studySteps.length} modules configured
           </span>
         </div>
 
@@ -174,24 +151,7 @@ export function Roadmap() {
               </div>
             ))
           ) : (
-            <div className="flex flex-col justify-between rounded-lg border border-[#E6E7EA] bg-white p-4 sm:flex-row sm:items-center">
-              <div className="space-y-1">
-                <span className="font-body text-[14px] font-medium text-[#0F1115]">
-                  Databases & SQL Optimization
-                </span>
-                <p className="font-body text-[13px] text-[#5B6270]">
-                  Window functions, CTEs, indexing, and execution plans
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => turnIntoHabit('Databases & SQL Optimization', 'Window functions and queries')}
-                className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-body text-[12px] font-medium text-[#1E3A8A] hover:bg-[#E8EDF9] hover:text-[#0F1115]"
-              >
-                <span className="material-symbols-outlined text-[16px]">alarm_add</span>
-                <span>Make it a habit</span>
-              </button>
-            </div>
+            <p className="rounded-xl border border-dashed border-[#D7DAE0] px-4 py-5 font-body text-[13px] text-[#5B6270]">No study modules have been added to this roadmap yet.</p>
           )}
         </div>
       </div>
@@ -212,23 +172,22 @@ export function Roadmap() {
         </div>
 
         {/* Skill Chips */}
+        {skillSteps.length > 0 ? <>
         <div className="mb-4 flex flex-wrap gap-2">
-          {['SQL', 'Python (Pandas)', 'Data Modeling', 'Tableau / BI', 'Statistical A/B Testing'].map(
-            (skill) => (
+          {skillSteps.map((skill) => (
               <button
-                key={skill}
+                key={skill.title}
                 type="button"
-                onClick={() => setSelectedSkill(skill)}
+                onClick={() => setSelectedSkill(skill.title)}
                 className={`rounded px-3 py-1.5 font-body text-[12px] font-medium transition-colors ${
-                  selectedSkill === skill
+                  activeSkill?.title === skill.title
                     ? 'bg-[#0F1115] text-white'
                     : 'border border-[#E6E7EA] bg-white text-[#0F1115] hover:border-[#0F1115]'
                 }`}
               >
-                {skill}
+                {skill.title}
               </button>
-            ),
-          )}
+          ))}
         </div>
 
         {/* Skill Card Detail */}
@@ -236,16 +195,15 @@ export function Roadmap() {
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
               <span className="font-body text-[14px] font-semibold text-[#0F1115]">
-                {selectedSkill} Core Proficiency
+                {activeSkill?.title}
               </span>
               <p className="mt-0.5 font-body text-[13px] text-[#5B6270]">
-                {skillSteps[0]?.description ||
-                  `Targeted exercises and practical problem-sets for ${selectedSkill}.`}
+                {activeSkill?.description}
               </p>
             </div>
             <button
               type="button"
-              onClick={() => turnIntoHabit(`${selectedSkill} Practice`, `Daily practice for ${selectedSkill}`)}
+              onClick={() => activeSkill && turnIntoHabit(activeSkill.title, activeSkill.description)}
               className="flex items-center gap-1.5 self-start rounded-lg bg-[#0F1115] px-3.5 py-1.5 font-body text-[12px] font-medium text-white transition-colors hover:bg-[#1C1F26] sm:self-center"
             >
               <span className="material-symbols-outlined text-[15px]">alarm_add</span>
@@ -253,6 +211,7 @@ export function Roadmap() {
             </button>
           </div>
         </div>
+        </> : <p className="rounded-xl border border-dashed border-[#D7DAE0] px-4 py-5 font-body text-[13px] text-[#5B6270]">No skill-practice steps have been added to this roadmap yet.</p>}
       </div>
 
       {/* Section 3: Portfolio Projects */}
@@ -294,29 +253,7 @@ export function Roadmap() {
               </div>
             ))
           ) : (
-            <div className="flex flex-col justify-between rounded-lg border border-[#E6E7EA] bg-white p-4 sm:flex-row sm:items-center">
-              <div className="space-y-1">
-                <span className="font-body text-[14px] font-medium text-[#0F1115]">
-                  E-commerce User Retention Dashboard
-                </span>
-                <p className="font-body text-[13px] text-[#5B6270]">
-                  Clean public cohort data, calculate LTV & retention metrics, and publish an interactive report.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  turnIntoHabit(
-                    'Portfolio Project Sprint',
-                    'Build an interactive cohort retention dashboard',
-                  )
-                }
-                className="mt-2 flex items-center gap-1.5 rounded-lg px-2 py-1 font-body text-[12px] font-medium text-[#1E3A8A] hover:bg-[#E8EDF9] hover:text-[#0F1115] sm:mt-0"
-              >
-                <span className="material-symbols-outlined text-[16px]">alarm_add</span>
-                <span>Turn into weekly habit</span>
-              </button>
-            </div>
+            <p className="rounded-xl border border-dashed border-[#D7DAE0] px-4 py-5 font-body text-[13px] text-[#5B6270]">No portfolio project has been added to this roadmap yet.</p>
           )}
         </div>
       </div>

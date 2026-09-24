@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api, type AiStatus, type GoogleSyncStatus } from '../api'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { PageLoading } from '../components/PageLoading'
 import { useApp } from '../context/AppContext'
 
 type SettingsTab = 'account' | 'privacy' | 'integrations' | 'ai'
@@ -18,13 +19,14 @@ export function Settings() {
   const [exporting, setExporting] = useState(false)
   const [confirmingDeletion, setConfirmingDeletion] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.aiStatus().then(setAiStatus).catch(() => {})
-    api.googleSyncStatus().then(setGoogleStatus).catch(() => {})
+    void Promise.allSettled([api.aiStatus().then(setAiStatus), api.googleSyncStatus().then(setGoogleStatus)])
+      .finally(() => setLoading(false))
   }, [])
 
-  if (!user) return null
+  if (!user || loading) return <PageLoading label="Loading your account settings…" />
 
   async function removeAccount() {
     setDeleting(true)

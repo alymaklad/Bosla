@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, type HabitProgress } from '../api'
+import { PageLoading } from '../components/PageLoading'
 
 interface Achievement {
   id: string
@@ -43,10 +44,13 @@ function achievementsFor(data: HabitProgress | null): Achievement[] {
 
 export function Progress() {
   const [data, setData] = useState<HabitProgress | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.progress().then(setData).catch(() => {})
+    api.progress().then(setData).catch(() => {}).finally(() => setLoading(false))
   }, [])
+
+  if (loading) return <PageLoading label="Loading your progress…" />
 
   const level = data?.level?.level ?? 1
   const title = data?.level?.title ?? 'Beginner'

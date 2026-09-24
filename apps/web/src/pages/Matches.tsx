@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, type CareerMatch } from '../api'
+import { PageLoading } from '../components/PageLoading'
 
 export function Matches() {
   const [matches, setMatches] = useState<CareerMatch[] | null>(null)
@@ -32,13 +33,7 @@ export function Matches() {
   }
 
   if (matches === null) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] max-w-[760px] flex-col justify-center gap-4 px-6" aria-live="polite">
-        <div className="h-7 w-52 animate-pulse rounded bg-[#E6E7EA]" />
-        <div className="h-28 animate-pulse rounded-lg border border-[#E6E7EA] bg-white" />
-        <p className="font-body text-[13px] text-[#5B6270]">Loading your saved career matches…</p>
-      </div>
-    )
+    return <PageLoading label="Loading your saved career matches…" />
   }
 
   if (matches && matches.length === 0) {
@@ -94,7 +89,7 @@ export function Matches() {
             <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0F1115] text-[10px] text-white">
               <span className="material-symbols-outlined text-[13px]">check</span>
             </div>
-            <span className="font-body text-[13px] font-medium text-[#0F1115]">CV Review</span>
+            <span className="font-body text-[13px] font-medium text-[#0F1115]">Career context</span>
             <div className="hidden h-[1px] flex-1 bg-[#0F1115] sm:block" />
           </div>
           <div className="flex items-center gap-2">

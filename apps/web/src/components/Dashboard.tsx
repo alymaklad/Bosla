@@ -38,11 +38,11 @@ export function Dashboard() {
     year: 'numeric',
   }).format(new Date())
 
-  const direction = data.chosen_direction || 'Data Analyst'
+  const direction = data.chosen_direction || 'your chosen direction'
   const todayOccs = data.today || []
   const matches = data.top_matches || []
-  const streakDays = data.streak?.current ?? 7
-  const longestStreak = data.streak?.longest ?? 12
+  const streakDays = data.streak?.current ?? 0
+  const longestStreak = data.streak?.longest ?? 0
   const weekPct = Math.round(data.week_completion_pct || 80)
 
   return (

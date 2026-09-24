@@ -13,12 +13,12 @@ export function Shell() {
   if (!user) return <Navigate to="/" replace />
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
+    <div className="h-dvh overflow-hidden bg-[#FAFAF8]">
       <Sidebar />
       <TopBar />
 
       {/* Main Canvas offset by 240px sidebar on desktop and 56px top bar */}
-      <div className="min-h-screen pb-20 pt-16 md:ml-64 md:pb-12">
+      <div className="mt-16 h-[calc(100dvh-4rem)] overflow-y-auto pb-20 md:ml-64 md:pb-12">
         <Outlet />
       </div>
 

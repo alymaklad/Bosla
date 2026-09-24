@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, type DiscoveryMessage, type DiscoveryProfile } from '../api'
 import { OnboardingHeader } from '../components/OnboardingHeader'
+import { PageLoading } from '../components/PageLoading'
 import { useApp } from '../context/AppContext'
 
 type DimensionKey = 'interests' | 'strengths' | 'skills' | 'experience' | 'motivations'
@@ -22,6 +23,7 @@ export function Discovery() {
   const [sending, setSending] = useState(false)
   const [preparing, setPreparing] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
@@ -34,13 +36,15 @@ export function Discovery() {
         setMessages(existing)
         api.discoveryProfile().then(setProfile).catch(() => {})
       }
-    }).catch(() => setError('Could not load conversation. Check your connection and retry.'))
+    }).catch(() => setError('Could not load conversation. Check your connection and retry.')).finally(() => setLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, sending])
+
+  if (loading) return <PageLoading label="Loading your discovery conversation…" />
 
   async function send() {
     const text = input.trim()
@@ -139,6 +143,14 @@ export function Discovery() {
                 <h1 className="font-display text-[22px] font-semibold tracking-tight text-[#0F1115]">
                   Let's find your direction
                 </h1>
+                <button
+                  type="button"
+                  onClick={() => navigate('/onboarding/cv')}
+                  className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-1 font-body text-[12px] font-medium text-[#1E3A8A] transition-colors hover:bg-[#E8EDF9] hover:text-[#122761] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1E3A8A]"
+                >
+                  <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                  Add or manage career context
+                </button>
               </div>
               <div className="hidden text-right sm:block">
                 <div className="font-body text-[11px] text-[#5B6270]">Progress to unlock</div>

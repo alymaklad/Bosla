@@ -5,7 +5,7 @@ interface OnboardingHeaderProps {
 
 const STEPS = [
   { step: 1, label: 'Consent' },
-  { step: 2, label: 'CV' },
+  { step: 2, label: 'Career context' },
   { step: 3, label: 'Conversation' },
   { step: 4, label: 'Matches' },
 ]

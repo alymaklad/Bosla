@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, type CareerMatch, type DiscoveryMessage } from '../api'
+import { PageLoading } from '../components/PageLoading'
 
 export function MatchDetail() {
   const { id } = useParams<{ id: string }>()
@@ -10,13 +11,16 @@ export function MatchDetail() {
   const [sending, setSending] = useState(false)
   const [choosing, setChoosing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(() => Boolean(id))
   const scrollRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
     if (!id) return
-    api.listMatches().then((all) => setMatch(all.find((m) => m.id === id) ?? null)).catch(() => setMatch(null))
-    api.mentorMessages().then(setMessages).catch(() => {})
+    void Promise.all([
+      api.listMatches().then((all) => setMatch(all.find((m) => m.id === id) ?? null)).catch(() => setMatch(null)),
+      api.mentorMessages().then(setMessages).catch(() => {}),
+    ]).finally(() => setLoading(false))
   }, [id])
 
   useEffect(() => {
@@ -63,6 +67,8 @@ export function MatchDetail() {
       setSending(false)
     }
   }
+
+  if (loading) return <PageLoading label="Loading this career match…" />
 
   if (!match) {
     return (
@@ -162,7 +168,7 @@ export function MatchDetail() {
                 </h2>
               </div>
               <span className="font-body text-[11px] text-[#5B6270]">
-                Synthesized from conversation & CV
+                Synthesized from conversation & career context
               </span>
             </div>
             <div className="space-y-4 pt-1">

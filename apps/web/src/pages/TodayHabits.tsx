@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api, type Occurrence } from '../api'
+import { PageLoading } from '../components/PageLoading'
 
 export function TodayHabits() {
   const location = useLocation() as { state?: { scope?: 'week'; notice?: string } }
@@ -16,10 +17,12 @@ export function TodayHabits() {
   const [skipReason, setSkipReason] = useState('')
   const [loggingId, setLoggingId] = useState<string | null>(null)
   const [manualMinutes, setManualMinutes] = useState(20)
+  const [loading, setLoading] = useState(true)
 
   const timerRef = useRef<number | null>(null)
 
   const load = async () => {
+    setLoading(true)
     try {
       setError(null)
       const [items, progress] = await Promise.all([
@@ -31,6 +34,8 @@ export function TodayHabits() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load your habits. Please refresh and try again.')
       setOccs([])
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -108,17 +113,16 @@ export function TodayHabits() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
   }
 
+  if (loading) return <PageLoading label="Loading your habit cadence…" />
+
   return (
     <main className="mx-auto w-full max-w-[1280px] px-6 py-8">
       {/* Header Section */}
-      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mb-7 flex flex-col justify-between gap-5 border-b border-[#E6E7EA] pb-6 sm:flex-row sm:items-end">
         <div>
-          <span className="font-body text-[12px] uppercase tracking-wider text-[#5B6270]">
-            Habit Cadence
-          </span>
-          <h1 className="font-display text-[28px] font-bold tracking-tight text-[#0F1115] md:text-[32px]">
-            {todayFormatted}
-          </h1>
+          <p className="font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1E3A8A]">Habit cadence</p>
+          <h1 className="mt-2 font-display text-[30px] font-bold tracking-tight text-[#0F1115] md:text-[35px]">{todayFormatted}</h1>
+          <p className="mt-2 font-body text-[13px] text-[#5B6270]">{scope === 'today' ? 'Your scheduled practice for today.' : 'Your scheduled practice for this week.'}</p>
         </div>
 
         {/* Segmented Scope Control */}

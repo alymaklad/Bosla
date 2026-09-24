@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, type DiscoveryMessage, type Roadmap } from '../api'
+import { PageLoading } from '../components/PageLoading'
 
 const PROMPTS = [
   { title: 'Plan my week', text: 'What should I focus on this week to move my career forward?', icon: 'calendar_month' },
@@ -15,13 +16,14 @@ export function Mentor() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     void Promise.all([
       api.mentorMessages().then(setMessages).catch(() => {}),
       api.getRoadmap().then(setRoadmap).catch(() => {}),
-    ])
+    ]).finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
@@ -53,6 +55,8 @@ export function Mentor() {
 
   const direction = roadmap?.direction
   const exchangeCount = Math.ceil(messages.length / 2)
+
+  if (loading) return <PageLoading label="Loading your mentor workspace…" />
 
   return (
     <main className="mx-auto w-full max-w-[1320px] p-5 md:p-8">
