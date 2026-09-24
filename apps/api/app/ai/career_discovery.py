@@ -18,7 +18,8 @@ from .base import AiClient
 
 CV_TEXT_MAX_CHARS = 7000
 
-SIMULATION_MARKERS = ["Human:", "User:", "---", "assistant:", "Hello, I am"]
+# Only role prefixes: "---" also matched Markdown table dividers and cut replies mid-answer.
+SIMULATION_MARKERS = ["Human:", "User:", "assistant:", "Hello, I am"]
 
 DIMENSIONS = ["interests", "strengths", "skills", "experience", "motivations"]
 MIN_EXCHANGES = 8
@@ -314,7 +315,8 @@ async def run_mentorship_turn(
 ) -> AsyncGenerator[str, None]:
     system = _mentorship_system_prompt(assessment_context)
     messages = [*history, {"role": "user", "content": user_message}]
-    raw = ai.stream_chat(system, messages, stop=SIMULATION_MARKERS, temperature=0.6, max_tokens=600)
+    # Reasoning models spend part of this budget before answering; 600 cut replies mid-sentence.
+    raw = ai.stream_chat(system, messages, stop=SIMULATION_MARKERS, temperature=0.6, max_tokens=1200)
     async for chunk in filter_on_markers(raw, SIMULATION_MARKERS):
         yield chunk
 
