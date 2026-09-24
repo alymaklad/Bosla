@@ -29,7 +29,7 @@ export function Shell() {
       {/* Floating 'Ask Bosla' Trigger Button */}
       <button
         type="button"
-        onClick={() => navigate('/matches')}
+        onClick={() => navigate('/mentor')}
         aria-label="Ask Bosla guidance AI"
         className="custom-floating-shadow fixed bottom-8 right-8 z-50 flex h-12 items-center gap-2.5 rounded-full bg-[#0F1115] px-5 font-body text-[14px] font-medium text-white transition-all hover:bg-[#1C1F26] active:opacity-90"
       >
