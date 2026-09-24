@@ -1,0 +1,32 @@
+name: Deploy API (Vercel)
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/deploy-api.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      # The projects live in Omar's Vercel team, which cannot link a repo owned by a personal GitHub account.
+      VERCEL_ORG_ID: team_Vb0BTDmgcCtBE0uZeiFaEySR
+      VERCEL_PROJECT_ID: prj_fdxdMRtt1pDcOqPP8sqEurfT1oTv
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
