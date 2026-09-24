@@ -8,6 +8,7 @@ MVP works without another paid provider; all retrieval remains user-scoped.
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import io
 import math
@@ -103,7 +104,61 @@ def _extract_native(data: bytes, filename: str) -> ExtractionResult:
 
 
 async def _extract_with_ocr(data: bytes, filename: str, content_type: str, settings: Settings) -> ExtractionResult | None:
-    """Call the companion Cloud Vision service only when native PDF extraction fails."""
+    """Call Google Cloud Vision or a companion OCR service when native extraction fails."""
+    api_key = settings.google_vision_api_key or (
+        settings.ocr_fallback_token if "vision.googleapis.com" in settings.ocr_fallback_url else ""
+    )
+
+    if api_key:
+        try:
+            b64_content = base64.b64encode(data).decode("utf-8")
+            is_pdf = content_type == "application/pdf" or filename.lower().endswith(".pdf")
+            async with httpx.AsyncClient(timeout=settings.ocr_fallback_timeout_seconds) as client:
+                if is_pdf:
+                    url = f"https://vision.googleapis.com/v1/files:annotate?key={api_key}"
+                    body = {
+                        "requests": [
+                            {
+                                "inputConfig": {
+                                    "content": b64_content,
+                                    "mimeType": "application/pdf",
+                                },
+                                "features": [{"type": "DOCUMENT_TEXT_DETECTION"}],
+                                "pages": [1, 2, 3, 4, 5],
+                            }
+                        ]
+                    }
+                    response = await client.post(url, json=body)
+                    response.raise_for_status()
+                    payload = response.json()
+                    pages = payload.get("responses", [{}])[0].get("responses", [])
+                    extracted_parts = [
+                        p.get("fullTextAnnotation", {}).get("text", "")
+                        for p in pages
+                    ]
+                    raw = "\n\n".join(part for part in extracted_parts if part)
+                else:
+                    url = f"https://vision.googleapis.com/v1/images:annotate?key={api_key}"
+                    body = {
+                        "requests": [
+                            {
+                                "image": {"content": b64_content},
+                                "features": [{"type": "DOCUMENT_TEXT_DETECTION"}],
+                            }
+                        ]
+                    }
+                    response = await client.post(url, json=body)
+                    response.raise_for_status()
+                    payload = response.json()
+                    raw = payload.get("responses", [{}])[0].get("fullTextAnnotation", {}).get("text", "")
+
+            if not isinstance(raw, str) or not raw.strip():
+                return ExtractionResult("", False, False, "ocr_returned_no_text", "ocr")
+            text, truncated = _trim_text(raw)
+            return ExtractionResult(text, truncated, True, None, "ocr")
+        except (httpx.HTTPError, ValueError):
+            return ExtractionResult("", False, False, "ocr_unavailable", "ocr")
+
     if not settings.ocr_fallback_url:
         return None
     headers = {"Authorization": f"Bearer {settings.ocr_fallback_token}"} if settings.ocr_fallback_token else {}

@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     ocr_fallback_url: str = ""
     ocr_fallback_token: str = ""
     ocr_fallback_timeout_seconds: int = 60
+    google_vision_api_key: str = ""
     github_token: str = ""
 
 
