@@ -275,14 +275,37 @@ export interface DifficultyProposal {
   current_target: number
   proposed_target: number
   rationale: string
+  completion_pct: number
+}
+
+export interface WeeklyReviewDay {
+  date: string
+  /** ISO weekday: Monday = 1 … Sunday = 7. */
+  weekday: number
+  logged_minutes: number
+  target_minutes: number
+  sessions: number
+  completed: number
+  future: boolean
 }
 
 export interface WeeklyReview {
+  week_offset: number
+  week_start: string
+  week_end: string
   completion_pct: number
-  total_points: number
-  scheduled: number
   completed: number
+  /** Sessions that can be judged: already due and not skipped with a reason. */
+  scheduled: number
+  skipped: number
+  upcoming: number
+  total_points: number
+  logged_minutes: number
+  active_days: number
+  longest_streak: number
   worst_weekday: number | null
+  worst_weekday_pct: number | null
+  days: WeeklyReviewDay[]
   proposals: DifficultyProposal[]
 }
 
@@ -466,7 +489,7 @@ export const api = {
   weekHabits: () => get<Occurrence[]>('/habits/week'),
   logOccurrence: (id: string, body: { minutes?: number; completed?: boolean; origin?: string }) => post<Occurrence>(`/habits/occurrences/${id}/log`, body),
   skipOccurrence: (id: string, reason: string) => post<Occurrence>(`/habits/occurrences/${id}/skip`, { reason }),
-  weeklyReview: () => get<WeeklyReview>('/habits/review'),
+  weeklyReview: (week = 0) => get<WeeklyReview>(`/habits/review?week=${week}`),
   acceptDifficulty: (habit_id: string, accept: boolean) => post<Habit>('/habits/review/accept', { habit_id, accept }),
   progress: () => get<HabitProgress>('/habits/progress'),
 

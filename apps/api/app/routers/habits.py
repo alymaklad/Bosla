@@ -1,7 +1,7 @@
 import logging
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,6 +42,9 @@ def _occurrence_out(o: Occurrence, habit_name: str, difficulty_level: int) -> Oc
 
 
 async def _ensure_occurrences(db: AsyncSession, habit: Habit, frm: str, to: str) -> None:
+    # A habit has no sessions before it existed; otherwise mid-week habits show earlier days as missed.
+    if habit.created_at:
+        frm = max(frm, habit.created_at.date().isoformat())
     try:
         rec = he.Recurrence.from_dict(habit.recurrence)
     except (TypeError, ValueError):
@@ -172,63 +175,117 @@ async def skip_occurrence(occurrence_id: str, body: SkipOccurrenceRequest, user:
     return _occurrence_out(occ, habit.name, habit.difficulty_level)
 
 
+MAX_REVIEW_WEEKS_BACK = 52
+
+
+def _judged_rate(occs: list[Occurrence]) -> tuple[int, int]:
+    """(completed, judged): sessions still to come and justified skips are not judged."""
+    completed = judged = 0
+    for o in occs:
+        status = he.status_of(_facts(o))
+        if status in ("pending", "skipped"):
+            continue
+        judged += 1
+        completed += status == "complete"
+    return completed, judged
+
+
 @router.get("/review", response_model=dict)
-async def weekly_review(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> dict:
-    monday, sunday = _week_bounds(date.today())
+async def weekly_review(
+    week: int = Query(0, ge=-MAX_REVIEW_WEEKS_BACK, le=0),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     today = date.today().isoformat()
-    res = await db.execute(select(Habit).where(Habit.user_id == user.id, Habit.archived == False))
+    monday, sunday = _week_bounds(date.today() + timedelta(weeks=week))
+    res = await db.execute(select(Habit).where(Habit.user_id == user.id, Habit.archived == False))  # noqa: E712
     habits = res.scalars().all()
+    habit_by_id = {h.id: h for h in habits}
     for h in habits:
         await _ensure_occurrences(db, h, monday, min(sunday, today))
 
     res = await db.execute(select(Occurrence).join(Habit).where(Habit.user_id == user.id, Occurrence.date >= monday, Occurrence.date <= sunday))
-    occs = res.scalars().all()
+    # Older rows may predate their habit; those days were never really scheduled.
+    occs = [
+        o for o in res.scalars().all()
+        if o.habit_id in habit_by_id and o.date >= habit_by_id[o.habit_id].created_at.date().isoformat()
+    ]
 
+    days = {
+        d: {"date": d, "weekday": he.weekday(d), "logged_minutes": 0.0, "target_minutes": 0, "sessions": 0, "completed": 0, "future": d > today}
+        for d in he.date_range(monday, sunday)
+    }
     by_habit: dict[str, list[Occurrence]] = {}
-    for o in occs:
-        by_habit.setdefault(o.habit_id, []).append(o)
-
-    total_scheduled = len(occs)
-    total_completed = 0
+    weekday_results: dict[int, list[bool]] = {}
+    completed = judged = skipped = upcoming = 0
     total_points = 0.0
-    weekday_completion: dict[int, list[bool]] = {}
-    proposals: list[DifficultyProposalOut] = []
+    for o in occs:
+        status = he.status_of(_facts(o))
+        by_habit.setdefault(o.habit_id, []).append(o)
+        day = days[o.date]
+        day["sessions"] += 1
+        day["target_minutes"] += o.target_minutes
+        day["logged_minutes"] += o.logged_minutes or 0
+        total_points += he.points_for(status)
+        if status == "pending":
+            upcoming += 1
+            continue
+        if status == "skipped":
+            skipped += 1
+            continue
+        judged += 1
+        if status == "complete":
+            completed += 1
+            day["completed"] += 1
+        weekday_results.setdefault(he.weekday(o.date), []).append(status == "complete")
 
-    for h in habits:
-        h_occs = by_habit.get(h.id, [])
-        completed = 0
-        for o in h_occs:
-            facts = _facts(o)
-            status = he.status_of(facts)
-            total_points += he.points_for(status)
-            if status == "complete":
-                completed += 1
-                total_completed += 1
-            wd = he.weekday(o.date)
-            weekday_completion.setdefault(wd, []).append(status == "complete")
+    worst_weekday = worst_weekday_pct = None
+    rates = {wd: sum(results) / len(results) * 100 for wd, results in weekday_results.items()}
+    if len(rates) >= 2 and min(rates.values()) < 100:
+        worst_weekday = min(rates, key=lambda wd: rates[wd])
+        worst_weekday_pct = rates[worst_weekday]
 
-        if h_occs:
-            rate = he.completion_rate(completed, len(h_occs))
-            adj = he.propose_adjustment(h.name, h.baseline_minutes, h.difficulty_level, rate, len(h_occs))
-            if adj.direction != "hold":
-                proposals.append(DifficultyProposalOut(
+    longest_streak = max(
+        (he.compute_streaks([(o.date, he.status_of(_facts(o))) for o in h_occs]).longest for h_occs in by_habit.values()),
+        default=0,
+    )
+
+    proposals: list[dict] = []
+    if week == 0:
+        # Only the current week can change a habit's difficulty going forward.
+        for h in habits:
+            h_completed, h_judged = _judged_rate(by_habit.get(h.id, []))
+            if h_judged == 0:
+                continue
+            rate = he.completion_rate(h_completed, h_judged)
+            adj = he.propose_adjustment(h.name, h.baseline_minutes, h.difficulty_level, rate, h_judged)
+            proposals.append({
+                **DifficultyProposalOut(
                     habit_id=h.id, habit_name=h.name, direction=adj.direction, current_level=adj.current_level,
                     proposed_level=adj.proposed_level, current_target=adj.current_target,
                     proposed_target=adj.proposed_target, rationale=adj.rationale,
-                ))
+                ).model_dump(),
+                "completion_pct": rate,
+            })
 
-    worst_day = None
-    if weekday_completion:
-        rates = {wd: sum(v) / len(v) for wd, v in weekday_completion.items()}
-        worst_day = min(rates, key=lambda k: rates[k])
-
+    logged_minutes = sum(day["logged_minutes"] for day in days.values())
     return {
-        "completion_pct": he.completion_rate(total_completed, total_scheduled),
+        "week_offset": week,
+        "week_start": monday,
+        "week_end": sunday,
+        "completion_pct": he.completion_rate(completed, judged),
+        "completed": completed,
+        "scheduled": judged,
+        "skipped": skipped,
+        "upcoming": upcoming,
         "total_points": total_points,
-        "scheduled": total_scheduled,
-        "completed": total_completed,
-        "worst_weekday": worst_day,
-        "proposals": [p.model_dump() for p in proposals],
+        "logged_minutes": logged_minutes,
+        "active_days": sum(1 for day in days.values() if day["logged_minutes"] > 0 or day["completed"] > 0),
+        "longest_streak": longest_streak,
+        "worst_weekday": worst_weekday,
+        "worst_weekday_pct": worst_weekday_pct,
+        "days": list(days.values()),
+        "proposals": proposals,
     }
 
 
@@ -239,12 +296,10 @@ async def accept_difficulty(body: AcceptDifficultyRequest, user: User = Depends(
         raise HTTPException(404, "Habit not found")
     if body.accept:
         monday, sunday = _week_bounds(date.today())
-        today = date.today().isoformat()
-        res = await db.execute(select(Occurrence).where(Occurrence.habit_id == habit.id, Occurrence.date >= monday, Occurrence.date <= min(sunday, today)))
-        occs = res.scalars().all()
-        completed = sum(1 for o in occs if he.status_of(_facts(o)) == "complete")
-        rate = he.completion_rate(completed, len(occs)) if occs else 0
-        adj = he.propose_adjustment(habit.name, habit.baseline_minutes, habit.difficulty_level, rate, len(occs))
+        res = await db.execute(select(Occurrence).where(Occurrence.habit_id == habit.id, Occurrence.date >= monday, Occurrence.date <= sunday))
+        completed, judged = _judged_rate(list(res.scalars().all()))
+        rate = he.completion_rate(completed, judged)
+        adj = he.propose_adjustment(habit.name, habit.baseline_minutes, habit.difficulty_level, rate, judged)
         habit.difficulty_level = adj.proposed_level
     await db.commit()
     await db.refresh(habit)
