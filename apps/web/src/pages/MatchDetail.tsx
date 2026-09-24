@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, type CareerMatch, type DiscoveryMessage } from '../api'
+import { ChatMarkdown } from '../components/ChatMarkdown'
 import { PageLoading } from '../components/PageLoading'
 
 export function MatchDetail() {
@@ -341,7 +342,7 @@ export function MatchDetail() {
                         : 'border border-[#E6E7EA] border-l-[3px] border-l-[#1E3A8A] bg-[#FAFAF8] text-[#0F1115]'
                     }`}
                   >
-                    <span className="whitespace-pre-wrap">{m.content}</span>
+                    {m.role === 'user' ? <span className="whitespace-pre-wrap">{m.content}</span> : <ChatMarkdown content={m.content} />}
                     {i === messages.length - 1 && sending && m.role === 'assistant' && (
                       <span className="ml-1 inline-block h-3.5 w-1 animate-pulse bg-[#1E3A8A] align-middle" />
                     )}

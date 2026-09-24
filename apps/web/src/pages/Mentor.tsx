@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, type DiscoveryMessage, type Roadmap } from '../api'
+import { ChatMarkdown } from '../components/ChatMarkdown'
 import { PageLoading } from '../components/PageLoading'
 
 const PROMPTS = [
@@ -86,7 +87,7 @@ export function Mentor() {
                 {!fromUser && <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#E8EDF9]"><span className="material-symbols-outlined text-[16px] text-[#1E3A8A]">auto_awesome</span></div>}
                 <div className={`max-w-[82%] rounded-2xl px-4 py-3 font-body text-[13px] leading-relaxed shadow-sm ${fromUser ? 'rounded-tr-sm bg-[#111827] text-white' : 'rounded-tl-sm border border-[#E6E7EA] bg-white text-[#1D2430]'}`}>
                   {!fromUser && <p className="mb-1 font-body text-[10px] font-semibold uppercase tracking-[0.09em] text-[#1E3A8A]">Bosla Mentor</p>}
-                  <span className="whitespace-pre-wrap">{message.content}</span>
+                  {fromUser ? <span className="whitespace-pre-wrap">{message.content}</span> : <ChatMarkdown content={message.content} />}
                   {sending && index === messages.length - 1 && !fromUser && <span className="ml-1 inline-block h-3.5 w-1 animate-pulse bg-[#1E3A8A] align-middle" />}
                 </div>
               </div>
