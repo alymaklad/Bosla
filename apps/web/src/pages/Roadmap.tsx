@@ -27,20 +27,21 @@ export function Roadmap() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-[1280px] space-y-6 px-6 py-8">
+    <main className="mx-auto w-full max-w-[1280px] space-y-8 px-6 py-8 md:py-10">
       {/* Header Section */}
-      <div className="flex flex-col justify-between gap-4 pb-2 md:flex-row md:items-center">
+      <div className="flex flex-col justify-between gap-6 border-b border-[#E6E7EA] pb-7 md:flex-row md:items-end">
         <div>
-          <div className="mb-1 flex items-center gap-2">
-            <span className="rounded bg-[#E8EDF9] px-2 py-0.5 font-body text-[11px] font-medium tracking-wide uppercase text-[#1E3A8A]">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="rounded-md bg-[#E8EDF9] px-2.5 py-1 font-body text-[10px] font-semibold tracking-[0.1em] uppercase text-[#1E3A8A]">
               Active Track
             </span>
-            <span className="font-body text-[11px] text-[#5B6270]">Updated recently</span>
+            <span className="h-1 w-1 rounded-full bg-[#C6C6CB]" />
+            <span className="font-body text-[12px] text-[#5B6270]">Updated recently</span>
           </div>
-          <h1 className="font-display text-[32px] font-bold tracking-tight text-[#0F1115] md:text-[36px]">
+          <h1 className="font-display text-[32px] font-bold leading-[1.08] tracking-tight text-[#0F1115] md:text-[38px]">
             Your roadmap to {direction}
           </h1>
-          <p className="mt-0.5 font-body text-[14px] text-[#5B6270]">
+          <p className="mt-3 font-body text-[14px] leading-relaxed text-[#5B6270]">
             A first path — not a syllabus. Change anything.
           </p>
         </div>
@@ -48,7 +49,7 @@ export function Roadmap() {
           <button
             type="button"
             onClick={() => navigate('/habit-wizard')}
-            className="flex h-10 items-center gap-2 rounded-lg bg-[#0F1115] px-4 font-body text-[13px] font-medium text-white transition-colors hover:bg-[#1C1F26]"
+            className="flex h-11 items-center gap-2 rounded-xl bg-[#0F1115] px-4 font-body text-[13px] font-medium text-white hover:bg-[#1C3A8A]"
           >
             <span className="material-symbols-outlined text-[16px]">add_task</span>
             <span>Turn a step into a habit</span>
@@ -57,12 +58,12 @@ export function Roadmap() {
       </div>
 
       {/* Horizontal 4-Stage Milestone Card */}
-      <div className="rounded-lg border border-[#E6E7EA] bg-white p-6">
-        <div className="mb-4 flex items-center justify-between">
+      <div className="rounded-2xl border border-[#E6E7EA] bg-white p-6 shadow-[0_10px_24px_-24px_rgba(15,17,21,0.38)]">
+        <div className="mb-6 flex items-center justify-between border-b border-[#EEF0F3] pb-5">
           <h2 className="font-display text-[18px] font-semibold text-[#0F1115]">
             Milestones overview
           </h2>
-          <span className="font-body text-[12px] font-medium text-[#5B6270]">
+          <span className="rounded-full bg-[#F0F3FF] px-2.5 py-1 font-body text-[11px] font-medium text-[#1E3A8A]">
             1 of 4 stages finished
           </span>
         </div>
@@ -70,7 +71,7 @@ export function Roadmap() {
           <div className="absolute top-7 right-12 left-12 z-0 hidden h-0.5 bg-[#E6E7EA] md:block" />
 
           {/* Stage 1 */}
-          <div className="relative z-10 flex flex-col items-start rounded-lg border border-[#E6E7EA] bg-white p-4 md:border-transparent">
+          <div className="relative z-10 flex flex-col items-start rounded-xl border border-[#E6E7EA] bg-white p-4 md:border-transparent">
             <div className="mb-3 flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0F1115] text-white">
                 <span className="material-symbols-outlined text-[16px]">check</span>
@@ -86,7 +87,7 @@ export function Roadmap() {
           </div>
 
           {/* Stage 2 */}
-          <div className="relative z-10 flex flex-col items-start rounded-lg border border-[#1E3A8A] bg-[#FAFAF8] p-4 md:border-transparent md:bg-transparent">
+          <div className="relative z-10 flex flex-col items-start rounded-xl border border-[#1E3A8A] bg-[#FAFAF8] p-4 md:border-transparent md:bg-transparent">
             <div className="mb-3 flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#1E3A8A] bg-[#E8EDF9] font-body text-[12px] font-semibold text-[#1E3A8A]">
                 2
@@ -100,7 +101,7 @@ export function Roadmap() {
           </div>
 
           {/* Stage 3 */}
-          <div className="relative z-10 flex flex-col items-start rounded-lg border border-[#E6E7EA] bg-white p-4 opacity-85 md:border-transparent">
+          <div className="relative z-10 flex flex-col items-start rounded-xl border border-[#E6E7EA] bg-white p-4 opacity-85 md:border-transparent">
             <div className="mb-3 flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E6E7EA] bg-white font-body text-[12px] text-[#76777B]">
                 3
@@ -114,7 +115,7 @@ export function Roadmap() {
           </div>
 
           {/* Stage 4 */}
-          <div className="relative z-10 flex flex-col items-start rounded-lg border border-[#E6E7EA] bg-white p-4 opacity-85 md:border-transparent">
+          <div className="relative z-10 flex flex-col items-start rounded-xl border border-[#E6E7EA] bg-white p-4 opacity-85 md:border-transparent">
             <div className="mb-3 flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E6E7EA] bg-white font-body text-[12px] text-[#76777B]">
                 4

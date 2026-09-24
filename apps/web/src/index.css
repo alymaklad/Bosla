@@ -61,6 +61,33 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Thin, quiet scrollbars that retain each browser and OS's familiar behavior. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #c6cbd5 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: #c6cbd5;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #9fa8b8;
+  background-clip: padding-box;
+}
+
 /* Keep every interactive control feeling tactile and consistent, without link underlines. */
 button:not(:disabled),
 a[href],

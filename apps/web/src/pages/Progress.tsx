@@ -59,79 +59,83 @@ export function Progress() {
   const achievements = achievementsFor(data)
 
   return (
-    <main className="mx-auto w-full max-w-[1280px] px-6 py-8">
+    <main className="mx-auto w-full max-w-[1280px] px-6 py-8 md:py-10">
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="font-display text-[32px] font-bold tracking-tight text-[#0F1115] md:text-[36px]">
-          Progress
+      <div className="mb-8 border-b border-[#E6E7EA] pb-7 md:mb-10">
+        <p className="mb-3 font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1E3A8A]">
+          Your growth system
+        </p>
+        <h1 className="font-display text-[32px] font-bold tracking-tight text-[#0F1115] md:text-[38px]">
+          Progress &amp; momentum
         </h1>
-        <p className="mt-1 font-body text-[15px] text-[#5B6270]">
-          Your momentum, milestones, and personal records across all habits and roadmaps.
+        <p className="mt-3 max-w-2xl font-body text-[15px] leading-relaxed text-[#5B6270]">
+          A clear view of your practice, milestones, and the small wins that build career momentum.
         </p>
       </div>
 
       {/* Hero Card: Level & Milestone Status */}
-      <div className="mb-8 rounded-lg border border-[#E6E7EA] bg-white p-6">
-        <div className="flex flex-col justify-between gap-4 border-b border-[#E6E7EA] pb-5 md:flex-row md:items-center">
+      <div className="mb-8 overflow-hidden rounded-2xl border border-[#DCE4FA] bg-white shadow-[0_12px_30px_-24px_rgba(15,17,21,0.3)]">
+        <div className="flex flex-col justify-between gap-6 bg-gradient-to-r from-[#F4F7FF] via-white to-white p-6 md:flex-row md:items-center md:p-7">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-[#E6E7EA] bg-[#FAFAF8]">
-              <span className="material-symbols-outlined text-[26px] text-[#0F1115]">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#D8E1FF] bg-white shadow-sm">
+              <span className="material-symbols-outlined text-[27px] text-[#1E3A8A]">
                 military_tech
               </span>
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-display text-[22px] font-bold text-[#0F1115]">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h2 className="font-display text-[23px] font-bold tracking-tight text-[#0F1115]">
                   Level {level} · {title}
                 </h2>
-                <span className="rounded-full bg-[#FEF3C7] px-2 py-0.5 font-body text-[11px] font-medium text-[#B45309]">
+                <span className="rounded-full bg-[#FEF3C7] px-2.5 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-[#B45309]">
                   Active tier
                 </span>
               </div>
-              <p className="mt-0.5 font-body text-[13px] text-[#5B6270]">
+              <p className="mt-2 font-body text-[13px] text-[#5B6270]">
                 Next tier: <span className="font-medium text-[#0F1115]">Focused</span> at {ceilingXp.toLocaleString()} XP ({ceilingXp - currentXp} XP remaining)
               </p>
             </div>
           </div>
 
-          <div className="flex items-baseline justify-between gap-1 text-right md:flex-col md:items-end">
-            <span className="font-display text-[18px] font-bold text-[#0F1115]">
+          <div className="rounded-xl border border-[#E6E7EA] bg-white px-4 py-3 text-left shadow-sm md:text-right">
+            <p className="font-body text-[10px] font-semibold uppercase tracking-[0.1em] text-[#76777B]">Current XP</p>
+            <span className="mt-0.5 block font-display text-[20px] font-bold text-[#0F1115]">
               {currentXp.toLocaleString()} / {ceilingXp.toLocaleString()} XP
             </span>
-            <span className="font-body text-[12px] text-[#5B6270]">{pct}% completed</span>
+            <span className="mt-1 block font-body text-[12px] text-[#5B6270]">{pct}% toward the next tier</span>
           </div>
         </div>
 
         {/* Large Progress Bar with Markers */}
-        <div className="pt-5">
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#E6E7EA]">
+        <div className="px-6 pb-6 pt-5 md:px-7 md:pb-7">
+          <div className="flex items-center justify-between gap-4 font-body text-[11px] font-medium text-[#5B6270]"><span>Current tier</span><span className="text-[#1E3A8A]">{pct}% complete</span></div>
+          <div className="mt-2.5 h-2.5 w-full overflow-hidden rounded-full bg-[#E6E7EA]">
             <div
-              className="h-full rounded-full bg-[#F59E0B] transition-all duration-500"
+              className="h-full rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#6381E8] transition-all duration-500"
               style={{ width: `${pct}%` }}
             />
           </div>
-          <div className="mt-2.5 flex items-center justify-between font-body text-[11px] text-[#5B6270]">
-            <span>Level {level - 1}: Apprentice</span>
-            <span className="font-medium text-[#0F1115]">Current: {title} ({currentXp} XP)</span>
-            <span>Level {level + 1}: Focused ({ceilingXp} XP)</span>
+          <div className="mt-3 flex items-center justify-between font-body text-[11px] text-[#5B6270]">
+            <span>0 XP</span>
+            <span className="font-medium text-[#0F1115]">{ceilingXp.toLocaleString()} XP unlocks Focused</span>
           </div>
         </div>
       </div>
 
       {/* Stat Summary Cards (Row of 3) */}
-      <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="mb-11 grid grid-cols-1 gap-4 md:grid-cols-3">
         {/* 1. Current streak */}
-        <div className="rounded-lg border border-[#E6E7EA] bg-white p-6">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="font-body text-[12px] font-medium text-[#5B6270]">Current streak</span>
-            <span className="material-symbols-outlined text-[#F59E0B] fill-icon">
+        <div className="rounded-2xl border border-[#E6E7EA] bg-white p-5 shadow-[0_8px_20px_-20px_rgba(15,17,21,0.45)]">
+          <div className="mb-4 flex items-center justify-between">
+            <span className="font-body text-[11px] font-semibold uppercase tracking-[0.09em] text-[#5B6270]">Current streak</span>
+            <span className="material-symbols-outlined rounded-xl bg-[#FEF3C7] p-2 text-[#D97706] fill-icon">
               local_fire_department
             </span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-display text-[32px] font-bold text-[#0F1115]">{streak} days</span>
           </div>
-          <div className="mt-3 flex items-center gap-1.5 border-t border-[#E6E7EA] pt-3 font-body text-[11px] text-[#5B6270]">
+          <div className="mt-4 flex items-center gap-1.5 border-t border-[#E6E7EA] pt-3 font-body text-[11px] text-[#5B6270]">
             <span className="material-symbols-outlined text-[16px] text-[#1E3A8A]">
               check_circle
             </span>
@@ -140,35 +144,35 @@ export function Progress() {
         </div>
 
         {/* 2. Longest streak */}
-        <div className="rounded-lg border border-[#E6E7EA] bg-white p-6">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="font-body text-[12px] font-medium text-[#5B6270]">Longest streak</span>
-            <span className="material-symbols-outlined text-[#5B6270]">history</span>
+        <div className="rounded-2xl border border-[#E6E7EA] bg-white p-5 shadow-[0_8px_20px_-20px_rgba(15,17,21,0.45)]">
+          <div className="mb-4 flex items-center justify-between">
+            <span className="font-body text-[11px] font-semibold uppercase tracking-[0.09em] text-[#5B6270]">Longest streak</span>
+            <span className="material-symbols-outlined rounded-xl bg-[#F0F3FF] p-2 text-[#1E3A8A]">history</span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-display text-[32px] font-bold text-[#0F1115]">
               {longest} days
             </span>
           </div>
-          <div className="mt-3 border-t border-[#E6E7EA] pt-3 font-body text-[11px] text-[#5B6270]">
+          <div className="mt-4 border-t border-[#E6E7EA] pt-3 font-body text-[11px] text-[#5B6270]">
             Personal record
           </div>
         </div>
 
         {/* 3. Total XP earned */}
-        <div className="rounded-lg border border-[#E6E7EA] bg-white p-6">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="font-body text-[12px] font-medium text-[#5B6270]">
+        <div className="rounded-2xl border border-[#E6E7EA] bg-white p-5 shadow-[0_8px_20px_-20px_rgba(15,17,21,0.45)]">
+          <div className="mb-4 flex items-center justify-between">
+            <span className="font-body text-[11px] font-semibold uppercase tracking-[0.09em] text-[#5B6270]">
               Total XP earned
             </span>
-            <span className="material-symbols-outlined text-[#5B6270]">military_tech</span>
+            <span className="material-symbols-outlined rounded-xl bg-[#F0F3FF] p-2 text-[#1E3A8A]">military_tech</span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-display text-[32px] font-bold text-[#0F1115]">
               {totalXp.toLocaleString()} XP
             </span>
           </div>
-          <div className="mt-3 border-t border-[#E6E7EA] pt-3 font-body text-[11px] text-[#5B6270]">
+          <div className="mt-4 border-t border-[#E6E7EA] pt-3 font-body text-[11px] text-[#5B6270]">
             Across active roadmaps
           </div>
         </div>
@@ -176,9 +180,9 @@ export function Progress() {
 
       {/* Section: Achievements */}
       <section className="mb-10">
-        <div className="mb-5">
+        <div className="mb-6">
           <h2 className="font-display text-[22px] font-bold text-[#0F1115]">Achievements</h2>
-          <p className="mt-0.5 font-body text-[14px] text-[#5B6270]">
+          <p className="mt-2 font-body text-[14px] text-[#5B6270]">
             Milestones unlocked through continuous deliberate practice.
           </p>
         </div>

@@ -51,17 +51,22 @@ export function ConfirmDialog({
         aria-describedby={descriptionId}
         className="w-full max-w-md rounded-2xl border border-[#E6E7EA] bg-white p-6 shadow-2xl"
       >
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FEF2F2] text-[#B91C1C]">
-          <span className="material-symbols-outlined text-[22px]">delete_forever</span>
+        <div className="flex items-start gap-3.5">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#E6E7EA] bg-[#F7F8FA] text-[#5B6270]">
+            <span className="material-symbols-outlined text-[20px]">delete_outline</span>
+          </div>
+          <div className="min-w-0 pt-0.5">
+            <h2 id={titleId} className="font-display text-[20px] font-semibold tracking-tight text-[#0F1115]">
+              {title}
+            </h2>
+            <p id={descriptionId} className="mt-2 font-body text-[14px] leading-relaxed text-[#5B6270]">
+              {description}
+            </p>
+          </div>
         </div>
-        <h2 id={titleId} className="mt-4 font-display text-[20px] font-semibold tracking-tight text-[#0F1115]">
-          {title}
-        </h2>
-        <p id={descriptionId} className="mt-2 font-body text-[14px] leading-relaxed text-[#5B6270]">
-          {description}
-        </p>
-        <div className="mt-5 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-3.5 py-3 font-body text-[12px] leading-relaxed text-[#991B1B]">
-          Your profile, conversations, documents, habits, and connected integration data will be permanently removed.
+        <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-[#E6E7EA] bg-[#FAFAF8] px-3.5 py-3 font-body text-[12px] leading-relaxed text-[#5B6270]">
+          <span className="material-symbols-outlined mt-0.5 text-[17px] text-[#76777B]">info</span>
+          <span>Your profile, conversations, documents, habits, and connected integration data will be permanently removed.</span>
         </div>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
