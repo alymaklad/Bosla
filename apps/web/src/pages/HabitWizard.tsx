@@ -373,21 +373,29 @@ export function HabitWizard() {
                   </div>
                   <div className="divide-y divide-[#E6E7EA] rounded-lg border border-[#E6E7EA] bg-white">
                     {result.plan.resources.map((r, idx) => (
-                      <div
+                      <a
                         key={idx}
-                        className="flex flex-col justify-between gap-2 p-3.5 sm:flex-row sm:items-center"
+                        href={r.url ?? `https://www.google.com/search?q=${encodeURIComponent(r.title)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex flex-col justify-between gap-2 p-3.5 transition-colors first:rounded-t-lg last:rounded-b-lg hover:bg-[#F4F7FF] sm:flex-row sm:items-center"
                       >
-                        <div className="flex items-center gap-2.5">
-                          <span className="material-symbols-outlined text-[16px] text-[#5B6270]">
-                            link
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <span className="material-symbols-outlined text-[16px] text-[#5B6270] group-hover:text-[#1E3A8A]">
+                            {r.url ? 'link' : 'search'}
                           </span>
-                          <span className="font-body text-[14px] text-[#0F1115]">{r.title}</span>
+                          <span className="font-body text-[14px] text-[#0F1115] group-hover:text-[#1E3A8A] group-hover:underline underline-offset-2">{r.title}</span>
+                          <span className="material-symbols-outlined text-[14px] text-[#8A8F98] opacity-0 transition-opacity group-hover:opacity-100">open_in_new</span>
                         </div>
-                        <span className="inline-flex items-center gap-1 font-body text-[11px] text-[#16A34A] shrink-0">
-                          <span className="material-symbols-outlined text-[14px]">check</span>
-                          <span>Verified</span>
-                        </span>
-                      </div>
+                        {r.url ? (
+                          <span className="inline-flex items-center gap-1 font-body text-[11px] text-[#16A34A] shrink-0">
+                            <span className="material-symbols-outlined text-[14px]">check</span>
+                            <span>Verified</span>
+                          </span>
+                        ) : (
+                          <span className="font-body text-[11px] text-[#5B6270] shrink-0">Search</span>
+                        )}
+                      </a>
                     ))}
                   </div>
                 </div>
