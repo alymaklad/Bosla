@@ -24,17 +24,17 @@ export function Sidebar() {
     api.progress().then((p) => setLevel(p.level)).catch(() => {})
   }, [])
 
-  const pct = level ? Math.round(level.progress * 100) : 62
-  const levelNum = level?.level ?? 3
-  const levelTitle = level?.title ?? 'Disciplined'
-  const currentXp = level?.current_xp ?? 620
-  const ceilingXp = level?.level_ceiling ?? 1000
+  const pct = level ? Math.round(level.progress * 100) : 0
+  const levelNum = level?.level ?? 1
+  const levelTitle = level?.title ?? 'Beginner'
+  const currentXp = level?.current_xp ?? 0
+  const ceilingXp = level?.level_ceiling ?? 400
 
   return (
-    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-60 flex-col justify-between border-r border-[#E6E7EA] bg-white md:flex">
+    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col justify-between border-r border-[#E6E7EA]/90 bg-[#FCFCFB] md:flex">
       {/* Brand header */}
       <div>
-        <div className="flex h-14 items-center border-b border-[#E6E7EA] px-5">
+        <div className="flex h-16 items-center border-b border-[#E6E7EA]/90 px-5">
           <img
             src="/brand/bosla-horizontal.png"
             alt="Bosla"
@@ -43,17 +43,17 @@ export function Sidebar() {
         </div>
 
         {/* Navigation links */}
-        <nav className="space-y-1 py-4">
+        <nav className="space-y-1 px-3 py-5" aria-label="Primary navigation">
           {NAV.map(({ to, label, icon }) => (
             <NavLink
               key={label}
               to={to}
               className={({ isActive }) =>
                 [
-                  'group flex items-center gap-3 px-4 py-2.5 font-body text-[14px] transition-colors',
+                  'group flex items-center gap-3 rounded-xl px-3.5 py-2.5 font-body text-[14px] transition-all',
                   isActive
-                    ? 'border-l-[3px] border-[#1E3A8A] bg-[#E8EDF9] font-medium text-[#1E3A8A]'
-                    : 'text-[#5B6270] hover:bg-[#F0F3FF] hover:text-[#151C28]',
+                    ? 'bg-[#E8EDF9] font-medium text-[#1E3A8A] shadow-[inset_0_0_0_1px_rgba(30,58,138,0.08)]'
+                    : 'text-[#5B6270] hover:bg-white hover:text-[#151C28] hover:shadow-sm',
                 ].join(' ')
               }
             >
@@ -75,8 +75,8 @@ export function Sidebar() {
       </div>
 
       {/* Bottom User Progression Tier Card */}
-      <div className="border-t border-[#E6E7EA] p-4">
-        <div className="rounded-lg border border-[#E6E7EA] bg-[#F0F3FF]/60 p-3">
+      <div className="border-t border-[#E6E7EA]/90 p-4">
+        <div className="rounded-2xl border border-[#DCE4FA] bg-[#F4F7FF] p-3.5">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[18px] text-[#F59E0B] fill-icon">

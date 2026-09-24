@@ -285,6 +285,8 @@ export interface DashboardData {
 export interface AiStatus {
   provider: 'anthropic' | 'groq'
   model: string
+  primary_model?: string
+  fallback_models?: string[]
   configured: boolean
 }
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { api, apiBaseUrl } from '../api'
 import { useApp } from '../context/AppContext'
 
@@ -13,8 +13,10 @@ export function SignIn() {
   )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { refreshUser } = useApp()
+  const { refreshUser, user } = useApp()
   const navigate = useNavigate()
+
+  if (user) return <Navigate to={user.consent_given ? '/dashboard' : '/onboarding/consent'} replace />
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -201,7 +203,7 @@ export function SignIn() {
                   setIsRegistering((v) => !v)
                   setError(null)
                 }}
-                className="ml-1 font-body text-[14px] font-medium text-[#1E3A8A] underline-offset-4 hover:underline"
+                className="ml-1 rounded-md px-1.5 py-1 font-body text-[14px] font-medium text-[#1E3A8A] hover:bg-[#E8EDF9] hover:text-[#0F1115]"
               >
                 {isRegistering ? 'Sign in' : 'Create an account'}
               </button>

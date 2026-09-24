@@ -18,7 +18,7 @@ export function Shell() {
       <TopBar />
 
       {/* Main Canvas offset by 240px sidebar on desktop and 56px top bar */}
-      <div className="min-h-screen pb-20 md:ml-60 md:pb-12 pt-14">
+      <div className="min-h-screen pb-20 pt-16 md:ml-64 md:pb-12">
         <Outlet />
       </div>
 

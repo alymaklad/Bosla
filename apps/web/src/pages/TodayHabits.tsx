@@ -361,7 +361,7 @@ export function TodayHabits() {
                       <button
                         type="button"
                         onClick={() => toggle(o)}
-                        className="font-body text-[12px] font-medium text-[#1E3A8A] hover:underline"
+                        className="rounded-lg px-2 py-1 font-body text-[12px] font-medium text-[#1E3A8A] hover:bg-[#E8EDF9] hover:text-[#0F1115]"
                       >
                         Re-open
                       </button>

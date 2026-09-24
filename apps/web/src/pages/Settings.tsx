@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api, type AiStatus, type GoogleSyncStatus } from '../api'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { useApp } from '../context/AppContext'
 
 type SettingsTab = 'account' | 'privacy' | 'integrations' | 'ai'
@@ -15,6 +16,8 @@ export function Settings() {
   const [syncingGoogle, setSyncingGoogle] = useState(false)
   const [googleMessage, setGoogleMessage] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
+  const [confirmingDeletion, setConfirmingDeletion] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     api.aiStatus().then(setAiStatus).catch(() => {})
@@ -24,17 +27,16 @@ export function Settings() {
   if (!user) return null
 
   async function removeAccount() {
-    if (
-      !window.confirm(
-        'Delete your account and all career, CV, habit, and chat data? This cannot be undone.',
-      )
-    )
-      return
+    setDeleting(true)
     try {
       await api.deleteAccount()
+      await signOut()
+      setConfirmingDeletion(false)
       navigate('/')
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Could not delete account. Please try again.')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -218,7 +220,7 @@ export function Settings() {
 
                   <button
                     type="button"
-                    onClick={removeAccount}
+                    onClick={() => setConfirmingDeletion(true)}
                     className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#DC2626] bg-white px-4 font-body text-[13px] font-medium text-[#DC2626] transition-colors hover:bg-[#FFDAD6]/30"
                   >
                     <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -355,10 +357,10 @@ export function Settings() {
                 <div className="flex items-center justify-between font-body text-[14px]">
                   <div>
                     <div className="font-display text-[16px] font-semibold text-[#0F1115]">
-                      {aiStatus?.provider === 'groq' ? 'Groq Llama 3' : 'Anthropic Claude'}
+                      Model routing
                     </div>
                     <div className="font-body text-[12px] text-[#5B6270]">
-                      {aiStatus?.model || 'claude-3-7-sonnet / llama-3.3-70b'}
+                      Primary and backup models are selected automatically when a provider is unavailable or out of credits.
                     </div>
                   </div>
                   <span
@@ -371,11 +373,40 @@ export function Settings() {
                     {aiStatus?.configured ? 'Connected' : 'Default Sandbox'}
                   </span>
                 </div>
+                <div className="mt-5 grid gap-3 border-t border-[#E6E7EA] pt-5 sm:grid-cols-2">
+                  <div className="rounded-xl border border-[#D8E1FF] bg-[#F4F7FF] p-4">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[17px] text-[#1E3A8A]">bolt</span>
+                      <span className="font-body text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1E3A8A]">Primary</span>
+                    </div>
+                    <p className="mt-2 break-all font-mono text-[13px] font-medium text-[#0F1115]">{aiStatus?.primary_model || aiStatus?.model || 'openai/gpt-oss-120b'}</p>
+                    <p className="mt-1 font-body text-[11px] text-[#5B6270]">Used first for Bosla conversations and plans.</p>
+                  </div>
+                  <div className="rounded-xl border border-[#E6E7EA] bg-[#FAFAF8] p-4">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[17px] text-[#5B6270]">shield</span>
+                      <span className="font-body text-[11px] font-semibold uppercase tracking-[0.08em] text-[#5B6270]">Fallback</span>
+                    </div>
+                    <p className="mt-2 break-all font-mono text-[13px] font-medium text-[#0F1115]">
+                      {aiStatus?.fallback_models?.join(' · ') || 'llama-3.3-70b-versatile'}
+                    </p>
+                    <p className="mt-1 font-body text-[11px] text-[#5B6270]">Used only if the primary model cannot complete the request.</p>
+                  </div>
+                </div>
               </section>
             </>
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmingDeletion}
+        title="Delete your Bosla account?"
+        description="This action cannot be undone. Take an export first if you would like to keep a copy of your progress."
+        confirmLabel="Delete permanently"
+        busy={deleting}
+        onCancel={() => setConfirmingDeletion(false)}
+        onConfirm={() => void removeAccount()}
+      />
     </main>
   )
 }

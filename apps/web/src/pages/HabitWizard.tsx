@@ -277,7 +277,7 @@ export function HabitWizard() {
                   <button
                     type="button"
                     onClick={() => generatePlan()}
-                    className="self-start font-body text-[13px] font-medium text-[#1E3A8A] transition-colors hover:underline sm:self-center"
+                    className="self-start rounded-lg px-2 py-1 font-body text-[13px] font-medium text-[#1E3A8A] hover:bg-[#E8EDF9] hover:text-[#0F1115] sm:self-center"
                   >
                     Auto-adjust
                   </button>

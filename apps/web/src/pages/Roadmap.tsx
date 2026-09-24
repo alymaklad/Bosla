@@ -185,7 +185,7 @@ export function Roadmap() {
               <button
                 type="button"
                 onClick={() => turnIntoHabit('Databases & SQL Optimization', 'Window functions and queries')}
-                className="flex items-center gap-1.5 font-body text-[12px] font-medium text-[#1E3A8A] hover:underline"
+                className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-body text-[12px] font-medium text-[#1E3A8A] hover:bg-[#E8EDF9] hover:text-[#0F1115]"
               >
                 <span className="material-symbols-outlined text-[16px]">alarm_add</span>
                 <span>Make it a habit</span>
@@ -285,7 +285,7 @@ export function Roadmap() {
                 <button
                   type="button"
                   onClick={() => turnIntoHabit(step.title, step.description)}
-                  className="mt-2 flex items-center gap-1.5 font-body text-[12px] font-medium text-[#1E3A8A] hover:underline sm:mt-0"
+                  className="mt-2 flex items-center gap-1.5 rounded-lg px-2 py-1 font-body text-[12px] font-medium text-[#1E3A8A] hover:bg-[#E8EDF9] hover:text-[#0F1115] sm:mt-0"
                 >
                   <span className="material-symbols-outlined text-[16px]">alarm_add</span>
                   <span>Turn into weekly habit</span>
@@ -310,7 +310,7 @@ export function Roadmap() {
                     'Build an interactive cohort retention dashboard',
                   )
                 }
-                className="mt-2 flex items-center gap-1.5 font-body text-[12px] font-medium text-[#1E3A8A] hover:underline sm:mt-0"
+                className="mt-2 flex items-center gap-1.5 rounded-lg px-2 py-1 font-body text-[12px] font-medium text-[#1E3A8A] hover:bg-[#E8EDF9] hover:text-[#0F1115] sm:mt-0"
               >
                 <span className="material-symbols-outlined text-[16px]">alarm_add</span>
                 <span>Turn into weekly habit</span>

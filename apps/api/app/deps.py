@@ -41,7 +41,9 @@ def get_ai_client() -> AiClient:
                 503,
                 "Credit limit reached. Please try again later.",
             )
-        fallback_models = [model.strip() for model in settings.groq_fallback_models.split(",") if model.strip()]
+        fallback_models = [model.strip() for model in settings.groq_fallback_models.split(",") if model.strip()] or [
+            "llama-3.3-70b-versatile"
+        ]
         return GroqAiClient(
             api_keys=api_keys,
             model=settings.groq_model,

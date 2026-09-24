@@ -232,7 +232,7 @@ export function Dashboard() {
             </span>
             <Link
               to="/habits"
-              className="flex items-center gap-1 font-body text-[13px] font-medium text-[#1E3A8A] hover:underline"
+              className="flex items-center gap-1 rounded-lg px-2 py-1 font-body text-[13px] font-medium text-[#1E3A8A] hover:bg-[#E8EDF9] hover:text-[#0F1115]"
             >
               <span>View all habits</span>
               <span className="material-symbols-outlined text-[16px]">arrow_forward</span>

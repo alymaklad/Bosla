@@ -61,6 +61,43 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Keep every interactive control feeling tactile and consistent, without link underlines. */
+button:not(:disabled),
+a[href],
+[role='button'] {
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease,
+    border-color 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+button:not(:disabled):hover,
+[role='button']:hover {
+  transform: translateY(-1px);
+}
+
+button:not(:disabled):active,
+[role='button']:active {
+  transform: translateY(0) scale(0.985);
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+a[href]:hover {
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
 h1,
 h2,
 h3 {

@@ -1,6 +1,10 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
+import { useApp } from '../context/AppContext'
 
 export function Landing() {
+  const { user } = useApp()
+  if (user) return <Navigate to={user.consent_given ? '/dashboard' : '/onboarding/consent'} replace />
+
   return (
     <div className="flex min-h-screen flex-col justify-between bg-[#FAFAF8] text-[#0F1115] antialiased selection:bg-[#E7EEFF] selection:text-[#1E3A8A]">
       {/* Sticky Header / Brand Indicator */}

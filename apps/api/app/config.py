@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     groq_api_keys: str = ""
     groq_model: str = "openai/gpt-oss-120b"
     # Comma-separated model fallbacks, tried after the primary model/key pool.
-    groq_fallback_models: str = ""
+    groq_fallback_models: str = "llama-3.3-70b-versatile"
     groq_research_model: str = "groq/compound"
 
     # Vercel's Neon integration provides POSTGRES_URL. DATABASE_URL remains
