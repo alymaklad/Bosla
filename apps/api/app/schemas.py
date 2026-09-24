@@ -125,6 +125,10 @@ class ChooseDirectionRequest(BaseModel):
     match_id: str
 
 
+class RoadmapStepDoneRequest(BaseModel):
+    done: bool
+
+
 class RoadmapStepOut(BaseModel):
     category: str
     title: str

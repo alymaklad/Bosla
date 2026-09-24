@@ -180,6 +180,7 @@ export interface RoadmapStep {
   category: 'study' | 'skill' | 'portfolio'
   title: string
   description: string
+  done: boolean
 }
 
 export interface Roadmap {
@@ -438,6 +439,7 @@ export const api = {
 
   generateRoadmap: () => post<Roadmap>('/career/roadmap/generate'),
   getRoadmap: () => get<Roadmap>('/career/roadmap'),
+  setRoadmapStepDone: (index: number, done: boolean) => post<Roadmap>(`/career/roadmap/steps/${index}/done`, { done }),
 
   mentorMessages: () => get<DiscoveryMessage[]>('/career/mentor/messages'),
   sendMentorMessage: (message: string, match_id: string | null, handlers: { onChunk: (text: string) => void; onDone: (text: string) => void }) =>

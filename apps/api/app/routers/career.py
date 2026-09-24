@@ -23,6 +23,7 @@ from ..schemas import (
     GithubProfileRequest,
     MentorChatRequest,
     ProfileDimensionOut,
+    RoadmapStepDoneRequest,
 )
 
 router = APIRouter(prefix="/career", tags=["career"])
@@ -393,7 +394,7 @@ async def generate_roadmap_endpoint(user: User = Depends(get_current_user), db: 
     profile = pres.scalar_one_or_none()
 
     steps = await cd.generate_roadmap(ai, match.title, match.why, _profile_summary_text(profile))
-    step_dicts = [{"category": s.category, "title": s.title, "description": s.description} for s in steps]
+    step_dicts = [{"category": s.category, "title": s.title, "description": s.description, "done": False} for s in steps]
 
     await db.execute(delete(Roadmap).where(Roadmap.user_id == user.id))
     row = Roadmap(user_id=user.id, match_id=match.id, direction=match.title, steps=step_dicts)
@@ -409,7 +410,27 @@ async def get_roadmap(user: User = Depends(get_current_user), db: AsyncSession =
     row = res.scalars().first()
     if row is None:
         return {"id": None, "direction": None, "steps": []}
-    return {"id": row.id, "direction": row.direction, "steps": row.steps}
+    return _roadmap_out(row)
+
+
+def _roadmap_out(row: Roadmap) -> dict:
+    # Roadmaps saved before step completion existed have no "done" key.
+    return {"id": row.id, "direction": row.direction, "steps": [{**step, "done": bool(step.get("done"))} for step in row.steps]}
+
+
+@router.post("/roadmap/steps/{index}/done", response_model=dict)
+async def set_roadmap_step_done(
+    index: int, body: RoadmapStepDoneRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> dict:
+    res = await db.execute(select(Roadmap).where(Roadmap.user_id == user.id).order_by(Roadmap.created_at.desc()))
+    row = res.scalars().first()
+    if row is None or not 0 <= index < len(row.steps):
+        raise HTTPException(404, "Roadmap step not found.")
+    steps = [dict(step) for step in row.steps]
+    steps[index]["done"] = body.done
+    row.steps = steps  # reassign so SQLAlchemy persists the JSON change
+    await db.commit()
+    return _roadmap_out(row)
 
 
 # ----------------------------------------------------------------------- mentor

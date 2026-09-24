@@ -8,6 +8,7 @@ export function Roadmap() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
+  const [stepError, setStepError] = useState<string | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -38,16 +39,62 @@ export function Roadmap() {
   }
 
   const direction = roadmap.direction || 'your selected direction'
-  const studySteps = roadmap.steps.filter((s) => s.category === 'study')
-  const skillSteps = roadmap.steps.filter((s) => s.category === 'skill')
-  const portfolioSteps = roadmap.steps.filter((s) => s.category === 'portfolio')
+  // Keep each step's position in the saved list; the API marks steps done by that index.
+  const indexedSteps = roadmap.steps.map((step, index) => ({ ...step, index }))
+  const studySteps = indexedSteps.filter((s) => s.category === 'study')
+  const skillSteps = indexedSteps.filter((s) => s.category === 'skill')
+  const portfolioSteps = indexedSteps.filter((s) => s.category === 'portfolio')
   const activeSkill = skillSteps.find((step) => step.title === selectedSkill) || skillSteps[0]
+
+  // The current stage is the first one with unfinished steps; career readiness opens once all are done.
+  const stageGroups = [studySteps, skillSteps, portfolioSteps]
+  const firstOpenStage = stageGroups.findIndex((group) => group.some((step) => !step.done))
+  const currentStage = firstOpenStage === -1 ? 3 : firstOpenStage
+  const stateFor = (index: number) =>
+    index < currentStage ? 'Done' : index === currentStage ? 'Current' : index === currentStage + 1 ? 'Next' : 'Later'
+  const progressText = (group: typeof studySteps, noun: string, empty: string) =>
+    group.length ? `${group.filter((step) => step.done).length} of ${group.length} ${noun} done` : empty
   const stages = [
-    { title: 'Foundations', detail: studySteps.length ? `${studySteps.length} learning module${studySteps.length === 1 ? '' : 's'} mapped` : 'Learning modules appear here', icon: 'menu_book', state: 'Current' },
-    { title: 'Skill practice', detail: skillSteps.length ? `${skillSteps.length} skill focus${skillSteps.length === 1 ? '' : 'es'} mapped` : 'Build your core capabilities', icon: 'construction', state: 'Next' },
-    { title: 'Portfolio proof', detail: portfolioSteps.length ? `${portfolioSteps.length} project${portfolioSteps.length === 1 ? '' : 's'} mapped` : 'Turn practice into proof of work', icon: 'folder_open', state: 'Next' },
-    { title: 'Career readiness', detail: 'Apply, interview, and refine your direction', icon: 'rocket_launch', state: 'Later' },
-  ]
+    { title: 'Foundations', detail: progressText(studySteps, 'modules', 'Learning modules appear here'), icon: 'menu_book' },
+    { title: 'Skill practice', detail: progressText(skillSteps, 'skills', 'Build your core capabilities'), icon: 'construction' },
+    { title: 'Portfolio proof', detail: progressText(portfolioSteps, 'projects', 'Turn practice into proof of work'), icon: 'folder_open' },
+    {
+      title: 'Career readiness',
+      detail: currentStage === 3 ? 'Every mapped step is done. Apply, interview, and refine your direction' : 'Apply, interview, and refine your direction',
+      icon: 'rocket_launch',
+    },
+  ].map((stage, index) => ({ ...stage, state: stateFor(index) }))
+
+  async function setStepDone(index: number, done: boolean) {
+    setStepError(null)
+    const previous = roadmap
+    setRoadmap((current) => current && { ...current, steps: current.steps.map((step, i) => (i === index ? { ...step, done } : step)) })
+    try {
+      setRoadmap(await api.setRoadmapStepDone(index, done))
+    } catch (err) {
+      setRoadmap(previous)
+      setStepError(err instanceof Error ? err.message : 'Could not update this step. Please retry.')
+    }
+  }
+
+  function doneToggle(step: { index: number; done: boolean; title: string }) {
+    return (
+      <button
+        type="button"
+        onClick={() => void setStepDone(step.index, !step.done)}
+        aria-pressed={step.done}
+        aria-label={step.done ? `Mark "${step.title}" as not done` : `Mark "${step.title}" as done`}
+        className={`flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 font-body text-[12px] font-medium transition-colors ${
+          step.done
+            ? 'border-[#BBE3C8] bg-[#EAF8EE] text-[#17733B] hover:bg-[#DDF2E4]'
+            : 'border-[#E6E7EA] bg-white text-[#45474B] hover:border-[#0F1115]'
+        }`}
+      >
+        <span className="material-symbols-outlined text-[16px]">{step.done ? 'check_circle' : 'radio_button_unchecked'}</span>
+        <span>{step.done ? 'Done' : 'Mark done'}</span>
+      </button>
+    )
+  }
 
   function turnIntoHabit(stepTitle: string, description: string) {
     navigate('/habit-wizard', { state: { title: stepTitle, description } })
@@ -91,17 +138,19 @@ export function Roadmap() {
             Learning progression
           </h2>
           <span className="rounded-full bg-[#F0F3FF] px-2.5 py-1 font-body text-[11px] font-medium text-[#1E3A8A]">
-            4-stage path
+            Stage {currentStage + 1} of 4
           </span>
         </div>
+        {stepError && <p role="alert" className="mb-4 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-3 py-2 font-body text-[12px] text-[#B91C1C]">{stepError}</p>}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
           {stages.map((stage, index) => {
-            const current = index === 0
-            return <article key={stage.title} className={`relative overflow-hidden rounded-xl border p-4 ${current ? 'border-[#AFC2FA] bg-[#F4F7FF]' : 'border-[#E6E7EA] bg-white'}`}>
-              <div className="flex items-center justify-between"><div className={`flex h-8 w-8 items-center justify-center rounded-lg ${current ? 'bg-[#1E3A8A] text-white' : 'bg-[#F4F5F7] text-[#5B6270]'}`}><span className="material-symbols-outlined text-[17px]">{stage.icon}</span></div><span className={`font-body text-[10px] font-semibold uppercase tracking-[0.08em] ${current ? 'text-[#1E3A8A]' : 'text-[#76777B]'}`}>Stage {index + 1}</span></div>
+            const current = stage.state === 'Current'
+            const complete = stage.state === 'Done'
+            return <article key={stage.title} className={`relative overflow-hidden rounded-xl border p-4 ${current ? 'border-[#AFC2FA] bg-[#F4F7FF]' : complete ? 'border-[#CDEBD6] bg-white' : 'border-[#E6E7EA] bg-white'}`}>
+              <div className="flex items-center justify-between"><div className={`flex h-8 w-8 items-center justify-center rounded-lg ${current ? 'bg-[#1E3A8A] text-white' : complete ? 'bg-[#EAF8EE] text-[#17733B]' : 'bg-[#F4F5F7] text-[#5B6270]'}`}><span className="material-symbols-outlined text-[17px]">{complete ? 'check' : stage.icon}</span></div><span className={`font-body text-[10px] font-semibold uppercase tracking-[0.08em] ${current ? 'text-[#1E3A8A]' : complete ? 'text-[#17733B]' : 'text-[#76777B]'}`}>Stage {index + 1}</span></div>
               <p className="mt-4 font-body text-[13px] font-semibold text-[#0F1115]">{stage.title}</p>
               <p className="mt-1 min-h-9 font-body text-[11px] leading-relaxed text-[#5B6270]">{stage.detail}</p>
-              <span className={`mt-3 inline-flex rounded-full px-2 py-0.5 font-body text-[10px] font-medium ${current ? 'bg-[#E8EDF9] text-[#1E3A8A]' : 'bg-[#F4F5F7] text-[#5B6270]'}`}>{stage.state}</span>
+              <span className={`mt-3 inline-flex rounded-full px-2 py-0.5 font-body text-[10px] font-medium ${current ? 'bg-[#E8EDF9] text-[#1E3A8A]' : complete ? 'bg-[#EAF8EE] text-[#17733B]' : 'bg-[#F4F5F7] text-[#5B6270]'}`}>{stage.state}</span>
             </article>
           })}
         </div>
@@ -140,14 +189,17 @@ export function Roadmap() {
                   </div>
                   <p className="font-body text-[13px] text-[#5B6270]">{step.description}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => turnIntoHabit(step.title, step.description)}
-                  className="flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-body text-[12px] font-medium text-[#1E3A8A] transition-colors hover:bg-[#E8EDF9]"
-                >
-                  <span className="material-symbols-outlined text-[16px]">alarm_add</span>
-                  <span>Make it a habit</span>
-                </button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => turnIntoHabit(step.title, step.description)}
+                    className="flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-body text-[12px] font-medium text-[#1E3A8A] transition-colors hover:bg-[#E8EDF9]"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">alarm_add</span>
+                    <span>Make it a habit</span>
+                  </button>
+                  {doneToggle(step)}
+                </div>
               </div>
             ))
           ) : (
@@ -179,12 +231,13 @@ export function Roadmap() {
                 key={skill.title}
                 type="button"
                 onClick={() => setSelectedSkill(skill.title)}
-                className={`rounded px-3 py-1.5 font-body text-[12px] font-medium transition-colors ${
+                className={`flex items-center gap-1 rounded px-3 py-1.5 font-body text-[12px] font-medium transition-colors ${
                   activeSkill?.title === skill.title
                     ? 'bg-[#0F1115] text-white'
                     : 'border border-[#E6E7EA] bg-white text-[#0F1115] hover:border-[#0F1115]'
                 }`}
               >
+                {skill.done && <span className="material-symbols-outlined text-[14px] text-[#16A34A]">check_circle</span>}
                 {skill.title}
               </button>
           ))}
@@ -201,14 +254,17 @@ export function Roadmap() {
                 {activeSkill?.description}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => activeSkill && turnIntoHabit(activeSkill.title, activeSkill.description)}
-              className="flex items-center gap-1.5 self-start rounded-lg bg-[#0F1115] px-3.5 py-1.5 font-body text-[12px] font-medium text-white transition-colors hover:bg-[#1C1F26] sm:self-center"
-            >
-              <span className="material-symbols-outlined text-[15px]">alarm_add</span>
-              <span>Turn into habit</span>
-            </button>
+            <div className="flex shrink-0 items-center gap-2 self-start sm:self-center">
+              <button
+                type="button"
+                onClick={() => activeSkill && turnIntoHabit(activeSkill.title, activeSkill.description)}
+                className="flex items-center gap-1.5 rounded-lg bg-[#0F1115] px-3.5 py-1.5 font-body text-[12px] font-medium text-white transition-colors hover:bg-[#1C1F26]"
+              >
+                <span className="material-symbols-outlined text-[15px]">alarm_add</span>
+                <span>Turn into habit</span>
+              </button>
+              {activeSkill && doneToggle(activeSkill)}
+            </div>
           </div>
         </div>
         </> : <p className="rounded-xl border border-dashed border-[#D7DAE0] px-4 py-5 font-body text-[13px] text-[#5B6270]">No skill-practice steps have been added to this roadmap yet.</p>}
@@ -242,14 +298,17 @@ export function Roadmap() {
                   </span>
                   <p className="font-body text-[13px] text-[#5B6270]">{step.description}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => turnIntoHabit(step.title, step.description)}
-                  className="mt-2 flex items-center gap-1.5 rounded-lg px-2 py-1 font-body text-[12px] font-medium text-[#1E3A8A] hover:bg-[#E8EDF9] hover:text-[#0F1115] sm:mt-0"
-                >
-                  <span className="material-symbols-outlined text-[16px]">alarm_add</span>
-                  <span>Turn into weekly habit</span>
-                </button>
+                <div className="mt-2 flex shrink-0 items-center gap-2 sm:mt-0">
+                  <button
+                    type="button"
+                    onClick={() => turnIntoHabit(step.title, step.description)}
+                    className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-body text-[12px] font-medium text-[#1E3A8A] hover:bg-[#E8EDF9] hover:text-[#0F1115]"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">alarm_add</span>
+                    <span>Turn into weekly habit</span>
+                  </button>
+                  {doneToggle(step)}
+                </div>
               </div>
             ))
           ) : (
