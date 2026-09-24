@@ -105,6 +105,17 @@ async def upload_cv(file: UploadFile, user: User = Depends(get_current_user), db
     return await _ingest_upload(file=file, document_type="cv", user=user, db=db)
 
 
+@router.get("/documents/ocr-status")
+async def document_ocr_status(user: User = Depends(get_current_user)) -> dict:
+    """Expose setup state only; credentials and provider responses stay private."""
+    settings = get_settings()
+    if settings.google_vision_api_key:
+        return {"configured": True, "provider": "Google Cloud Vision"}
+    if settings.ocr_fallback_url:
+        return {"configured": True, "provider": "Configured OCR service"}
+    return {"configured": False, "provider": None}
+
+
 @router.get("/documents")
 async def list_documents(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> list[dict]:
     result = await db.execute(select(UserDocument).where(UserDocument.user_id == user.id).order_by(UserDocument.created_at.desc()))

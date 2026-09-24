@@ -12,6 +12,18 @@ export class ApiError extends Error {
 }
 
 function sanitizeErrorMessage(msg: string): string {
+  if (msg === 'ocr_access_denied') {
+    return 'Google Vision rejected this OCR request. Enable Cloud Vision API and billing in the key’s Google Cloud project, then allow this server key to call Vision.'
+  }
+  if (msg === 'ocr_quota_exhausted') {
+    return 'Google Vision OCR has reached its quota. Check billing or quota limits, then try again.'
+  }
+  if (msg === 'ocr_unavailable') {
+    return 'OCR is temporarily unavailable. Please retry, or upload a PDF with selectable text.'
+  }
+  if (msg === 'ocr_returned_no_text') {
+    return 'OCR could not find readable text in this PDF. Try a clearer scan or a text-based PDF.'
+  }
   if (/GROQ|ANTHROPIC|API_KEY|not configured|recharge your|Add credits/i.test(msg)) {
     return 'Credit limit reached. Please try again later.'
   }
@@ -341,6 +353,11 @@ export interface PersonalDocument {
   ok: boolean
 }
 
+export interface OcrStatus {
+  configured: boolean
+  provider: string | null
+}
+
 export interface GithubImportResult {
   profile_url: string
   repositories_imported: number
@@ -387,6 +404,7 @@ export const api = {
   },
   uploadCv: (file: File) => api.uploadDocument(file, 'cv'),
   listDocuments: () => get<PersonalDocument[]>('/career/documents'),
+  ocrStatus: () => get<OcrStatus>('/career/documents/ocr-status'),
   deleteDocument: (id: string) => del<void>(`/career/documents/${id}`),
   importGithubProfile: (profile_url: string) => post<GithubImportResult>('/career/sources/github', { profile_url }),
 

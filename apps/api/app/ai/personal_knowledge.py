@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import io
+import logging
 import math
 import re
 from dataclasses import dataclass
@@ -27,6 +28,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..config import Settings, get_settings
 from ..db import EMBEDDING_DIMENSIONS
 from ..models import DocumentChunk, UserDocument
+
+logger = logging.getLogger(__name__)
+# httpx includes full request URLs in its INFO access logs. Google Vision uses an
+# API key in the query string, so keep its request logging out of production logs.
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 MAX_DOCUMENT_BYTES = 10 * 1024 * 1024
 MAX_DOCUMENT_CHARS = 200_000
@@ -69,6 +75,14 @@ class GithubProfileImport:
     repositories_imported: int
     repositories_skipped: int
     files_skipped: int
+
+
+def _ocr_error_for_http_status(status_code: int) -> str:
+    if status_code in {401, 403}:
+        return "ocr_access_denied"
+    if status_code == 429:
+        return "ocr_quota_exhausted"
+    return "ocr_unavailable"
 
 
 def _trim_text(value: str) -> tuple[str, bool]:
@@ -115,7 +129,7 @@ async def _extract_with_ocr(data: bytes, filename: str, content_type: str, setti
             is_pdf = content_type == "application/pdf" or filename.lower().endswith(".pdf")
             async with httpx.AsyncClient(timeout=settings.ocr_fallback_timeout_seconds) as client:
                 if is_pdf:
-                    url = f"https://vision.googleapis.com/v1/files:annotate?key={api_key}"
+                    url = "https://vision.googleapis.com/v1/files:annotate"
                     body = {
                         "requests": [
                             {
@@ -128,7 +142,7 @@ async def _extract_with_ocr(data: bytes, filename: str, content_type: str, setti
                             }
                         ]
                     }
-                    response = await client.post(url, json=body)
+                    response = await client.post(url, json=body, headers={"x-goog-api-key": api_key})
                     response.raise_for_status()
                     payload = response.json()
                     pages = payload.get("responses", [{}])[0].get("responses", [])
@@ -138,7 +152,7 @@ async def _extract_with_ocr(data: bytes, filename: str, content_type: str, setti
                     ]
                     raw = "\n\n".join(part for part in extracted_parts if part)
                 else:
-                    url = f"https://vision.googleapis.com/v1/images:annotate?key={api_key}"
+                    url = "https://vision.googleapis.com/v1/images:annotate"
                     body = {
                         "requests": [
                             {
@@ -147,7 +161,7 @@ async def _extract_with_ocr(data: bytes, filename: str, content_type: str, setti
                             }
                         ]
                     }
-                    response = await client.post(url, json=body)
+                    response = await client.post(url, json=body, headers={"x-goog-api-key": api_key})
                     response.raise_for_status()
                     payload = response.json()
                     raw = payload.get("responses", [{}])[0].get("fullTextAnnotation", {}).get("text", "")
@@ -156,7 +170,11 @@ async def _extract_with_ocr(data: bytes, filename: str, content_type: str, setti
                 return ExtractionResult("", False, False, "ocr_returned_no_text", "ocr")
             text, truncated = _trim_text(raw)
             return ExtractionResult(text, truncated, True, None, "ocr")
+        except httpx.HTTPStatusError as error:
+            logger.warning("Google Vision OCR request was rejected (HTTP %s).", error.response.status_code)
+            return ExtractionResult("", False, False, _ocr_error_for_http_status(error.response.status_code), "ocr")
         except (httpx.HTTPError, ValueError):
+            logger.warning("Google Vision OCR request could not be completed.")
             return ExtractionResult("", False, False, "ocr_unavailable", "ocr")
 
     if not settings.ocr_fallback_url:
@@ -176,8 +194,12 @@ async def _extract_with_ocr(data: bytes, filename: str, content_type: str, setti
             return ExtractionResult("", False, False, "ocr_returned_no_text", "ocr")
         text, truncated = _trim_text(raw)
         return ExtractionResult(text, truncated, True, None, "ocr")
+    except httpx.HTTPStatusError as error:
+        logger.warning("Configured OCR fallback rejected a request (HTTP %s).", error.response.status_code)
+        return ExtractionResult("", False, False, _ocr_error_for_http_status(error.response.status_code), "ocr")
     except (httpx.HTTPError, ValueError):
         # Do not leak OCR provider internals or credentials to the signed-in user.
+        logger.warning("Configured OCR fallback could not be reached.")
         return ExtractionResult("", False, False, "ocr_unavailable", "ocr")
 
 
