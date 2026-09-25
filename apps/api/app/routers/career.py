@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..ai import career_discovery as cd
 from ..ai import personal_knowledge as knowledge
-from ..ai.base import AiClient
+from ..ai.base import AiClient, AiError
 from ..ai.pdf_report import ChatHistoryEntry, generate_pdf_report
 from ..config import get_settings
 from ..db import get_db
@@ -481,8 +481,10 @@ async def mentor_chat(
     hres = await db.execute(select(MentorMessage).where(MentorMessage.user_id == user.id).order_by(MentorMessage.created_at))
     history = [{"role": m.role, "content": m.content} for m in hres.scalars().all()]
 
-    db.add(MentorMessage(user_id=user.id, match_id=body.match_id, role="user", content=body.message))
+    question = MentorMessage(user_id=user.id, match_id=body.match_id, role="user", content=body.message)
+    db.add(question)
     await db.commit()
+    question_id = question.id
 
     async def gen():
         full = ""
@@ -493,6 +495,14 @@ async def mentor_chat(
                 yield _sse("chunk", {"text": chunk})
         except Exception as err:  # noqa: BLE001
             await db.rollback()
+            if isinstance(err, AiError) and err.kind == "rate_limit" and not full:
+                # Every model is momentarily out of capacity: say so and let the person resend,
+                # rather than dressing generic advice up as an answer. Drop the unanswered question
+                # so the saved history stays in question/answer pairs.
+                await db.execute(delete(MentorMessage).where(MentorMessage.id == question_id, MentorMessage.user_id == user.id))
+                await db.commit()
+                yield _sse("error", {"message": ai_error_message(err), "retryable": True})
+                return
             logger.warning("mentor_live_provider_unavailable", extra={"error_type": type(err).__name__})
             fallback = cd.mentorship_fallback(user_message=body.message, assessment_context=assessment_context)
             # Avoid repeating a complete-looking partial answer when a provider drops

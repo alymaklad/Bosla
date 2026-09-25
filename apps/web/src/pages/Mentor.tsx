@@ -51,7 +51,9 @@ export function Mentor() {
         onDone: () => setSending(false),
       })
     } catch (err) {
-      setMessages((current) => current.slice(0, -1))
+      // The server does not keep an unanswered question, so drop both bubbles and hand the text back.
+      setMessages((current) => current.slice(0, -2))
+      setInput(text)
       setError(err instanceof Error ? err.message : 'The mentor is temporarily unavailable. Please retry.')
       setSending(false)
     }

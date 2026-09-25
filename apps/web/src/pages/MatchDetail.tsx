@@ -47,6 +47,7 @@ export function MatchDetail() {
   async function send(textToSend?: string) {
     const text = (textToSend ?? input).trim()
     if (!text || sending || !id) return
+    setError(null)
     setInput('')
     setMessages((m) => [...m, { role: 'user', content: text }])
     setSending(true)
@@ -66,7 +67,9 @@ export function MatchDetail() {
         onDone: () => setSending(false),
       })
     } catch (err) {
-      setMessages((m) => m.slice(0, -1))
+      // The server does not keep an unanswered question, so drop both bubbles and hand the text back.
+      setMessages((m) => m.slice(0, -2))
+      setInput(text)
       setError(err instanceof Error ? err.message : 'Connection failed. Please retry.')
       setSending(false)
     }

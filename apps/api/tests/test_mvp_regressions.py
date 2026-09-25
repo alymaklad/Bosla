@@ -440,6 +440,30 @@ class MvpRegressionsTest(unittest.IsolatedAsyncioTestCase):
             self.assertEqual([message["role"] for message in messages], ["user", "assistant", "user", "assistant"])
             self.assertTrue(any(item["role"] == "assistant" for item in ai.histories[1][:-1]))
 
+    async def test_mentor_reports_busy_instead_of_canned_advice_when_all_models_are_limited(self):
+        class BusyAi:
+            async def stream_chat(self, *_args, **_kwargs):
+                raise AiError("Bosla's AI is busy right now. Please try again in a minute.", "rate_limit", status=429)
+                yield  # pragma: no cover - makes this an async generator
+
+        async with self.sessions() as db:
+            user = User(email="busy-mentor@example.com", name="Busy")
+            db.add(user)
+            await db.flush()
+            db.add(DiscoveryProfile(user_id=user.id, status="complete"))
+            db.add(Assessment(user_id=user.id, text="The user is exploring data analysis."))
+            await db.commit()
+
+            with patch("app.routers.career.get_ai_client", return_value=BusyAi()):
+                response = await mentor_chat(MentorChatRequest(message="What should I do this week?"), user=user, db=db)
+                events = b"".join([event async for event in response.body_iterator]).decode()
+
+            self.assertIn("event: error", events)
+            self.assertIn("busy right now", events)
+            self.assertNotIn("event: chunk", events)
+            self.assertNotIn("fallback", events)
+            self.assertEqual(await get_mentor_messages(user=user, db=db), [])
+
     async def test_exhausted_keys_try_primary_then_fallback_and_return_safe_error(self):
         ai = GroqAiClient(
             api_keys=["first-test-key", "second-test-key"], model="openai/gpt-oss-120b",
