@@ -1,8 +1,9 @@
-import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { Dashboard } from './components/Dashboard'
 import { DiscoveryGate } from './components/DiscoveryGate'
 import { Shell } from './components/Shell'
 import { PageLoading } from './components/PageLoading'
+import { OfflineBanner } from './components/OfflineBanner'
 import { useApp } from './context/AppContext'
 import { Consent } from './pages/Consent'
 import { CvUpload } from './pages/CvUpload'
@@ -31,10 +32,14 @@ function RequireConsent() {
 
 export default function App() {
   const { loading } = useApp()
-  if (loading) return <PageLoading label="Opening your Bosla workspace…" fullScreen />
+  const location = useLocation()
+  const outsideShell = location.pathname === '/' || location.pathname === '/signin' || location.pathname.startsWith('/onboarding/')
+  if (loading) return <><OfflineBanner /><PageLoading label="Opening your Bosla workspace…" fullScreen /></>
 
   return (
-    <Routes>
+    <>
+      {outsideShell ? <OfflineBanner /> : null}
+      <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/signin" element={<SignIn />} />
       <Route element={<RequireAccount />}>
@@ -61,6 +66,7 @@ export default function App() {
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   )
 }

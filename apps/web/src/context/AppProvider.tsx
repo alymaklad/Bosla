@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { api, ApiError, type OnboardingStatus, type User } from '../api'
+import { clearCached } from '../lib/offlineCache'
 import { AppContext } from './AppContext'
 
 const USER_CACHE_KEY = 'bosla.cached-user.v1'
+const STATUS_CACHE_KEY = 'bosla.onboarding-status.v1:'
 
 function cachedUser(): User | null {
   try {
@@ -24,6 +26,11 @@ function cachedUser(): User | null {
 
 function rememberUser(user: User | null) {
   try {
+    const previous = cachedUser()
+    if (previous?.id && previous.id !== user?.id) {
+      window.localStorage.removeItem(`${STATUS_CACHE_KEY}${previous.id}`)
+      clearCached()
+    }
     if (user) window.localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user))
     else window.localStorage.removeItem(USER_CACHE_KEY)
   } catch {
@@ -31,9 +38,27 @@ function rememberUser(user: User | null) {
   }
 }
 
+function cachedStatus(user: User | null): OnboardingStatus | null {
+  if (!user) return null
+  try {
+    const value = JSON.parse(window.localStorage.getItem(`${STATUS_CACHE_KEY}${user.id}`) ?? 'null') as OnboardingStatus | null
+    return value && typeof value.consentGiven === 'boolean' && typeof value.discoveryReady === 'boolean' && typeof value.matchesGenerated === 'boolean' && typeof value.nextPath === 'string' ? value : null
+  } catch {
+    return null
+  }
+}
+
+function rememberStatus(user: User, status: OnboardingStatus) {
+  try {
+    window.localStorage.setItem(`${STATUS_CACHE_KEY}${user.id}`, JSON.stringify(status))
+  } catch {
+    // A missing offline snapshot must not break onboarding.
+  }
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(cachedUser)
-  const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null)
+  const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(() => cachedStatus(cachedUser()))
   const [loading, setLoading] = useState(true)
 
   const refreshOnboarding = useCallback(async (currentUser?: User | null) => {
@@ -43,18 +68,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return
     }
     if (!account.consent_given) {
-      setOnboardingStatus({ consentGiven: false, discoveryReady: false, matchesGenerated: false, completed: false, nextPath: '/onboarding/consent' })
+      const status = { consentGiven: false, discoveryReady: false, matchesGenerated: false, completed: false, nextPath: '/onboarding/consent' }
+      setOnboardingStatus(status)
+      rememberStatus(account, status)
       return
     }
     const [profile, matches] = await Promise.all([api.discoveryProfile(), api.listMatches()])
     const matchesGenerated = matches.length > 0
-    setOnboardingStatus({
+    const status = {
       consentGiven: true,
       discoveryReady: profile.ready,
       matchesGenerated,
       completed: profile.ready && matchesGenerated,
       nextPath: !profile.ready ? (profile.exchange_count > 0 ? '/onboarding/discovery' : '/onboarding/cv') : matchesGenerated ? '/dashboard' : '/onboarding/discovery',
-    })
+    }
+    setOnboardingStatus(status)
+    rememberStatus(account, status)
   }, [])
 
   const refreshUser = useCallback(async () => {
@@ -65,7 +94,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         await refreshOnboarding(current)
       } catch {
-        setOnboardingStatus(null)
+        setOnboardingStatus(cachedStatus(current))
       }
       return current
     } catch (err) {
@@ -73,6 +102,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser(null)
         setOnboardingStatus(null)
         rememberUser(null)
+        clearCached()
         return null
       }
       throw err
@@ -95,6 +125,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setUser(null)
           setOnboardingStatus(null)
           rememberUser(null)
+          clearCached()
           return
         }
         // Keep the last known profile through a temporary network outage.
@@ -115,6 +146,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUser(null)
       setOnboardingStatus(null)
       rememberUser(null)
+      clearCached()
     }
   }, [])
 

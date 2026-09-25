@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api, type Roadmap } from '../api'
 import { PageLoading } from '../components/PageLoading'
 import { ErrorToast } from '../components/ErrorToast'
+import { DataUnavailable } from '../components/DataUnavailable'
 
 export function Roadmap() {
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null)
@@ -27,6 +28,7 @@ export function Roadmap() {
   }, [])
 
   if (loading) return <PageLoading label="Loading your learning roadmap…" />
+  if (loadError && !roadmap) return <DataUnavailable title="Your roadmap cannot be loaded right now" />
 
   if (!roadmap) {
     return (

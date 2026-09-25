@@ -4,6 +4,7 @@ import { api, HABITS_CHANGED_EVENT, type Goal, type Occurrence, type Todo } from
 import { PageLoading } from '../components/PageLoading'
 import { ErrorToast } from '../components/ErrorToast'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { DataUnavailable } from '../components/DataUnavailable'
 
 export function TodayHabits() {
   const location = useLocation() as { state?: { scope?: 'week'; notice?: string } }
@@ -45,7 +46,7 @@ export function TodayHabits() {
       setCurrentStreak(progress.streak.current)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load your habits. Please refresh and try again.')
-      setOccs([])
+      // Keep the last visible snapshot if a background refresh fails.
     } finally {
       setLoading(false)
     }
@@ -166,6 +167,7 @@ export function TodayHabits() {
   }
 
   if (loading) return <PageLoading label="Loading your habit cadence…" />
+  if (!occs) return <DataUnavailable title="Your habits are unavailable offline" />
 
   return (
     <main className="mx-auto w-full max-w-[1280px] px-6 py-8">

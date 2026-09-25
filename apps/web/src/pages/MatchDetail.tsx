@@ -4,6 +4,7 @@ import { api, type CareerMatch, type DiscoveryMessage } from '../api'
 import { ChatMarkdown } from '../components/ChatMarkdown'
 import { PageLoading } from '../components/PageLoading'
 import { ErrorToast } from '../components/ErrorToast'
+import { DataUnavailable } from '../components/DataUnavailable'
 
 export function MatchDetail() {
   const { id } = useParams<{ id: string }>()
@@ -14,13 +15,14 @@ export function MatchDetail() {
   const [choosing, setChoosing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(() => Boolean(id))
+  const [loadFailed, setLoadFailed] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
     if (!id) return
     void Promise.all([
-      api.listMatches().then((all) => setMatch(all.find((m) => m.id === id) ?? null)).catch(() => setMatch(null)),
+      api.listMatches().then((all) => setMatch(all.find((m) => m.id === id) ?? null)).catch(() => setLoadFailed(true)),
       api.mentorMessages().then(setMessages).catch(() => {}),
     ]).finally(() => setLoading(false))
   }, [id])
@@ -71,6 +73,7 @@ export function MatchDetail() {
   }
 
   if (loading) return <PageLoading label="Loading this career match…" />
+  if (loadFailed) return <DataUnavailable title="This match cannot be loaded right now" />
 
   if (!match) {
     return (

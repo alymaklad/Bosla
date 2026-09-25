@@ -4,6 +4,7 @@ import { GoogleAutoSync } from '../hooks/useGoogleAutoSync'
 import { MobileTabs } from './MobileTabs'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
+import { OfflineBanner } from './OfflineBanner'
 
 /** App shell with persistent navigation and a floating mentor shortcut. */
 export function Shell() {
@@ -21,6 +22,7 @@ export function Shell() {
 
       {/* Main Canvas offset by 240px sidebar on desktop and 56px top bar */}
       <div className="mt-16 h-[calc(100dvh-4rem)] overflow-y-auto pb-40 md:ml-64 md:pb-12">
+        <OfflineBanner inline />
         <Outlet />
       </div>
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, HABITS_CHANGED_EVENT, type HabitProgress } from '../api'
 import { PageLoading } from '../components/PageLoading'
+import { DataUnavailable } from '../components/DataUnavailable'
 
 interface Achievement {
   id: string
@@ -54,6 +55,7 @@ export function Progress() {
   }, [])
 
   if (loading) return <PageLoading label="Loading your progress…" />
+  if (!data) return <DataUnavailable title="Your progress is unavailable offline" />
 
   const level = data?.level?.level ?? 1
   const title = data?.level?.title ?? 'Beginner'

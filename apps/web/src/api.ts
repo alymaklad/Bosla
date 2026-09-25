@@ -1,5 +1,7 @@
 // Requests stay same-origin in both local and production. This prevents mobile
 // browsers from treating Bosla's auth cookie as a third-party cookie.
+import { notifyOfflineData, readCached, saveCached } from './lib/offlineCache'
+
 const BASE = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
 export const apiBaseUrl = BASE
 
@@ -55,11 +57,41 @@ function sanitizeErrorMessage(msg: string): string {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    credentials: 'include',
-    headers: init?.body instanceof FormData ? undefined : { 'Content-Type': 'application/json' },
-    ...init,
-  })
+  const isRead = !init?.method || init.method === 'GET'
+  if (!isRead && !navigator.onLine) {
+    throw new ApiError('You are offline. Reconnect before saving changes.', 0)
+  }
+  if (isRead && !navigator.onLine) {
+    const cached = path === '/auth/me' ? null : readCached<T>(path)
+    notifyOfflineData(cached?.savedAt)
+    if (cached) return cached.value
+    throw new ApiError('You are offline, and this page has no saved snapshot yet.', 0)
+  }
+  let res: Response
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      credentials: 'include',
+      headers: init?.body instanceof FormData ? undefined : { 'Content-Type': 'application/json' },
+      ...init,
+      signal: init?.signal ?? (isRead ? AbortSignal.timeout(8_000) : undefined),
+    })
+  } catch {
+    if (isRead && path !== '/auth/me') {
+      const cached = readCached<T>(path)
+      if (cached) {
+        notifyOfflineData(cached.savedAt)
+        return cached.value
+      }
+    }
+    notifyOfflineData()
+    throw new ApiError('Bosla cannot connect right now. Check your connection and retry.', 0)
+  }
+  if (isRead && res.status >= 500) {
+    const cached = path === '/auth/me' ? null : readCached<T>(path)
+    notifyOfflineData(cached?.savedAt)
+    if (cached) return cached.value
+    throw new ApiError('Bosla cannot connect right now. Check your connection and retry.', res.status)
+  }
   if (!res.ok) {
     let message = res.statusText
     try {
@@ -71,7 +103,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiError(sanitizeErrorMessage(message), res.status)
   }
   if (res.status === 204) return undefined as T
-  return res.json() as Promise<T>
+  const value = await res.json() as T
+  if (isRead && path !== '/auth/me') saveCached(path, value)
+  return value
 }
 
 function get<T>(path: string) {
@@ -90,6 +124,7 @@ async function streamSSE(
   body: unknown,
   handlers: Record<string, (data: any) => void>,
 ): Promise<void> {
+  if (!navigator.onLine) throw new ApiError('You are offline. Reconnect before sending a message.', 0)
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
     credentials: 'include',
@@ -465,6 +500,7 @@ export const api = {
   deleteAccount: () => del<void>('/auth/account'),
 
   uploadDocument: async (file: File, documentType: DocumentSourceType, originalFilename?: string): Promise<PersonalDocument> => {
+    if (!navigator.onLine) throw new ApiError('You are offline. Reconnect before uploading a document.', 0)
     const form = new FormData()
     form.append('file', file)
     form.append('document_type', documentType)

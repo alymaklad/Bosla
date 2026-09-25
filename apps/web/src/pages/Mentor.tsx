@@ -4,6 +4,7 @@ import { api, type DiscoveryMessage, type Roadmap } from '../api'
 import { ChatMarkdown } from '../components/ChatMarkdown'
 import { PageLoading } from '../components/PageLoading'
 import { ErrorToast } from '../components/ErrorToast'
+import { DataUnavailable } from '../components/DataUnavailable'
 
 const PROMPTS = [
   { title: 'Plan my week', text: 'What should I focus on this week to move my career forward?', icon: 'calendar_month' },
@@ -19,11 +20,12 @@ export function Mentor() {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [historyUnavailable, setHistoryUnavailable] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     void Promise.all([
-      api.mentorMessages().then(setMessages).catch(() => {}),
+      api.mentorMessages().then(setMessages).catch(() => setHistoryUnavailable(true)),
       api.getRoadmap().then(setRoadmap).catch(() => {}),
     ]).finally(() => setLoading(false))
   }, [])
@@ -59,6 +61,7 @@ export function Mentor() {
   const exchangeCount = Math.ceil(messages.length / 2)
 
   if (loading) return <PageLoading label="Loading your mentor workspace…" />
+  if (historyUnavailable && messages.length === 0) return <DataUnavailable title="Your mentor history cannot be loaded right now" />
 
   return (
     <main className="mx-auto w-full max-w-[1320px] p-5 md:p-8">
@@ -75,7 +78,7 @@ export function Mentor() {
         <section className="flex min-h-[650px] flex-col overflow-hidden rounded-2xl border border-[#E2E5EA] bg-white shadow-[0_12px_36px_-24px_rgba(15,17,21,0.34)]">
           <div className="flex items-center justify-between border-b border-[#E6E7EA] bg-gradient-to-r from-[#F8FAFF] to-white px-5 py-4">
             <div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D8E1FF] bg-white p-2 shadow-sm"><img src="/brand/bosla-mark.png" alt="Bosla" className="h-full w-full object-contain" /></div><div><p className="font-display text-[15px] font-semibold text-[#0F1115]">Bosla Mentor</p><p className="mt-0.5 font-body text-[11px] text-[#5B6270]">A focused space for your career decisions</p></div></div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EAF8EE] px-2.5 py-1 font-body text-[11px] font-medium text-[#17733B]"><span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" />Available</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EAF8EE] px-2.5 py-1 font-body text-[11px] font-medium text-[#17733B]"><span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" />Private chat</span>
           </div>
 
           {messages.length === 0 && <div className="border-b border-[#E6E7EA] bg-[#FCFCFD] px-5 py-4"><p className="mb-3 font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-[#76777B]">Start with a focused prompt</p><div className="grid gap-2 md:grid-cols-3">{PROMPTS.map((prompt) => <button key={prompt.title} type="button" disabled={sending} onClick={() => void send(prompt.text)} className="group rounded-xl border border-[#E6E7EA] bg-white p-3 text-left hover:border-[#AFC2FA] hover:bg-[#F4F7FF]"><span className="material-symbols-outlined text-[18px] text-[#1E3A8A]">{prompt.icon}</span><span className="mt-2 block font-body text-[12px] font-semibold text-[#0F1115]">{prompt.title}</span><span className="mt-0.5 block font-body text-[11px] leading-relaxed text-[#5B6270]">Ask Bosla for a clear next step.</span></button>)}</div></div>}

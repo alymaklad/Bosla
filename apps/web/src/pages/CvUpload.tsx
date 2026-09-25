@@ -5,6 +5,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog'
 import { ErrorToast } from '../components/ErrorToast'
 import { OnboardingHeader } from '../components/OnboardingHeader'
 import { PageLoading } from '../components/PageLoading'
+import { DataUnavailable } from '../components/DataUnavailable'
 import { DIRECT_UPLOAD_LIMIT, MAX_PDF_INPUT_BYTES, prepareDocument } from '../lib/prepareDocument'
 
 const DOCUMENT_TYPES: { value: DocumentSourceType; label: string; icon: string }[] = [
@@ -30,6 +31,7 @@ export function CvUpload() {
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
   const [ocrStatus, setOcrStatus] = useState<OcrStatus | null>(null)
   const [confirmingClear, setConfirmingClear] = useState(false)
   const [clearing, setClearing] = useState(false)
@@ -45,13 +47,14 @@ export function CvUpload() {
     void Promise.allSettled([api.listDocuments(), api.ocrStatus()]).then(([documentsResult, ocrResult]) => {
       if (!active) return
       if (documentsResult.status === 'fulfilled') setDocuments(documentsResult.value)
-      else setError('Could not load your saved sources. Please refresh this page to try again.')
+      else setLoadFailed(true)
       if (ocrResult.status === 'fulfilled') setOcrStatus(ocrResult.value)
     }).finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])
 
   if (loading) return <PageLoading label="Loading your private context…" />
+  if (loadFailed) return <DataUnavailable title="Your career context cannot be loaded right now" />
 
   async function uploadFiles(files: FileList | File[]) {
     const selected = Array.from(files)

@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { api, type CareerMatch } from '../api'
 import { PageLoading } from '../components/PageLoading'
 import { ErrorToast } from '../components/ErrorToast'
+import { DataUnavailable } from '../components/DataUnavailable'
 
 export function Matches() {
   const [matches, setMatches] = useState<CareerMatch[] | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [busyChoice, setBusyChoice] = useState<string | null>(null)
   const [chooseError, setChooseError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -18,7 +20,7 @@ export function Matches() {
         const chosen = list.find((m) => m.chosen)
         setSelectedId(chosen ? chosen.id : list[0].id)
       }
-    }).catch(() => setMatches([]))
+    }).catch(() => { setLoadError(true); setMatches([]) })
   }, [])
 
   async function choose(id: string) {
@@ -36,6 +38,8 @@ export function Matches() {
   if (matches === null) {
     return <PageLoading label="Loading your saved career matches…" />
   }
+
+  if (loadError) return <DataUnavailable title="Your matches are unavailable offline" />
 
   if (matches && matches.length === 0) {
     return (

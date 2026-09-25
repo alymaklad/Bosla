@@ -5,6 +5,7 @@ import { OnboardingHeader } from '../components/OnboardingHeader'
 import { ErrorToast } from '../components/ErrorToast'
 import { PageLoading } from '../components/PageLoading'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import { DataUnavailable } from '../components/DataUnavailable'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { useApp } from '../context/AppContext'
 
@@ -49,6 +50,7 @@ export function Discovery() {
   }, [messages, sending])
 
   if (loading) return <PageLoading label="Loading your discovery conversation…" />
+  if (error && messages.length === 0) return <DataUnavailable title="Your conversation cannot be loaded right now" />
 
   async function send() {
     const text = input.trim()
