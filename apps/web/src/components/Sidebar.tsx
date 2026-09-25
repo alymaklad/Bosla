@@ -9,6 +9,7 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
+  { to: '/dashboard', label: 'Home', icon: 'home' },
   { to: '/matches', label: 'Discover', icon: 'explore' },
   { to: '/habits', label: 'Habits', icon: 'check_circle' },
   { to: '/roadmap', label: 'Learn', icon: 'school' },
@@ -25,10 +26,6 @@ export function Sidebar() {
   }, [])
 
   const pct = level ? Math.round(level.progress * 100) : 0
-  const levelNum = level?.level ?? 1
-  const levelTitle = level?.title ?? 'Beginner'
-  const currentXp = level?.current_xp ?? 0
-  const ceilingXp = level?.level_ceiling ?? 400
 
   return (
     <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col justify-between border-r border-[#E6E7EA]/90 bg-[#FCFCFB] md:flex">
@@ -75,7 +72,7 @@ export function Sidebar() {
       </div>
 
       {/* Bottom User Progression Tier Card */}
-      <div className="border-t border-[#E6E7EA]/90 p-4">
+      {level && <div className="border-t border-[#E6E7EA]/90 p-4">
         <div className="rounded-2xl border border-[#DCE4FA] bg-[#F4F7FF] p-3.5">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
@@ -83,7 +80,7 @@ export function Sidebar() {
                 military_tech
               </span>
               <span className="font-display text-[13px] font-semibold text-[#0F1115]">
-                Level {levelNum} · {levelTitle}
+                Level {level.level} · {level.title}
               </span>
             </div>
           </div>
@@ -96,12 +93,12 @@ export function Sidebar() {
           </div>
           <div className="flex items-center justify-between font-body text-[11px] text-[#5B6270]">
             <span className="tabular-nums">
-              {currentXp.toLocaleString()} / {ceilingXp.toLocaleString()} XP
+              {level.current_xp.toLocaleString()} / {level.level_ceiling.toLocaleString()} XP
             </span>
             <span className="font-medium text-[#F59E0B]">{pct}%</span>
           </div>
         </div>
-      </div>
+      </div>}
     </aside>
   )
 }

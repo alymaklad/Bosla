@@ -30,6 +30,11 @@ function errorDetail(value: unknown, fallback: string): string {
 
 function sanitizeErrorMessage(msg: string): string {
   if (/email.*valid|value is not a valid email/i.test(msg)) return 'Enter a valid email address, such as you@example.com.'
+  if (msg === 'no_extractable_text') {
+    return 'No readable text was found. If this is a scanned certificate, upload it as a PDF so OCR can read it.'
+  }
+  if (msg === 'could_not_read_file') return 'This file could not be opened. Try exporting it again as PDF, DOCX, or TXT.'
+  if (msg === 'unsupported_file_type') return 'Choose a PDF, DOCX, or TXT document.'
   if (msg === 'ocr_access_denied') {
     return 'Google Vision rejected this OCR request. Enable Cloud Vision API and billing in the key’s Google Cloud project, then allow this server key to call Vision.'
   }
@@ -340,6 +345,8 @@ export interface DashboardData {
   level: LevelInfo
   streak: StreakInfo
   week_completion_pct: number
+  week_completed: number
+  week_scheduled: number
   today: Occurrence[]
   top_matches: CareerMatch[]
   chosen_direction: string | null
@@ -450,7 +457,17 @@ export const api = {
     const form = new FormData()
     form.append('file', file)
     form.append('document_type', documentType)
-    const res = await fetch(`${BASE}/career/documents`, { method: 'POST', credentials: 'include', body: form })
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 90_000)
+    let res: Response
+    try {
+      res = await fetch(`${BASE}/career/documents`, { method: 'POST', credentials: 'include', body: form, signal: controller.signal })
+    } catch {
+      if (controller.signal.aborted) throw new ApiError('Document processing took too long. Refresh your saved sources before retrying.', 408)
+      throw new ApiError('Could not reach Bosla to upload this document. Check your connection and try again.', 0)
+    } finally {
+      window.clearTimeout(timeout)
+    }
     if (!res.ok) {
       let message = res.statusText
       try {

@@ -19,6 +19,7 @@ function labelFor(type: DocumentSourceType) {
 
 export function CvUpload() {
   const [busy, setBusy] = useState(false)
+  const [uploadingName, setUploadingName] = useState<string | null>(null)
   const [documents, setDocuments] = useState<PersonalDocument[]>([])
   const [documentType, setDocumentType] = useState<DocumentSourceType>('cv')
   const [githubUrl, setGithubUrl] = useState('')
@@ -34,7 +35,7 @@ export function CvUpload() {
   const navigate = useNavigate()
 
   async function refreshDocuments() {
-    try { setDocuments(await api.listDocuments()) } catch { /* optional during onboarding */ }
+    setDocuments(await api.listDocuments())
   }
 
   useEffect(() => {
@@ -42,6 +43,7 @@ export function CvUpload() {
     void Promise.allSettled([api.listDocuments(), api.ocrStatus()]).then(([documentsResult, ocrResult]) => {
       if (!active) return
       if (documentsResult.status === 'fulfilled') setDocuments(documentsResult.value)
+      else setError('Could not load your saved sources. Please refresh this page to try again.')
       if (ocrResult.status === 'fulfilled') setOcrStatus(ocrResult.value)
     }).finally(() => { if (active) setLoading(false) })
     return () => { active = false }
@@ -59,16 +61,22 @@ export function CvUpload() {
     setBusy(true)
     setError(null)
     setNotice(null)
+    let savedCount = 0
     try {
-      let newest: PersonalDocument | null = null
-      for (const file of selected) newest = await api.uploadDocument(file, documentType)
-      setLastPreview(newest)
-      await refreshDocuments()
-      setNotice(`${selected.length} document${selected.length === 1 ? '' : 's'} added to your private career context.`)
+      for (const file of selected) {
+        setUploadingName(file.name)
+        const saved = await api.uploadDocument(file, documentType)
+        setDocuments((current) => [saved, ...current.filter((item) => item.id !== saved.id)])
+        setLastPreview(saved)
+        savedCount += 1
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not add these documents. Please retry.')
+      const filename = selected[savedCount]?.name ?? 'This document'
+      setError(`${filename}: ${err instanceof Error ? err.message : 'Could not upload this document. Please retry.'}`)
     } finally {
+      if (savedCount) setNotice(`${savedCount} document${savedCount === 1 ? '' : 's'} saved and indexed. ${savedCount < selected.length ? 'The remaining files were not uploaded.' : 'You can see the saved source below.'}`)
       setBusy(false)
+      setUploadingName(null)
       if (inputRef.current) inputRef.current.value = ''
     }
   }
@@ -81,7 +89,11 @@ export function CvUpload() {
     setNotice(null)
     try {
       const result = await api.importGithubProfile(profileUrl)
-      await refreshDocuments()
+      try {
+        await refreshDocuments()
+      } catch {
+        setError('GitHub import finished, but the saved-source list could not refresh. Reload this page to see the imported files.')
+      }
       setGithubUrl('')
       setNotice(`${result.sources_indexed} GitHub source${result.sources_indexed === 1 ? '' : 's'} indexed from your profile and ${result.repositories_imported} project${result.repositories_imported === 1 ? '' : 's'}.${result.files_skipped ? ` ${result.files_skipped} files were skipped.` : ''}`)
     } catch (err) {
@@ -125,10 +137,10 @@ export function CvUpload() {
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 pb-12 pt-24">
         <section className="mb-7 rounded-2xl border border-[#DCE3F2] bg-[#F7F9FF] p-6 sm:p-7">
           <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
-            <div className="max-w-2xl">
-              <span className="rounded-full bg-[#E1E9FF] px-2.5 py-1 font-body text-[11px] font-semibold uppercase tracking-wide text-[#1E3A8A]">Career context</span>
-              <h1 className="mt-3 font-display text-[30px] font-bold tracking-tight text-[#0F1115]">Build a fuller picture of your career</h1>
-              <p className="mt-2 font-body text-[14px] leading-relaxed text-[#45474B]">Add documents, project work, personal reflections, and a public GitHub profile. Bosla uses relevant excerpts to personalize guidance; your conversation still determines your matches.</p>
+            <div className="flex max-w-2xl flex-col items-start gap-2">
+              <span className="inline-flex w-fit rounded-full bg-[#E1E9FF] px-2.5 py-1 font-body text-[11px] font-semibold uppercase tracking-wide text-[#1E3A8A]">Career context</span>
+              <h1 className="font-display text-[30px] font-bold leading-tight tracking-tight text-[#0F1115]">Build a fuller picture of your career</h1>
+              <p className="font-body text-[14px] leading-relaxed text-[#45474B]">Add documents, project work, personal reflections, and a public GitHub profile. Bosla uses relevant excerpts to personalize guidance; your conversation still determines your matches.</p>
             </div>
             <div className="flex shrink-0 items-center gap-2 rounded-xl border border-[#DCE3F2] bg-white px-4 py-3">
               <span className="material-symbols-outlined text-[20px] text-[#1E3A8A]">folder_shared</span>
@@ -153,12 +165,13 @@ export function CvUpload() {
               </label>
             </div>
             <input ref={inputRef} type="file" multiple accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" className="hidden" onChange={(event) => event.target.files && void uploadFiles(event.target.files)} />
-            <div onClick={() => inputRef.current?.click()} onDragOver={(event) => { event.preventDefault(); event.stopPropagation() }} onDrop={(event) => { event.preventDefault(); event.stopPropagation(); if (event.dataTransfer.files.length) void uploadFiles(event.dataTransfer.files) }} className="group mt-5 cursor-pointer rounded-xl border-2 border-dashed border-[#CDD6EA] bg-[#F9FAFF] p-7 text-center transition-all hover:border-[#1E3A8A] hover:bg-[#F2F5FF]">
+            <div aria-busy={busy} onClick={() => { if (!busy) inputRef.current?.click() }} onDragOver={(event) => { event.preventDefault(); event.stopPropagation() }} onDrop={(event) => { event.preventDefault(); event.stopPropagation(); if (event.dataTransfer.files.length) void uploadFiles(event.dataTransfer.files) }} className="group mt-5 cursor-pointer rounded-xl border-2 border-dashed border-[#CDD6EA] bg-[#F9FAFF] p-7 text-center transition-all hover:border-[#1E3A8A] hover:bg-[#F2F5FF]">
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#E7EEFF] text-[#1E3A8A] transition-transform group-hover:scale-105"><span className="material-symbols-outlined text-[26px]">upload_file</span></div>
-              <p className="font-body text-[15px] font-semibold text-[#0F1115]">{busy ? 'Extracting and indexing documents…' : `Drop ${labelFor(documentType).toLowerCase()} files here`}</p>
+              <p className="font-body text-[15px] font-semibold text-[#0F1115]">{busy ? `Extracting and indexing ${uploadingName ?? 'document'}…` : `Drop ${labelFor(documentType).toLowerCase()} files here`}</p>
               <p className="mt-1 font-body text-[12px] text-[#5B6270]">or choose files from your device</p>
               <button type="button" disabled={busy} onClick={(event) => { event.stopPropagation(); inputRef.current?.click() }} className="mt-4 inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-[#1E3A8A] bg-white px-3 font-body text-[12px] font-semibold text-[#1E3A8A] transition-colors hover:bg-[#E8EDF9] disabled:cursor-not-allowed disabled:opacity-60"><span className="material-symbols-outlined text-[16px]">add</span>Browse files</button>
             </div>
+            {notice && <p role="status" className="mt-4 flex items-start gap-2 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3 font-body text-[13px] text-[#1E3A8A]"><span className="material-symbols-outlined text-[18px]">check_circle</span>{notice}</p>}
             <div className={`mt-4 flex items-start gap-2 rounded-lg px-3 py-2.5 font-body text-[12px] ${ocrStatus?.configured ? 'bg-[#F0FDF4] text-[#166534]' : 'bg-[#F8FAFC] text-[#5B6270]'}`}>
               <span className="material-symbols-outlined mt-0.5 text-[16px]">{ocrStatus?.configured ? 'verified' : 'info'}</span>
               <p>{ocrStatus?.configured ? `${ocrStatus.provider} is configured for scanned PDFs. Text-based documents are extracted directly.` : 'Text-based documents are extracted directly. Add an OCR provider to read scanned PDFs.'}</p>
@@ -173,7 +186,6 @@ export function CvUpload() {
         </div>
 
         <div className="mt-5 space-y-5">
-          {notice && <p role="status" className="flex items-start gap-2 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3 font-body text-[13px] text-[#1E3A8A]"><span className="material-symbols-outlined text-[18px]">check_circle</span>{notice}</p>}
           <ErrorToast message={error} onDismiss={() => setError(null)} />
 
           {lastPreview?.text && <section className="rounded-xl border border-[#E6E7EA] bg-white p-5"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><h2 className="font-display text-[16px] font-semibold text-[#0F1115]">Latest extracted text</h2><p className="mt-1 font-body text-[12px] text-[#5B6270]">A preview of what Bosla can retrieve for your guidance.</p></div><span className="rounded-full bg-[#E8EDF9] px-2.5 py-1 font-body text-[11px] font-medium text-[#1E3A8A]">{lastPreview.extraction_method === 'ocr' ? 'Read with OCR' : 'Read directly'}</span></div><div className="max-h-44 overflow-y-auto rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-3 font-mono text-[12px] leading-5 text-[#45474B]">{lastPreview.text}</div></section>}
