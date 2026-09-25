@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, type CareerMatch, type DiscoveryMessage } from '../api'
 import { ChatMarkdown } from '../components/ChatMarkdown'
 import { PageLoading } from '../components/PageLoading'
+import { ErrorToast } from '../components/ErrorToast'
 
 export function MatchDetail() {
   const { id } = useParams<{ id: string }>()
@@ -270,7 +271,7 @@ export function MatchDetail() {
               {choosing ? 'Saving…' : 'Choose this direction'}
             </button>
           </div>
-          {error && <p className="text-[13px] text-[#DC2626]">{error}</p>}
+          <ErrorToast message={error} onDismiss={() => setError(null)} />
         </div>
 
         {/* Right Column: Sticky AI Mentor Chat (5 cols) */}

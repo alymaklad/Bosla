@@ -10,13 +10,13 @@ export function Landing() {
       {/* Sticky Header / Brand Indicator */}
       <header className="sticky top-0 z-50 w-full bg-[#FAFAF8]/90 px-6 py-4 backdrop-blur-md md:px-12">
         <div className="mx-auto flex max-w-[1280px] items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link to="/" aria-label="Bosla home" className="flex items-center gap-2">
             <img
               src="/brand/bosla-horizontal.png"
               alt="Bosla"
               className="h-7 w-auto object-contain"
             />
-          </div>
+          </Link>
           <div className="flex items-center gap-6">
             <Link
               to="/signin"
@@ -39,13 +39,13 @@ export function Landing() {
         {/* Hero Group */}
         <div className="flex max-w-[680px] flex-col items-center text-center">
           {/* Stacked Bosla Logo at 160px height */}
-          <div className="mb-10 flex items-center justify-center">
+          <Link to="/" aria-label="Bosla home" className="mb-10 flex items-center justify-center">
             <img
               src="/brand/bosla-stacked.png"
               alt="Bosla compass-rose brandmark and wordmark"
               className="h-[160px] w-auto select-none object-contain"
             />
-          </div>
+          </Link>
 
           {/* Main Headline in Space Grotesk tight tracking */}
           <h1 className="mb-4 font-display text-[38px] font-bold leading-[46px] tracking-[-0.03em] text-[#0F1115] md:text-[44px] md:leading-[52px]">

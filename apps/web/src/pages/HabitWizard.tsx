@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { api, type GoalPlan, type GoalPlanProgressEvent } from '../api'
+import { ErrorToast } from '../components/ErrorToast'
 
 const PHASE_LABEL: Record<GoalPlanProgressEvent['phase'], string> = {
   researching: 'Researching curriculum resources and pacing…',
@@ -443,7 +444,7 @@ export function HabitWizard() {
             </div>
           )}
 
-          {error && <p className="text-[13px] text-[#DC2626]">{error}</p>}
+          <ErrorToast message={error} onDismiss={() => setError(null)} />
         </section>
       </div>
     </main>

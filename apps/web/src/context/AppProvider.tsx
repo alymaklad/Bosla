@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { api, ApiError, type User } from '../api'
+import { api, ApiError, type OnboardingStatus, type User } from '../api'
 import { AppContext } from './AppContext'
 
 const USER_CACHE_KEY = 'bosla.cached-user.v1'
@@ -33,37 +33,67 @@ function rememberUser(user: User | null) {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(cachedUser)
+  const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const refreshOnboarding = useCallback(async (currentUser?: User | null) => {
+    const account = currentUser === undefined ? await api.me() : currentUser
+    if (!account) {
+      setOnboardingStatus(null)
+      return
+    }
+    if (!account.consent_given) {
+      setOnboardingStatus({ consentGiven: false, discoveryReady: false, matchesGenerated: false, completed: false, nextPath: '/onboarding/consent' })
+      return
+    }
+    const [profile, matches] = await Promise.all([api.discoveryProfile(), api.listMatches()])
+    const matchesGenerated = matches.length > 0
+    setOnboardingStatus({
+      consentGiven: true,
+      discoveryReady: profile.ready,
+      matchesGenerated,
+      completed: profile.ready && matchesGenerated,
+      nextPath: !profile.ready ? (profile.exchange_count > 0 ? '/onboarding/discovery' : '/onboarding/cv') : matchesGenerated ? '/dashboard' : '/onboarding/discovery',
+    })
+  }, [])
 
   const refreshUser = useCallback(async () => {
     try {
       const current = await api.me()
       setUser(current)
       rememberUser(current)
+      try {
+        await refreshOnboarding(current)
+      } catch {
+        setOnboardingStatus(null)
+      }
       return current
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setUser(null)
+        setOnboardingStatus(null)
         rememberUser(null)
         return null
       }
       throw err
     }
-  }, [])
+  }, [refreshOnboarding])
 
   useEffect(() => {
     let active = true
     api.me()
-      .then((current) => {
+      .then(async (current) => {
         if (active) {
           setUser(current)
           rememberUser(current)
+          await refreshOnboarding(current)
         }
       })
       .catch((err) => {
         if (!active) return
         if (err instanceof ApiError && err.status === 401) {
           setUser(null)
+          setOnboardingStatus(null)
           rememberUser(null)
           return
         }
@@ -76,16 +106,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false
     }
-  }, [])
+  }, [refreshOnboarding])
 
   const signOut = useCallback(async () => {
     try {
       await api.signOut()
     } finally {
       setUser(null)
+      setOnboardingStatus(null)
       rememberUser(null)
     }
   }, [])
 
-  return <AppContext.Provider value={{ user, loading, refreshUser, signOut }}>{children}</AppContext.Provider>
+  return <AppContext.Provider value={{ user, loading, onboardingStatus, refreshOnboarding, refreshUser, signOut }}>{children}</AppContext.Provider>
 }

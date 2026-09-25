@@ -11,7 +11,25 @@ export class ApiError extends Error {
   }
 }
 
+function errorDetail(value: unknown, fallback: string): string {
+  if (typeof value === 'string') return value
+  if (Array.isArray(value)) {
+    const messages = value.map((item) => errorDetail(item, '')).filter(Boolean)
+    return messages.join(' ') || fallback
+  }
+  if (value && typeof value === 'object') {
+    const detail = value as { msg?: unknown; message?: unknown; detail?: unknown; loc?: unknown }
+    const message = errorDetail(detail.msg ?? detail.message ?? detail.detail, '')
+    if (message) {
+      const field = Array.isArray(detail.loc) ? detail.loc.at(-1) : null
+      return typeof field === 'string' && field !== 'body' ? `${field}: ${message}` : message
+    }
+  }
+  return fallback
+}
+
 function sanitizeErrorMessage(msg: string): string {
+  if (/email.*valid|value is not a valid email/i.test(msg)) return 'Enter a valid email address, such as you@example.com.'
   if (msg === 'ocr_access_denied') {
     return 'Google Vision rejected this OCR request. Enable Cloud Vision API and billing in the key’s Google Cloud project, then allow this server key to call Vision.'
   }
@@ -40,7 +58,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     let message = res.statusText
     try {
       const body = await res.json()
-      message = body.detail ?? message
+      message = errorDetail(body.detail, message)
     } catch {
       /* ignore */
     }
@@ -75,7 +93,7 @@ async function streamSSE(
   if (!res.ok || !res.body) {
     let message = res.statusText
     try {
-      message = (await res.json()).detail ?? message
+      message = errorDetail((await res.json()).detail, message)
     } catch {
       /* ignore */
     }
@@ -138,6 +156,14 @@ export interface User {
   name: string
   persona: string | null
   consent_given: boolean
+}
+
+export interface OnboardingStatus {
+  consentGiven: boolean
+  discoveryReady: boolean
+  matchesGenerated: boolean
+  nextPath: string
+  completed: boolean
 }
 
 export interface ProfileDimension {
@@ -429,7 +455,7 @@ export const api = {
       let message = res.statusText
       try {
         const body = await res.json()
-        message = body.detail ?? message
+        message = errorDetail(body.detail, message)
       } catch {
         /* ignore */
       }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, type Roadmap } from '../api'
 import { PageLoading } from '../components/PageLoading'
+import { ErrorToast } from '../components/ErrorToast'
 
 export function Roadmap() {
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null)
@@ -30,9 +31,10 @@ export function Roadmap() {
   if (!roadmap) {
     return (
       <main className="mx-auto flex min-h-[56vh] w-full max-w-[760px] flex-col items-center justify-center px-6 text-center">
+        <ErrorToast message={loadError} onDismiss={() => setLoadError(null)} />
         <span className="material-symbols-outlined text-[34px] text-[#1E3A8A]">route</span>
         <h1 className="mt-4 font-display text-[24px] font-semibold text-[#0F1115]">Your roadmap is not ready yet</h1>
-        <p className="mt-2 max-w-md font-body text-[14px] leading-relaxed text-[#5B6270]">{loadError || 'Choose a career direction first, then Bosla can create a focused learning path.'}</p>
+        <p className="mt-2 max-w-md font-body text-[14px] leading-relaxed text-[#5B6270]">Choose a career direction first, then Bosla can create a focused learning path.</p>
         <button type="button" onClick={() => navigate('/matches')} className="mt-5 rounded-xl bg-[#0F1115] px-4 py-2.5 font-body text-[13px] font-medium text-white hover:bg-[#1C1F26]">Explore career matches</button>
       </main>
     )
@@ -141,7 +143,7 @@ export function Roadmap() {
             Stage {currentStage + 1} of 4
           </span>
         </div>
-        {stepError && <p role="alert" className="mb-4 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-3 py-2 font-body text-[12px] text-[#B91C1C]">{stepError}</p>}
+        <ErrorToast message={stepError} onDismiss={() => setStepError(null)} />
         <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
           {stages.map((stage, index) => {
             const current = stage.state === 'Current'

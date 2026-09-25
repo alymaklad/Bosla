@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
 export function TopBar() {
-  const { user, signOut } = useApp()
+  const { user, signOut, onboardingStatus } = useApp()
   const navigate = useNavigate()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -19,7 +19,7 @@ export function TopBar() {
       }[user.persona] || user.persona)
     : 'Direction not selected'
 
-  const hasSetupReminder = user ? !user.consent_given : false
+  const hasSetupReminder = user ? !onboardingStatus?.completed : false
 
   return (
     <header className="fixed top-0 right-0 left-0 z-30 flex h-16 items-center justify-between border-b border-[#E6E7EA]/90 bg-white/90 px-4 backdrop-blur-xl md:left-64 md:px-7">
@@ -73,13 +73,13 @@ export function TopBar() {
               {hasSetupReminder ? (
                 <button
                   type="button"
-                  onClick={() => { setNotificationsOpen(false); navigate('/onboarding/consent') }}
+                  onClick={() => { setNotificationsOpen(false); navigate(onboardingStatus?.nextPath ?? '/onboarding/consent') }}
                   className="flex w-full items-start gap-3 px-4 py-4 text-left hover:bg-[#F8FAFF]"
                 >
                   <span className="material-symbols-outlined mt-0.5 text-[19px] text-[#1E3A8A]">flag</span>
                   <span>
                     <span className="block font-body text-[13px] font-medium text-[#0F1115]">Complete your direction profile</span>
-                    <span className="mt-0.5 block font-body text-[12px] leading-relaxed text-[#5B6270]">Choose your starting point so Bosla can tailor your guidance.</span>
+                    <span className="mt-0.5 block font-body text-[12px] leading-relaxed text-[#5B6270]">Your progress is saved. Continue where you left off to unlock career guidance.</span>
                   </span>
                 </button>
               ) : (

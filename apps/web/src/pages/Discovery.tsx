@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, type DiscoveryMessage, type DiscoveryProfile } from '../api'
 import { OnboardingHeader } from '../components/OnboardingHeader'
+import { ErrorToast } from '../components/ErrorToast'
 import { PageLoading } from '../components/PageLoading'
 import { useApp } from '../context/AppContext'
 
@@ -16,7 +17,7 @@ const DIMENSION_KEYS: { key: DimensionKey; label: string }[] = [
 ]
 
 export function Discovery() {
-  const { user } = useApp()
+  const { user, refreshOnboarding } = useApp()
   const [messages, setMessages] = useState<DiscoveryMessage[]>([])
   const [profile, setProfile] = useState<DiscoveryProfile | null>(null)
   const [input, setInput] = useState('')
@@ -69,6 +70,7 @@ export function Discovery() {
         onDone: (p) => {
           setProfile(p)
           setSending(false)
+          void refreshOnboarding().catch(() => {})
         },
       })
     } catch (err) {
@@ -79,6 +81,10 @@ export function Discovery() {
   }
 
   async function getMatches() {
+    if (!profile?.ready) {
+      setError('Keep talking with Bosla until the five career signals are clear. You can leave now and finish later.')
+      return
+    }
     setError(null)
     try {
       setPreparing('Reading everything you shared…')
@@ -95,6 +101,7 @@ export function Discovery() {
       }
       setPreparing('Ranking career directions…')
       await api.generateMatches()
+      await refreshOnboarding()
       navigate('/matches')
     } catch (err) {
       setError(
@@ -122,6 +129,7 @@ export function Discovery() {
 
   return (
     <div className="flex min-h-screen flex-col justify-between bg-[#FAFAF8] text-[#0F1115] antialiased">
+      <ErrorToast message={error} onDismiss={() => setError(null)} />
       <OnboardingHeader currentStep={3} />
 
       {/* Main Canvas */}
@@ -143,14 +151,7 @@ export function Discovery() {
                 <h1 className="font-display text-[22px] font-semibold tracking-tight text-[#0F1115]">
                   Let's find your direction
                 </h1>
-                <button
-                  type="button"
-                  onClick={() => navigate('/onboarding/cv')}
-                  className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-1 font-body text-[12px] font-medium text-[#1E3A8A] transition-colors hover:bg-[#E8EDF9] hover:text-[#122761] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1E3A8A]"
-                >
-                  <span className="material-symbols-outlined text-[16px]">add_circle</span>
-                  Add or manage career context
-                </button>
+                <p className="mt-2 font-body text-[12px] text-[#5B6270]">Saved automatically. Use the steps above to revisit your career context.</p>
               </div>
               <div className="hidden text-right sm:block">
                 <div className="font-body text-[11px] text-[#5B6270]">Progress to unlock</div>
@@ -323,12 +324,11 @@ export function Discovery() {
                   onClick={getMatches}
                   className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#0F1115] font-body text-[14px] font-medium text-white transition-colors hover:bg-[#1C1F26]"
                 >
-                  <span>{profile?.ready ? 'View Career Matches' : 'Generate Matches Now'}</span>
+                  <span>{profile?.ready ? 'Generate Career Matches' : 'Continue conversation to unlock'}</span>
                   <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </button>
               </div>
             </div>
-            {error && <p className="text-[13px] text-[#DC2626]">{error}</p>}
           </aside>
         </div>
       </main>

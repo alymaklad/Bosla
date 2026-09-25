@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api, type DiscoveryMessage, type Roadmap } from '../api'
 import { ChatMarkdown } from '../components/ChatMarkdown'
 import { PageLoading } from '../components/PageLoading'
+import { ErrorToast } from '../components/ErrorToast'
 
 const PROMPTS = [
   { title: 'Plan my week', text: 'What should I focus on this week to move my career forward?', icon: 'calendar_month' },
@@ -98,7 +99,7 @@ export function Mentor() {
             <div className="flex items-end gap-3 rounded-2xl border border-[#CCD3E0] bg-[#FCFCFD] p-2 transition-colors focus-within:border-[#1E3A8A] focus-within:ring-4 focus-within:ring-[#E8EDF9]"><textarea value={input} disabled={sending} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void send() } }} placeholder="Ask about your next step, a decision, or a project idea…" rows={2} className="max-h-28 min-h-11 flex-1 resize-none bg-transparent px-2 py-1.5 font-body text-[13px] leading-relaxed text-[#0F1115] outline-none placeholder:text-[#8A8F98] disabled:cursor-not-allowed" /><button type="submit" disabled={!input.trim() || sending} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0F1115] text-white hover:bg-[#1E3A8A] disabled:opacity-40" aria-label="Send message"><span className="material-symbols-outlined text-[18px]">arrow_upward</span></button></div>
             <p className="mt-2 px-2 font-body text-[11px] text-[#8A8F98]">Press Enter to send · Shift + Enter for a new line</p>
           </form>
-          {error && <p className="border-t border-[#FECACA] bg-[#FEF2F2] px-5 py-3 font-body text-[13px] text-[#B91C1C]">{error}</p>}
+          <ErrorToast message={error} onDismiss={() => setError(null)} />
         </section>
 
         <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">

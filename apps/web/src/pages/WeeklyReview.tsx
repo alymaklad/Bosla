@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, type DifficultyProposal, type WeeklyReview as WeeklyReviewType } from '../api'
 import { PageLoading } from '../components/PageLoading'
+import { ErrorToast } from '../components/ErrorToast'
 
 const ISO_WEEKDAYS = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const MAX_WEEKS_BACK = 52
@@ -66,9 +67,10 @@ export function WeeklyReview() {
   if (!review) {
     return (
       <main className="mx-auto flex min-h-[50vh] w-full max-w-[760px] flex-col items-center justify-center px-6 text-center">
+        <ErrorToast message={error} onDismiss={() => setError(null)} />
         <span className="material-symbols-outlined text-[32px] text-[#B91C1C]">error</span>
         <h1 className="mt-3 font-display text-[22px] font-semibold text-[#0F1115]">Your weekly review could not be loaded</h1>
-        <p className="mt-2 font-body text-[14px] text-[#5B6270]">{error}</p>
+        <p className="mt-2 font-body text-[14px] text-[#5B6270]">Please check your connection and try again.</p>
         <button type="button" onClick={() => setAttempt((n) => n + 1)} className="mt-5 rounded-xl bg-[#0F1115] px-4 py-2.5 font-body text-[13px] font-medium text-white">Retry</button>
       </main>
     )
@@ -130,7 +132,7 @@ export function WeeklyReview() {
         </div>
       </div>
 
-      {error && <p role="alert" className="mb-6 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 font-body text-[13px] text-[#B91C1C]">{error}</p>}
+      <ErrorToast message={error} onDismiss={() => setError(null)} />
 
       {/* Row 1: Four Stat Tiles */}
       <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

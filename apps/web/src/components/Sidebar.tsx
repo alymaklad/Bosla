@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { api, type LevelInfo } from '../api'
 
 interface NavItem {
@@ -35,11 +35,11 @@ export function Sidebar() {
       {/* Brand header */}
       <div>
         <div className="flex h-16 items-center border-b border-[#E6E7EA]/90 px-5">
-          <img
+          <Link to="/dashboard" aria-label="Bosla home" className="rounded-md focus-visible:outline-2 focus-visible:outline-[#1E3A8A]"><img
             src="/brand/bosla-horizontal.png"
             alt="Bosla"
             className="h-8 w-auto object-contain object-left"
-          />
+          /></Link>
         </div>
 
         {/* Navigation links */}

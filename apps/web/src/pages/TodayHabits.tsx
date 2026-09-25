@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api, HABITS_CHANGED_EVENT, type Occurrence } from '../api'
 import { PageLoading } from '../components/PageLoading'
+import { ErrorToast } from '../components/ErrorToast'
 
 export function TodayHabits() {
   const location = useLocation() as { state?: { scope?: 'week'; notice?: string } }
@@ -156,7 +157,7 @@ export function TodayHabits() {
       </div>
 
       {notice && <p className="mb-6 rounded-lg border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 font-body text-[13px] text-[#166534]">{notice}</p>}
-      {error && <p className="mb-6 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 font-body text-[13px] text-[#B91C1C]">{error}</p>}
+      <ErrorToast message={error} onDismiss={() => setError(null)} />
 
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">

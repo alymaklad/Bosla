@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { OnboardingHeader } from '../components/OnboardingHeader'
+import { ErrorToast } from '../components/ErrorToast'
 import { useApp } from '../context/AppContext'
 
 interface PersonaOption {
@@ -256,7 +257,7 @@ export function Consent() {
             </section>
           </div>
 
-          {error && <p className="mt-4 text-[13px] text-[#DC2626]">{error}</p>}
+          <ErrorToast message={error} onDismiss={() => setError(null)} />
 
           {/* Bottom Action Bar */}
           <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-[#E6E7EA] pt-6 sm:flex-row sm:items-center">

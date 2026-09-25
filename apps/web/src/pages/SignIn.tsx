@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { api, apiBaseUrl } from '../api'
 import { useApp } from '../context/AppContext'
+import { ErrorToast } from '../components/ErrorToast'
 
 export function SignIn() {
   const [email, setEmail] = useState('')
@@ -39,6 +40,7 @@ export function SignIn() {
 
   return (
     <div className="flex min-h-screen flex-col justify-between bg-[#FAFAF8] text-[#0F1115] antialiased selection:bg-[#E7EEFF] selection:text-[#1E3A8A]">
+      <ErrorToast message={error} onDismiss={() => setError(null)} />
       {/* Minimal Top Header Anchor */}
       <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-8 py-6">
         <div className="flex items-center gap-2">
@@ -59,11 +61,11 @@ export function SignIn() {
           <div className="rounded-lg border border-[#E6E7EA] bg-white p-8">
             {/* Centered Logo Lockup */}
             <div className="mb-6 flex justify-center">
-              <img
+              <Link to="/" aria-label="Bosla home"><img
                 src="/brand/bosla-mark.png"
                 alt="Bosla compass-rose brandmark"
                 className="h-8 w-auto object-contain"
-              />
+              /></Link>
             </div>
 
             {/* Typography Header Group */}
@@ -142,7 +144,6 @@ export function SignIn() {
                 />
               </div>
 
-              {error && <p className="text-[13px] text-[#DC2626]">{error}</p>}
 
               {/* Submit Button */}
               <div className="pt-2">

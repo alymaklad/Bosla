@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, type AiStatus, type GoogleSyncStatus } from '../api'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { ErrorToast } from '../components/ErrorToast'
 import { PageLoading } from '../components/PageLoading'
 import { useApp } from '../context/AppContext'
 
 type SettingsTab = 'account' | 'privacy' | 'integrations' | 'ai'
 
 export function Settings() {
-  const { user, signOut } = useApp()
+  const { user, signOut, onboardingStatus } = useApp()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<SettingsTab>(searchParams.has('google') ? 'integrations' : 'privacy')
@@ -19,6 +20,7 @@ export function Settings() {
   const [exporting, setExporting] = useState(false)
   const [confirmingDeletion, setConfirmingDeletion] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export function Settings() {
       setConfirmingDeletion(false)
       navigate('/')
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Could not delete account. Please try again.')
+      setError(err instanceof Error ? err.message : 'Could not delete account. Please try again.')
     } finally {
       setDeleting(false)
     }
@@ -54,7 +56,7 @@ export function Settings() {
       a.click()
       URL.revokeObjectURL(url)
     } catch {
-      alert('Could not export data. Please try again.')
+      setError('Could not export data. Please try again.')
     } finally {
       setExporting(false)
     }
@@ -78,7 +80,7 @@ export function Settings() {
       setGoogleMessage(`Synced ${result.occurrences} habit occurrences. Imported ${result.imported_completions} completion update${result.imported_completions === 1 ? '' : 's'}.`)
       setGoogleStatus(await api.googleSyncStatus())
     } catch (err) {
-      setGoogleMessage(err instanceof Error ? err.message : 'Google sync failed. Please retry.')
+      setError(err instanceof Error ? err.message : 'Google sync failed. Please retry.')
     } finally {
       setSyncingGoogle(false)
     }
@@ -92,12 +94,13 @@ export function Settings() {
       setGoogleStatus(await api.googleSyncStatus())
       setGoogleMessage('Google Calendar and Tasks disconnected.')
     } catch (err) {
-      setGoogleMessage(err instanceof Error ? err.message : 'Could not disconnect Google.')
+      setError(err instanceof Error ? err.message : 'Could not disconnect Google.')
     }
   }
 
   return (
     <main className="mx-auto w-full max-w-[1280px] px-6 py-8">
+      <ErrorToast message={error} onDismiss={() => setError(null)} />
       {/* Top Profile Overview Card */}
       <div className="mb-8 flex flex-col justify-between gap-6 rounded-lg border border-[#E6E7EA] bg-white p-6 md:flex-row md:items-center">
         <div className="flex items-center gap-5">
@@ -129,6 +132,24 @@ export function Settings() {
           </button>
         </div>
       </div>
+
+      <section className="mb-8 flex flex-col gap-5 rounded-xl border border-[#DCE4FA] bg-[#F6F8FF] p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-body text-[11px] font-semibold uppercase tracking-widest text-[#1E3A8A]">Onboarding status</p>
+          <h2 className="mt-1 font-display text-[19px] font-semibold text-[#0F1115]">{onboardingStatus?.completed ? 'Your discovery is complete' : onboardingStatus?.discoveryReady ? 'Ready to explore matches' : 'Your discovery is in progress'}</h2>
+          <p className="mt-1 max-w-xl font-body text-[13px] leading-relaxed text-[#5B6270]">{onboardingStatus?.completed ? 'You can revisit your career context and conversation whenever you like.' : 'Your progress is saved. Continue whenever you are ready to unlock personalized career guidance.'}</p>
+          <div className="mt-3 flex flex-wrap gap-2 font-body text-[11px]">
+            <span className="rounded-full bg-white px-3 py-1 text-[#1E3A8A]">{user.consent_given ? '✓ Consent' : '1 · Consent'}</span>
+            <span className="rounded-full bg-white px-3 py-1 text-[#1E3A8A]">2 · Career context</span>
+            <span className="rounded-full bg-white px-3 py-1 text-[#1E3A8A]">{onboardingStatus?.discoveryReady ? '✓ Conversation' : '3 · Conversation'}</span>
+            <span className="rounded-full bg-white px-3 py-1 text-[#1E3A8A]">{onboardingStatus?.matchesGenerated ? '✓ Matches' : '4 · Matches'}</span>
+          </div>
+        </div>
+        <Link to={onboardingStatus?.nextPath ?? '/onboarding/consent'} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#0F1115] px-4 py-2.5 font-body text-[13px] font-medium text-white hover:bg-[#252A34]">
+          {onboardingStatus?.completed ? 'View dashboard' : 'Continue onboarding'}
+          <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
+        </Link>
+      </section>
 
       {/* Settings 2-Column Framework */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">

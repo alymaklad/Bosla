@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, type CareerMatch } from '../api'
 import { PageLoading } from '../components/PageLoading'
+import { ErrorToast } from '../components/ErrorToast'
 
 export function Matches() {
   const [matches, setMatches] = useState<CareerMatch[] | null>(null)
@@ -328,7 +329,7 @@ export function Matches() {
               </div>
             </div>
           </div>
-          {chooseError && <p className="text-[13px] text-[#DC2626] mt-2">{chooseError}</p>}
+          <ErrorToast message={chooseError} onDismiss={() => setChooseError(null)} />
         </div>
       </div>
     </main>

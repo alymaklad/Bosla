@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, type DocumentSourceType, type OcrStatus, type PersonalDocument } from '../api'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { ErrorToast } from '../components/ErrorToast'
 import { OnboardingHeader } from '../components/OnboardingHeader'
 import { PageLoading } from '../components/PageLoading'
 
@@ -173,7 +174,7 @@ export function CvUpload() {
 
         <div className="mt-5 space-y-5">
           {notice && <p role="status" className="flex items-start gap-2 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3 font-body text-[13px] text-[#1E3A8A]"><span className="material-symbols-outlined text-[18px]">check_circle</span>{notice}</p>}
-          {error && <p role="alert" className="flex items-start gap-2 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 font-body text-[13px] leading-relaxed text-[#B91C1C]"><span className="material-symbols-outlined text-[18px]">error</span>{error}</p>}
+          <ErrorToast message={error} onDismiss={() => setError(null)} />
 
           {lastPreview?.text && <section className="rounded-xl border border-[#E6E7EA] bg-white p-5"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><h2 className="font-display text-[16px] font-semibold text-[#0F1115]">Latest extracted text</h2><p className="mt-1 font-body text-[12px] text-[#5B6270]">A preview of what Bosla can retrieve for your guidance.</p></div><span className="rounded-full bg-[#E8EDF9] px-2.5 py-1 font-body text-[11px] font-medium text-[#1E3A8A]">{lastPreview.extraction_method === 'ocr' ? 'Read with OCR' : 'Read directly'}</span></div><div className="max-h-44 overflow-y-auto rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] p-3 font-mono text-[12px] leading-5 text-[#45474B]">{lastPreview.text}</div></section>}
 

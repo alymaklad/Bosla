@@ -284,6 +284,8 @@ def _profile_summary_text(p: DiscoveryProfile | None) -> str:
 async def run_assessment(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), ai: AiClient = Depends(get_ai_client)) -> StreamingResponse:
     res = await db.execute(select(DiscoveryProfile).where(DiscoveryProfile.user_id == user.id))
     profile = res.scalar_one_or_none()
+    if profile is None or profile.status != "complete":
+        raise HTTPException(403, "Finish the discovery conversation before generating career guidance.")
     document_context = await _personal_context(
         db, user.id, "career background education experience skills projects credentials achievements preferences"
     )
@@ -439,6 +441,9 @@ async def set_roadmap_step_done(
 async def mentor_chat(
     body: MentorChatRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> StreamingResponse:
+    profile = (await db.execute(select(DiscoveryProfile).where(DiscoveryProfile.user_id == user.id))).scalar_one_or_none()
+    if profile is None or profile.status != "complete":
+        raise HTTPException(403, "Finish the discovery conversation before using your career mentor.")
     ares = await db.execute(select(Assessment).where(Assessment.user_id == user.id).order_by(Assessment.created_at.desc()))
     assessment = ares.scalars().first()
     document_context = await _personal_context(db, user.id, body.message)
