@@ -22,27 +22,7 @@ export function TopBar() {
   const hasSetupReminder = user ? !onboardingStatus?.completed : false
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-30 flex h-16 items-center justify-between border-b border-[#E6E7EA]/90 bg-white/90 px-4 backdrop-blur-xl md:left-64 md:px-7">
-      {/* Search Bar */}
-      <div className="relative w-72 sm:w-80">
-        <span
-          className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#8A8F98]"
-          data-icon="search"
-        >
-          search
-        </span>
-        <input
-          type="search"
-          placeholder="Search careers, habits, courses"
-          className="h-9 w-full rounded-lg border border-[#E6E7EA] bg-[#FAFAF8] pl-9 pr-12 font-body text-[13px] text-[#0F1115] placeholder-[#8A8F98] outline-none transition-colors focus:border-[#1E3A8A]"
-        />
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
-          <kbd className="hidden rounded border border-[#E6E7EA] bg-white px-1.5 py-0.5 font-mono text-[11px] font-medium text-[#5B6270] sm:inline-block">
-            ⌘K
-          </kbd>
-        </div>
-      </div>
-
+    <header className="fixed top-0 right-0 left-0 z-30 flex h-16 items-center justify-end border-b border-[#E6E7EA]/90 bg-white/90 px-4 backdrop-blur-xl md:left-64 md:px-7">
       {/* Trailing Utilities */}
       <div className="flex items-center gap-3">
         <div className="relative">

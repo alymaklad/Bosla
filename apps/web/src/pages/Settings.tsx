@@ -330,6 +330,15 @@ export function Settings() {
                   </div>
                 )}
 
+                <div className="mt-5 flex items-start gap-2.5 rounded-lg border border-[#D8E1FF] bg-[#F4F7FF] p-3 font-body text-[12px] leading-relaxed text-[#1E3A8A]">
+                  <span className="material-symbols-outlined mt-0.5 text-[16px]">info</span>
+                  <p>
+                    <span className="font-semibold">Google Cloud testing mode.</span> Bosla&apos;s Google Calendar connection is still in
+                    Google&apos;s testing stage, so it only works for Google accounts that have been added as approved test users.
+                    Other accounts will see an &ldquo;access blocked&rdquo; or &ldquo;app not verified&rdquo; message from Google.
+                  </p>
+                </div>
+
                 <div className="mt-6 flex flex-wrap gap-3 border-t border-[#E6E7EA] pt-5">
                   {!googleStatus?.connected ? (
                     <button
