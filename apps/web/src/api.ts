@@ -33,8 +33,9 @@ function sanitizeErrorMessage(msg: string): string {
   if (msg === 'no_extractable_text') {
     return 'No readable text was found. If this is a scanned certificate, upload it as a PDF so OCR can read it.'
   }
-  if (msg === 'could_not_read_file') return 'This file could not be opened. Try exporting it again as PDF, DOCX, or TXT.'
-  if (msg === 'unsupported_file_type') return 'Choose a PDF, DOCX, or TXT document.'
+  if (msg === 'could_not_read_file') return 'This file could not be opened. Try exporting it again as PDF, DOCX, TXT, or MD.'
+  if (msg === 'password_protected_pdf') return 'This PDF is password-protected. Remove its password before uploading.'
+  if (msg === 'unsupported_file_type') return 'Choose a PDF, DOCX, TXT, or MD document.'
   if (msg === 'ocr_access_denied') {
     return 'Google Vision rejected this OCR request. Enable Cloud Vision API and billing in the key’s Google Cloud project, then allow this server key to call Vision.'
   }
@@ -453,10 +454,11 @@ export const api = {
   signOut: () => post<{ ok: boolean }>('/auth/signout'),
   deleteAccount: () => del<void>('/auth/account'),
 
-  uploadDocument: async (file: File, documentType: DocumentSourceType): Promise<PersonalDocument> => {
+  uploadDocument: async (file: File, documentType: DocumentSourceType, originalFilename?: string): Promise<PersonalDocument> => {
     const form = new FormData()
     form.append('file', file)
     form.append('document_type', documentType)
+    if (originalFilename) form.append('original_filename', originalFilename)
     const controller = new AbortController()
     const timeout = window.setTimeout(() => controller.abort(), 90_000)
     let res: Response
@@ -469,17 +471,19 @@ export const api = {
       window.clearTimeout(timeout)
     }
     if (!res.ok) {
-      let message = res.statusText
+      let message = res.status === 413
+        ? 'This file is too large for the upload service. Try a smaller or compressed PDF.'
+        : res.statusText || `Upload failed (HTTP ${res.status}). Please try again.`
       try {
         const body = await res.json()
-        message = errorDetail(body.detail, message)
+        message = errorDetail(body.detail ?? body.error, message) || message
       } catch {
         /* ignore */
       }
       throw new ApiError(sanitizeErrorMessage(message), res.status)
     }
     const body = await res.json() as PersonalDocument & { document: PersonalDocument | null }
-    if (!body.document) throw new ApiError(sanitizeErrorMessage(body.error ?? 'Could not extract text from this document.'), 422)
+    if (!body.document) throw new ApiError(sanitizeErrorMessage(body.error || 'Could not extract text from this document.'), 422)
     return body.document
   },
   uploadCv: (file: File) => api.uploadDocument(file, 'cv'),

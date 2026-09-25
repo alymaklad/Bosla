@@ -5,6 +5,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog'
 import { ErrorToast } from '../components/ErrorToast'
 import { OnboardingHeader } from '../components/OnboardingHeader'
 import { PageLoading } from '../components/PageLoading'
+import { DIRECT_UPLOAD_LIMIT, MAX_PDF_INPUT_BYTES, prepareDocument } from '../lib/prepareDocument'
 
 const DOCUMENT_TYPES: { value: DocumentSourceType; label: string; icon: string }[] = [
   { value: 'cv', label: 'CV', icon: 'description' }, { value: 'resume', label: 'Resume', icon: 'article' },
@@ -20,6 +21,7 @@ function labelFor(type: DocumentSourceType) {
 export function CvUpload() {
   const [busy, setBusy] = useState(false)
   const [uploadingName, setUploadingName] = useState<string | null>(null)
+  const [preparingPdf, setPreparingPdf] = useState(false)
   const [documents, setDocuments] = useState<PersonalDocument[]>([])
   const [documentType, setDocumentType] = useState<DocumentSourceType>('cv')
   const [githubUrl, setGithubUrl] = useState('')
@@ -54,28 +56,34 @@ export function CvUpload() {
   async function uploadFiles(files: FileList | File[]) {
     const selected = Array.from(files)
     if (!selected.length || busy) return
-    if (selected.some((file) => file.size > 10 * 1024 * 1024)) {
-      setError('Each document must be 10 MB or smaller.')
+    if (selected.some((file) => file.size > MAX_PDF_INPUT_BYTES)) {
+      setError('Each document must be 10 MB or smaller. Split larger PDFs before uploading.')
       return
     }
     setBusy(true)
     setError(null)
     setNotice(null)
     let savedCount = 0
+    const processingNotes: string[] = []
     try {
       for (const file of selected) {
         setUploadingName(file.name)
-        const saved = await api.uploadDocument(file, documentType)
+        setPreparingPdf(file.name.toLowerCase().endsWith('.pdf') && file.size > DIRECT_UPLOAD_LIMIT)
+        const prepared = await prepareDocument(file)
+        setPreparingPdf(false)
+        const saved = await api.uploadDocument(prepared.file, documentType, prepared.originalFilename)
         setDocuments((current) => [saved, ...current.filter((item) => item.id !== saved.id)])
         setLastPreview(saved)
+        if (prepared.note) processingNotes.push(prepared.note)
         savedCount += 1
       }
     } catch (err) {
       const filename = selected[savedCount]?.name ?? 'This document'
       setError(`${filename}: ${err instanceof Error ? err.message : 'Could not upload this document. Please retry.'}`)
     } finally {
-      if (savedCount) setNotice(`${savedCount} document${savedCount === 1 ? '' : 's'} saved and indexed. ${savedCount < selected.length ? 'The remaining files were not uploaded.' : 'You can see the saved source below.'}`)
+      if (savedCount) setNotice(`${savedCount} document${savedCount === 1 ? '' : 's'} saved and indexed. ${savedCount < selected.length ? 'The remaining files were not uploaded.' : 'You can see the saved source below.'} ${[...new Set(processingNotes)].join(' ')}`)
       setBusy(false)
+      setPreparingPdf(false)
       setUploadingName(null)
       if (inputRef.current) inputRef.current.value = ''
     }
@@ -157,17 +165,17 @@ export function CvUpload() {
         <div className="grid items-start gap-5 lg:grid-cols-2">
           <section className="rounded-xl border border-[#E6E7EA] bg-white p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <div><h2 className="font-display text-[18px] font-semibold text-[#0F1115]">Add documents</h2><p className="mt-1 font-body text-[12px] text-[#5B6270]">PDF, DOCX, or TXT · up to 10 MB each</p></div>
+              <div><h2 className="font-display text-[18px] font-semibold text-[#0F1115]">Add documents</h2><p className="mt-1 font-body text-[12px] text-[#5B6270]">PDF, DOCX, TXT, or MD · PDFs up to 10 MB are optimized locally; other files up to 4 MB</p></div>
               <label className="font-body text-[11px] font-medium text-[#45474B]">Category
                 <select value={documentType} onChange={(event) => setDocumentType(event.target.value as DocumentSourceType)} className="mt-1 block h-9 cursor-pointer rounded-lg border border-[#D8DCE3] bg-white px-2 font-body text-[12px] text-[#0F1115] outline-none transition-colors hover:border-[#1E3A8A] focus:border-[#1E3A8A]">
                   {DOCUMENT_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                 </select>
               </label>
             </div>
-            <input ref={inputRef} type="file" multiple accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" className="hidden" onChange={(event) => event.target.files && void uploadFiles(event.target.files)} />
+            <input ref={inputRef} type="file" multiple accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown" className="hidden" onChange={(event) => event.target.files && void uploadFiles(event.target.files)} />
             <div aria-busy={busy} onClick={() => { if (!busy) inputRef.current?.click() }} onDragOver={(event) => { event.preventDefault(); event.stopPropagation() }} onDrop={(event) => { event.preventDefault(); event.stopPropagation(); if (event.dataTransfer.files.length) void uploadFiles(event.dataTransfer.files) }} className="group mt-5 cursor-pointer rounded-xl border-2 border-dashed border-[#CDD6EA] bg-[#F9FAFF] p-7 text-center transition-all hover:border-[#1E3A8A] hover:bg-[#F2F5FF]">
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#E7EEFF] text-[#1E3A8A] transition-transform group-hover:scale-105"><span className="material-symbols-outlined text-[26px]">upload_file</span></div>
-              <p className="font-body text-[15px] font-semibold text-[#0F1115]">{busy ? `Extracting and indexing ${uploadingName ?? 'document'}…` : `Drop ${labelFor(documentType).toLowerCase()} files here`}</p>
+              <p className="font-body text-[15px] font-semibold text-[#0F1115]">{busy ? `${preparingPdf ? 'Preparing PDF locally' : 'Extracting and indexing'} ${uploadingName ?? 'document'}…` : `Drop ${labelFor(documentType).toLowerCase()} files here`}</p>
               <p className="mt-1 font-body text-[12px] text-[#5B6270]">or choose files from your device</p>
               <button type="button" disabled={busy} onClick={(event) => { event.stopPropagation(); inputRef.current?.click() }} className="mt-4 inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-[#1E3A8A] bg-white px-3 font-body text-[12px] font-semibold text-[#1E3A8A] transition-colors hover:bg-[#E8EDF9] disabled:cursor-not-allowed disabled:opacity-60"><span className="material-symbols-outlined text-[16px]">add</span>Browse files</button>
             </div>
@@ -181,7 +189,7 @@ export function CvUpload() {
           <section className="rounded-xl border border-[#E6E7EA] bg-white p-6">
             <div className="flex items-start gap-3"><span className="material-symbols-outlined mt-0.5 text-[23px] text-[#1E3A8A]">account_tree</span><div><h2 className="font-display text-[18px] font-semibold text-[#0F1115]">Import a GitHub profile</h2><p className="mt-1 font-body text-[12px] leading-relaxed text-[#5B6270]">Bring in public profile details and relevant files from recent non-fork projects. Bosla never executes code or accesses private repositories.</p></div></div>
             <div className="mt-6"><label htmlFor="github-profile" className="font-body text-[11px] font-medium text-[#45474B]">Public profile URL</label><div className="mt-1.5 flex gap-2"><input id="github-profile" value={githubUrl} onChange={(event) => setGithubUrl(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void importGithub() } }} placeholder="https://github.com/your-name" className="h-10 min-w-0 flex-1 rounded-lg border border-[#D8DCE3] px-3 font-body text-[13px] outline-none transition-colors focus:border-[#1E3A8A]" /><button type="button" disabled={!githubUrl.trim() || githubBusy} onClick={() => void importGithub()} className="h-10 cursor-pointer rounded-lg bg-[#0F1115] px-4 font-body text-[13px] font-semibold text-white transition-colors hover:bg-[#252936] disabled:cursor-not-allowed disabled:opacity-50">{githubBusy ? 'Importing…' : 'Import'}</button></div></div>
-            <div className="mt-5 rounded-lg bg-[#F8FAFC] p-3 font-body text-[12px] leading-relaxed text-[#5B6270]">For a reliable MVP import, Bosla checks up to 12 recent public projects and up to 80 supported files in total.</div>
+            <div className="mt-5 rounded-lg bg-[#F8FAFC] p-3 font-body text-[12px] leading-relaxed text-[#5B6270]">Bosla checks up to 12 recent public projects and imports only Markdown, PDF, DOCX, and TXT files, up to 80 files total.</div>
           </section>
         </div>
 

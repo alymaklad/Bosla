@@ -29,7 +29,7 @@ from ..schemas import (
 router = APIRouter(prefix="/career", tags=["career"])
 logger = logging.getLogger(__name__)
 SUPPORTED_DOCUMENT_TYPES = {"cv", "resume", "recommendation", "certificate", "project", "thoughts", "journal", "other"}
-SUPPORTED_DOCUMENT_EXTENSIONS = {".pdf": "application/pdf", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".txt": "text/plain"}
+SUPPORTED_DOCUMENT_EXTENSIONS = {".pdf": "application/pdf", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".txt": "text/plain", ".md": "text/markdown"}
 
 
 def _sse(event: str, data: dict | str) -> bytes:
@@ -59,7 +59,7 @@ def _document_out(row: UserDocument, *, text: str | None = None, truncated: bool
 
 
 async def _ingest_upload(
-    *, file: UploadFile, document_type: str, user: User, db: AsyncSession
+    *, file: UploadFile, document_type: str, user: User, db: AsyncSession, original_filename: str | None = None
 ) -> dict:
     if document_type not in SUPPORTED_DOCUMENT_TYPES:
         raise HTTPException(422, "Choose a valid document category.")
@@ -67,7 +67,7 @@ async def _ingest_upload(
     suffix = filename.lower().rsplit(".", 1)
     extension = f".{suffix[-1]}" if len(suffix) == 2 else ""
     if extension not in SUPPORTED_DOCUMENT_EXTENSIONS:
-        raise HTTPException(415, "Upload a PDF, DOCX, or TXT file.")
+        raise HTTPException(415, "Upload a PDF, DOCX, TXT, or MD file.")
     data = await file.read(knowledge.MAX_DOCUMENT_BYTES + 1)
     if len(data) > knowledge.MAX_DOCUMENT_BYTES:
         raise HTTPException(413, "Documents must be 10 MB or smaller.")
@@ -76,15 +76,16 @@ async def _ingest_upload(
         return {"text": "", "truncated": False, "ok": False, "error": result.error, "document": None}
 
     mime_type = SUPPORTED_DOCUMENT_EXTENSIONS[extension]
+    display_name = (original_filename or filename).replace("\\", "/").split("/")[-1][:512] or filename
     row = (await knowledge.store_documents(
         db,
         user_id=user.id,
-        sources=[(document_type, filename, mime_type, result.text, None, result.method)],
+        sources=[(document_type, display_name, mime_type, result.text, None, result.method)],
     ))[0]
     # Retain the legacy row for pre-existing report/export compatibility while all
     # new personalization uses user_documents + document_chunks.
     if document_type == "cv":
-        db.add(CvUpload(user_id=user.id, filename=filename, text=result.text, truncated=result.truncated, ok=True, error=None))
+        db.add(CvUpload(user_id=user.id, filename=display_name, text=result.text, truncated=result.truncated, ok=True, error=None))
         await db.commit()
     payload = _document_out(row, text=result.text[:7_000], truncated=result.truncated)
     return {"text": payload["text"], "truncated": result.truncated, "ok": True, "error": None, "document": payload}
@@ -94,10 +95,11 @@ async def _ingest_upload(
 async def upload_document(
     file: UploadFile,
     document_type: str = Form("other"),
+    original_filename: str | None = Form(None),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    return await _ingest_upload(file=file, document_type=document_type, user=user, db=db)
+    return await _ingest_upload(file=file, document_type=document_type, user=user, db=db, original_filename=original_filename)
 
 
 @router.post("/cv")
@@ -145,7 +147,7 @@ async def import_github_profile(
         db,
         user_id=user.id,
         sources=[
-            ("project", f"{imported.profile_url.removeprefix('https://github.com/')}/{item.path}", "text/plain", item.text, item.source_url, "github")
+            ("project", f"{imported.profile_url.removeprefix('https://github.com/')}/{item.path}", "text/plain", item.text, item.source_url, item.method)
             for item in imported.files
         ],
     )

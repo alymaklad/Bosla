@@ -82,18 +82,19 @@ both via `stop_sequences` and a client-side backstop for chunk-boundary leaks).
 
 ### Personal evidence retrieval
 
-`POST /career/documents` accepts a user-selected PDF, DOCX, or TXT file and a source type
+`POST /career/documents` accepts a user-selected PDF, DOCX, TXT, or MD file and a source type
 (`cv`, `resume`, `recommendation`, `certificate`, `project`, `thoughts`, or `journal`).
 Text is chunked and stored in the user's Neon `pgvector` index. `POST /career/sources/github`
-imports public profile details plus bounded, supported text files from up to 12 recent
-public, non-fork projects without executing code.
+imports public profile details plus bounded MD, PDF, DOCX, and TXT documents from up to
+12 recent public, non-fork projects without executing code.
 The retrieval helper scopes every query to the signed-in user and supplies evidence to
 discovery, assessment, matches, and mentorship; it never bypasses the discovery readiness
 gate. `DELETE /career/documents/{id}` removes both the source and all of its vectors.
 
-Set `OCR_FALLBACK_URL` and `OCR_FALLBACK_TOKEN` only after deploying the companion OCR
-adapter. Native extraction remains the default, and OCR failures are reported without
-exposing provider details.
+Native extraction remains the default; scanned PDFs use the configured Google Cloud
+Vision OCR integration. PDFs between 4 MB and 10 MB are preprocessed in the browser
+before upload to stay below the Vercel Function request-body limit. Other files must be
+below 4 MB. OCR failures are reported without exposing provider details.
 
 Three steps are **new** — the notebook's free-form markdown output doesn't produce the
 structured data this UI needs, so these are new structured-output prompts, not silent

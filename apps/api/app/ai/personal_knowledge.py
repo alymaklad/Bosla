@@ -40,17 +40,13 @@ CHUNK_SIZE = 1_200
 CHUNK_OVERLAP = 180
 MAX_GITHUB_PROFILE_REPOSITORIES = 12
 MAX_GITHUB_FILES = 80
-MAX_GITHUB_FILE_BYTES = 200_000
+MAX_GITHUB_FILE_BYTES = 4_000_000
 MAX_GITHUB_CHARS = 500_000
 MAX_GITHUB_FILE_CHARS = 20_000
 TOKEN_RE = re.compile(r"[\w+#.\-]{2,}", re.UNICODE)
 GITHUB_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$")
 GITHUB_REPO_RE = re.compile(r"^(?!\.\.?$)[A-Za-z0-9._-]{1,100}$")
-SUPPORTED_GITHUB_SUFFIXES = {
-    ".md", ".txt", ".py", ".js", ".jsx", ".ts", ".tsx", ".json", ".yaml", ".yml",
-    ".toml", ".ini", ".java", ".go", ".rs", ".cs", ".c", ".h", ".cpp", ".hpp",
-    ".html", ".css", ".scss", ".sql", ".sh", ".ps1", ".rb", ".php", ".swift",
-}
+SUPPORTED_GITHUB_SUFFIXES = {".md", ".pdf", ".docx", ".txt"}
 SKIP_GITHUB_PARTS = {".git", "node_modules", "vendor", "dist", "build", ".next", "coverage", "__pycache__"}
 
 
@@ -68,6 +64,7 @@ class GithubTextFile:
     path: str
     text: str
     source_url: str
+    method: str = "github"
 
 
 @dataclass
@@ -99,14 +96,22 @@ def _extract_native(data: bytes, filename: str) -> ExtractionResult:
     suffix = PurePosixPath(filename.lower()).suffix
     try:
         if suffix == ".pdf":
-            reader = pypdf.PdfReader(io.BytesIO(data))
-            raw = "\n".join(page.extract_text() or "" for page in reader.pages)
+            reader = pypdf.PdfReader(io.BytesIO(data), strict=False)
+            if reader.is_encrypted and not reader.decrypt(""):
+                return ExtractionResult("", False, False, "password_protected_pdf", "native")
+            page_text: list[str] = []
+            for page_number, page in enumerate(reader.pages, start=1):
+                try:
+                    page_text.append(page.extract_text() or "")
+                except Exception:
+                    logger.warning("PDF page %s could not be extracted; continuing with remaining pages.", page_number)
+            raw = "\n".join(page_text)
         elif suffix == ".docx":
             document = Document(io.BytesIO(data))
             paragraphs = [paragraph.text for paragraph in document.paragraphs]
             table_cells = [cell.text for table in document.tables for row in table.rows for cell in row.cells]
             raw = "\n".join([*paragraphs, *table_cells])
-        elif suffix == ".txt":
+        elif suffix in {".txt", ".md"}:
             raw = data.decode("utf-8-sig", errors="replace")
         else:
             return ExtractionResult("", False, False, "unsupported_file_type", "native")
@@ -147,7 +152,14 @@ async def _extract_with_ocr(data: bytes, filename: str, content_type: str, setti
                     response = await client.post(url, json=body, headers={"x-goog-api-key": api_key})
                     response.raise_for_status()
                     payload = response.json()
-                    pages = payload.get("responses", [{}])[0].get("responses", [])
+                    file_response = payload.get("responses", [{}])[0]
+                    provider_error = file_response.get("error")
+                    if provider_error:
+                        return ExtractionResult("", False, False, _ocr_error_for_http_status(int(provider_error.get("code") or 503)), "ocr")
+                    pages = file_response.get("responses", [])
+                    page_error = next((page.get("error") for page in pages if page.get("error")), None)
+                    if page_error:
+                        return ExtractionResult("", False, False, _ocr_error_for_http_status(int(page_error.get("code") or 503)), "ocr")
                     extracted_parts = [
                         p.get("fullTextAnnotation", {}).get("text", "")
                         for p in pages
@@ -208,7 +220,7 @@ async def _extract_with_ocr(data: bytes, filename: str, content_type: str, setti
 async def extract_document(data: bytes, filename: str, content_type: str | None) -> ExtractionResult:
     result = _extract_native(data, filename)
     # Scanned PDFs are the only supported files that benefit from visual OCR.
-    if result.ok or not filename.lower().endswith(".pdf"):
+    if result.ok or result.error == "password_protected_pdf" or not filename.lower().endswith(".pdf"):
         return result
     fallback = await _extract_with_ocr(data, filename, content_type or "application/pdf", get_settings())
     return fallback or result
@@ -362,7 +374,7 @@ def _eligible_github_path(path: str) -> bool:
     item = PurePosixPath(path)
     if any(part.lower() in SKIP_GITHUB_PARTS for part in item.parts):
         return False
-    return item.name.lower() in {"readme", "license"} or item.suffix.lower() in SUPPORTED_GITHUB_SUFFIXES
+    return item.suffix.lower() in SUPPORTED_GITHUB_SUFFIXES
 
 
 def _github_profile_text(profile: dict, *, profile_url: str) -> str:
@@ -383,7 +395,7 @@ def _github_profile_text(profile: dict, *, profile_url: str) -> str:
 def _github_candidate_sort_key(item: dict) -> tuple[int, int, str]:
     path = str(item.get("path", "")).lower()
     name = PurePosixPath(path).name
-    # Prefer human-authored project documentation before source files.
+    # Prefer human-authored project documentation.
     priority = 0 if name.startswith("readme") else 1 if "/docs/" in f"/{path}" or path.endswith(".md") else 2
     return priority, len(path.split("/")), path
 
@@ -420,7 +432,7 @@ async def _crawl_github_project(
     ]
     candidates.sort(key=_github_candidate_sort_key)
     candidates = candidates[:remaining_files]
-    skipped = max(0, len(entries) - len(candidates))
+    skipped = max(0, len([item for item in entries if item.get("type") == "blob" and _eligible_github_path(str(item.get("path") or ""))]) - len(candidates))
     files: list[GithubTextFile] = []
     for item in candidates:
         if remaining_chars <= 0:
@@ -429,15 +441,16 @@ async def _crawl_github_project(
         path = item["path"]
         raw_url = f"https://raw.githubusercontent.com/{quote(owner)}/{quote(name)}/{quote(branch, safe='')}/{quote(path, safe='/')}"
         response = await client.get(raw_url, headers={"User-Agent": headers["User-Agent"]})
-        if not response.is_success or b"\x00" in response.content:
+        if not response.is_success or len(response.content) > MAX_GITHUB_FILE_BYTES:
             skipped += 1
             continue
-        text, _ = _trim_text(response.content.decode("utf-8", errors="replace"))
-        if not text:
+        mime_type = {".pdf": "application/pdf", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".md": "text/markdown", ".txt": "text/plain"}[PurePosixPath(path.lower()).suffix]
+        extraction = await extract_document(response.content, path, mime_type)
+        if not extraction.ok:
             skipped += 1
             continue
-        text = text[:min(remaining_chars, MAX_GITHUB_FILE_CHARS)]
-        files.append(GithubTextFile(path=f"{name}/{path}", text=text, source_url=repository_url))
+        text = extraction.text[:min(remaining_chars, MAX_GITHUB_FILE_CHARS)]
+        files.append(GithubTextFile(path=f"{name}/{path}", text=text, source_url=f"{repository_url}/blob/{quote(branch, safe='/')}/{quote(path, safe='/')}", method="github_ocr" if extraction.method == "ocr" else "github"))
         remaining_chars -= len(text)
     return files, skipped
 
