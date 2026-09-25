@@ -266,6 +266,16 @@ export interface Habit {
   archived: boolean
 }
 
+export interface Todo {
+  id: string
+  title: string
+  due_date: string
+  completed: boolean
+  goal_id: string | null
+  occurrence_id: string | null
+  carried_forward: boolean
+}
+
 export interface Occurrence {
   id: string
   habit_id: string
@@ -531,12 +541,17 @@ export const api = {
     }),
   listGoals: () => get<Goal[]>('/goals'),
   commitGoal: (goal_id: string) => post<Habit[]>('/goals/commit', { goal_id }),
+  deleteGoal: (goal_id: string) => del<void>(`/goals/${goal_id}`),
 
   createHabit: (body: { name: string; recurrence: object; scheduled_time?: string; baseline_minutes?: number; goal_id?: string | null }) =>
     post<Habit>('/habits', body),
   listHabits: () => get<Habit[]>('/habits'),
   todayHabits: () => get<Occurrence[]>('/habits/today'),
   weekHabits: () => get<Occurrence[]>('/habits/week'),
+  listTodos: (day?: string) => get<Todo[]>(`/habits/todos${day ? `?day=${encodeURIComponent(day)}` : ''}`),
+  createTodo: (body: { title: string; due_date?: string; goal_id?: string; occurrence_id?: string }) => post<Todo>('/habits/todos', body),
+  setTodoCompletion: (id: string, completed: boolean) => post<Todo>(`/habits/todos/${id}/completion`, { completed }),
+  deleteTodo: (id: string) => del<void>(`/habits/todos/${id}`),
   logOccurrence: (id: string, body: { minutes?: number; completed?: boolean; origin?: string }) => post<Occurrence>(`/habits/occurrences/${id}/log`, body),
   skipOccurrence: (id: string, reason: string) => post<Occurrence>(`/habits/occurrences/${id}/skip`, { reason }),
   weeklyReview: (week = 0) => get<WeeklyReview>(`/habits/review?week=${week}`),

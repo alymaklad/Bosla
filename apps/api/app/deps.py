@@ -1,4 +1,8 @@
+import hashlib
+from datetime import datetime
+
 from fastapi import Cookie, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .ai.base import AiClient
@@ -6,7 +10,7 @@ from .ai.client import AnthropicAiClient
 from .ai.groq_client import GroqAiClient
 from .config import Settings, get_settings
 from .db import get_db
-from .models import User
+from .models import User, UserSession
 
 
 async def get_current_user(
@@ -14,7 +18,11 @@ async def get_current_user(
 ) -> User:
     if not bosla_user:
         raise HTTPException(401, "Not signed in")
-    user = await db.get(User, bosla_user)
+    token_hash = hashlib.sha256(bosla_user.encode()).hexdigest()
+    session = (await db.execute(select(UserSession).where(UserSession.token_hash == token_hash))).scalar_one_or_none()
+    if session is None or session.expires_at <= datetime.utcnow():
+        raise HTTPException(401, "Your session has expired. Please sign in again.")
+    user = await db.get(User, session.user_id)
     if user is None:
         raise HTTPException(401, "Not signed in")
     return user

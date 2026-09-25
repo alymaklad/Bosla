@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
+import re
 
 import pypdf
 from pydantic import BaseModel
@@ -24,6 +25,29 @@ SIMULATION_MARKERS = ["Human:", "User:", "assistant:", "Hello, I am"]
 DIMENSIONS = ["interests", "strengths", "skills", "experience", "motivations"]
 MIN_EXCHANGES = 8
 MAX_EXCHANGES = 20
+
+DISCOVERY_FOLLOWUPS = (
+    "Which activity from your studies or work would you choose to do again, and why?",
+    "What is one skill you have used in a real project?",
+    "What kind of problem keeps your attention even when it becomes difficult?",
+    "Which part of a recent project felt most natural to you?",
+    "What evidence would you show someone to demonstrate your strongest skill?",
+    "What work environment helps you do your best work?",
+    "What is one task you would prefer not to do every day?",
+    "Which career outcome matters most to you right now?",
+    "What feedback have others given you about your strengths?",
+    "What is one experience that changed the direction you want to explore?",
+    "Which topic would you be willing to practise for several months?",
+    "What do you want your next role to let you learn?",
+    "What kind of team, if any, helps you thrive?",
+    "Which project would you most like to build next?",
+    "What trade-off would you accept for more meaningful work?",
+    "What part of your background do you think employers might overlook?",
+    "Which daily responsibility would make a role feel worthwhile?",
+    "What would you like to be able to do confidently one year from now?",
+    "Which of your possible directions still feels most uncertain?",
+    "What missing fact would help you choose between those directions?",
+)
 
 
 # ------------------------------------------------------------------- CV ingestion
@@ -114,8 +138,27 @@ async def stream_discovery_turn(
     ai: AiClient, *, persona: str | None, evidence_context: str | None, history: list[dict]
 ) -> AsyncGenerator[str, None]:
     system = _discovery_system_prompt(persona, evidence_context)
+    # Discovery has a one-question contract. Buffer the short model answer before
+    # emitting it so a model-generated summary or several questions cannot leak
+    # into the saved conversation/UI as a turn without a clear next question.
+    chunks: list[str] = []
     async for chunk in ai.stream_chat(system, history, temperature=0.8, max_tokens=300):
-        yield chunk
+        chunks.append(chunk)
+    if not chunks:
+        raise ValueError("The discovery service returned an empty response.")
+    yield normalise_discovery_turn("".join(chunks), history)
+
+
+def normalise_discovery_turn(text: str, history: list[dict]) -> str:
+    """Keep one concise question or choose a varied, deterministic follow-up."""
+    question_end = text.find("?")
+    if question_end >= 0:
+        paragraph = text[: question_end + 1].split("\n\n")[-1].strip()
+        paragraph = re.sub(r"(?m)^\s*(?:[-*#]+|\d+[.)])\s*", "", paragraph)
+        if 4 <= len(paragraph.split()) <= 60 and paragraph.count("?") == 1:
+            return paragraph
+    exchange_count = sum(message["role"] == "user" for message in history)
+    return DISCOVERY_FOLLOWUPS[max(exchange_count, 1) % len(DISCOVERY_FOLLOWUPS)]
 
 
 async def extract_profile(
@@ -238,6 +281,8 @@ async def generate_career_matches(
         "assumed; and a market context object with a realistic salary range, remote-work likelihood, "
         "demand level, an explicit location, a named source type (e.g. 'Bureau of Labor Statistics', 'industry reports'), and "
         "an as_of period (e.g. '2026'). If location/date/source cannot be supported, leave salary empty. Never invent a precise citation you cannot stand behind — "
+        "Use the person's stated location as the salary market when it is known; do not substitute a US benchmark for a person in another market. "
+        "If a credible salary range for that market is unavailable, leave salary empty. "
         "describe the kind of source instead when unsure. Order matches by fit_score, descending."
     )
     user = (

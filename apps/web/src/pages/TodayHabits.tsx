@@ -1,12 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { api, HABITS_CHANGED_EVENT, type Occurrence } from '../api'
+import { api, HABITS_CHANGED_EVENT, type Goal, type Occurrence, type Todo } from '../api'
 import { PageLoading } from '../components/PageLoading'
 import { ErrorToast } from '../components/ErrorToast'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 
 export function TodayHabits() {
   const location = useLocation() as { state?: { scope?: 'week'; notice?: string } }
   const [occs, setOccs] = useState<Occurrence[] | null>(null)
+  const [todos, setTodos] = useState<Todo[]>([])
+  const [goals, setGoals] = useState<Goal[]>([])
+  const [todoTitle, setTodoTitle] = useState('')
+  const [subtaskDraft, setSubtaskDraft] = useState<Record<string, string>>({})
+  const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null)
+  const [deletingGoal, setDeletingGoal] = useState(false)
   const [scope, setScope] = useState<'today' | 'week'>(location.state?.scope === 'week' ? 'week' : 'today')
   const [notice] = useState<string | null>(location.state?.notice ?? null)
   const [error, setError] = useState<string | null>(null)
@@ -26,11 +33,15 @@ export function TodayHabits() {
     if (!quiet) setLoading(true)
     try {
       setError(null)
-      const [items, progress] = await Promise.all([
+      const [items, progress, taskItems, goalItems] = await Promise.all([
         scope === 'week' ? api.weekHabits() : api.todayHabits(),
         api.progress(),
+        api.listTodos(),
+        api.listGoals(),
       ])
       setOccs(items)
+      setTodos(taskItems)
+      setGoals(goalItems)
       setCurrentStreak(progress.streak.current)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load your habits. Please refresh and try again.')
@@ -105,11 +116,48 @@ export function TodayHabits() {
     }
   }
 
+  async function addTodo(occurrenceId?: string) {
+    const title = occurrenceId ? subtaskDraft[occurrenceId]?.trim() : todoTitle.trim()
+    if (!title) return
+    try {
+      await api.createTodo({ title, ...(occurrenceId ? { occurrence_id: occurrenceId } : {}) })
+      if (occurrenceId) setSubtaskDraft((draft) => ({ ...draft, [occurrenceId]: '' }))
+      else setTodoTitle('')
+      await load(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not add this to-do.')
+    }
+  }
+
+  async function toggleTodo(todo: Todo) {
+    try {
+      await api.setTodoCompletion(todo.id, !todo.completed)
+      await load(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update this to-do.')
+    }
+  }
+
+  async function removeGoal() {
+    if (!goalToDelete) return
+    setDeletingGoal(true)
+    try {
+      await api.deleteGoal(goalToDelete.id)
+      setGoalToDelete(null)
+      await load(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not delete this goal.')
+    } finally {
+      setDeletingGoal(false)
+    }
+  }
+
   const todayFormatted = new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
   }).format(new Date())
+  const todayIso = new Date().toISOString().slice(0, 10)
 
   const formatTimer = (sec: number) => {
     const m = Math.floor(sec / 60)
@@ -243,6 +291,8 @@ export function TodayHabits() {
                       <button
                         type="button"
                         onClick={() => toggle(o)}
+                        aria-label={`${done ? 'Mark incomplete' : 'Complete'} ${o.habit_name}`}
+                        aria-pressed={done}
                         className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded ${
                           done
                             ? 'bg-[#0F1115] text-white'
@@ -290,11 +340,11 @@ export function TodayHabits() {
                             Target: {o.target_minutes} min
                           </span>
                           {done && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#EAF7EE] px-2 py-0.5 font-body text-[11px] font-medium text-[#16A34A]">
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-body text-[11px] font-medium ${isAssumed ? 'bg-[#FEF3C7] text-[#92400E]' : 'bg-[#EAF7EE] text-[#166534]'}`}>
                               <span className="material-symbols-outlined text-[13px]">
-                                verified
+                                {isAssumed ? 'edit_note' : 'verified'}
                               </span>
-                              Verified by timer (+{o.xp} XP)
+                              {isAssumed ? 'Manually ticked · assumed' : o.origin === 'timer' ? 'Verified by timer' : 'Minutes logged'} (+{o.xp} XP)
                             </span>
                           )}
                         </div>
@@ -431,10 +481,61 @@ export function TodayHabits() {
                       </button>
                     </div>
                   )}
+
+                  {o.date === todayIso && (
+                    <div className="mt-4 border-t border-[#E6E7EA] pt-3">
+                      <p className="font-body text-[12px] font-medium text-[#5B6270]">Session subtasks · today only</p>
+                      {todos.filter((todo) => todo.occurrence_id === o.id).map((todo) => (
+                        <label key={todo.id} className="mt-2 flex cursor-pointer items-center gap-2 font-body text-[13px] text-[#0F1115]">
+                          <input type="checkbox" checked={todo.completed} onChange={() => void toggleTodo(todo)} />
+                          <span className={todo.completed ? 'text-[#76777B] line-through' : ''}>{todo.title}</span>
+                        </label>
+                      ))}
+                      <form onSubmit={(event) => { event.preventDefault(); void addTodo(o.id) }} className="mt-2 flex gap-2">
+                        <input
+                          aria-label={`Add a subtask for ${o.habit_name}`}
+                          value={subtaskDraft[o.id] ?? ''}
+                          onChange={(event) => setSubtaskDraft((draft) => ({ ...draft, [o.id]: event.target.value }))}
+                          placeholder="Add a session subtask"
+                          className="h-9 min-w-0 flex-1 rounded-lg border border-[#E6E7EA] px-3 font-body text-[13px] outline-none focus:border-[#1E3A8A]"
+                        />
+                        <button type="submit" className="h-9 rounded-lg border border-[#1E3A8A] px-3 font-body text-[12px] font-medium text-[#1E3A8A] hover:bg-[#F0F3FF]">Add</button>
+                      </form>
+                    </div>
+                  )}
                 </article>
               )
             })
           )}
+
+          <section className="rounded-lg border border-[#E6E7EA] bg-white p-5">
+            <h2 className="font-display text-[18px] font-semibold text-[#0F1115]">Daily to-dos</h2>
+            <p className="mt-1 font-body text-[12px] text-[#5B6270]">Unfinished manual to-dos carry into the next day.</p>
+            <form onSubmit={(event) => { event.preventDefault(); void addTodo() }} className="mt-4 flex gap-2">
+              <input
+                aria-label="New daily to-do"
+                value={todoTitle}
+                onChange={(event) => setTodoTitle(event.target.value)}
+                placeholder="What is one concrete thing to do?"
+                className="h-10 min-w-0 flex-1 rounded-lg border border-[#E6E7EA] px-3 font-body text-[13px] outline-none focus:border-[#1E3A8A]"
+              />
+              <button type="submit" className="h-10 rounded-lg bg-[#0F1115] px-4 font-body text-[13px] font-medium text-white hover:bg-[#1C1F26]">Add</button>
+            </form>
+            <div className="mt-3 space-y-2">
+              {todos.filter((todo) => !todo.occurrence_id).length === 0 && (
+                <p className="font-body text-[13px] text-[#76777B]">No to-dos for today.</p>
+              )}
+              {todos.filter((todo) => !todo.occurrence_id).map((todo) => (
+                <label key={todo.id} className="flex cursor-pointer items-start gap-2 rounded-lg border border-[#E6E7EA] px-3 py-2 font-body text-[13px]">
+                  <input type="checkbox" checked={todo.completed} onChange={() => void toggleTodo(todo)} className="mt-0.5" />
+                  <span className="flex-1">
+                    <span className={todo.completed ? 'text-[#76777B] line-through' : 'text-[#0F1115]'}>{todo.title}</span>
+                    {todo.carried_forward && <span className="ml-2 text-[11px] text-[#B45309]">Carried from {todo.due_date}</span>}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </section>
         </div>
 
         {/* Right Column: Consistency Rail (4 cols) */}
@@ -476,8 +577,34 @@ export function TodayHabits() {
               <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
             </Link>
           </div>
+
+          {goals.length > 0 && (
+            <section className="rounded-lg border border-[#E6E7EA] bg-white p-5">
+              <h2 className="font-display text-[16px] font-semibold text-[#0F1115]">Your goals</h2>
+              <p className="mt-1 font-body text-[12px] text-[#5B6270]">Removing a goal keeps its habits and to-do history.</p>
+              <div className="mt-3 space-y-2">
+                {goals.map((goal) => (
+                  <div key={goal.id} className="flex items-start justify-between gap-2 border-t border-[#E6E7EA] pt-2">
+                    <span className="font-body text-[13px] text-[#0F1115]">{goal.title}</span>
+                    <button type="button" onClick={() => setGoalToDelete(goal)} className="shrink-0 font-body text-[12px] text-[#B91C1C] hover:text-[#991B1B]">Remove</button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
+      <ConfirmDialog
+        open={goalToDelete !== null}
+        title="Remove this goal?"
+        description="Its linked habits, completed sessions, and to-dos will stay in your history. They will no longer be attached to this goal."
+        confirmLabel="Remove goal"
+        cancelLabel="Keep goal"
+        note="Only the goal plan is removed. Your activity history remains available."
+        busy={deletingGoal}
+        onCancel={() => setGoalToDelete(null)}
+        onConfirm={() => void removeGoal()}
+      />
     </main>
   )
 }

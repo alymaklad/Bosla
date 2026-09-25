@@ -1,10 +1,12 @@
 import hashlib
 import hmac
+import os
 import secrets
+from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db import get_db
 from ..config import get_settings
 from ..deps import get_current_user
-from ..models import Assessment, CareerMatch, CvUpload, DiscoveryMessage, DiscoveryProfile, DocumentChunk, Goal, GoogleIntegration, GoogleSyncLink, Habit, MentorMessage, Occurrence, Roadmap, User, UserDocument
+from ..models import Assessment, CareerMatch, CvUpload, DiscoveryMessage, DiscoveryProfile, DocumentChunk, Goal, GoogleIntegration, GoogleSyncLink, Habit, MentorMessage, Occurrence, Roadmap, Todo, User, UserDocument, UserSession
 from ..schemas import ConsentRequest, RegisterRequest, SignInRequest, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -36,10 +38,20 @@ def _valid_password(password: str, encoded: str | None) -> bool:
     return hmac.compare_digest(_hash_password(password, salt), encoded)
 
 
-def _set_session(response: Response, user: User) -> None:
+async def _set_session(response: Response, user: User, db: AsyncSession) -> None:
+    token = secrets.token_urlsafe(48)
+    await db.execute(delete(UserSession).where(
+        UserSession.user_id == user.id, UserSession.expires_at <= datetime.utcnow()
+    ))
+    db.add(UserSession(
+        user_id=user.id, token_hash=hashlib.sha256(token.encode()).hexdigest(),
+        expires_at=datetime.utcnow() + timedelta(seconds=SESSION_AGE),
+    ))
+    await db.commit()
+    settings = get_settings()
     response.set_cookie(
-        "bosla_user", user.id, httponly=True, samesite=get_settings().session_cookie_samesite,
-        secure=get_settings().session_cookie_secure,
+        "bosla_user", token, httponly=True, samesite=settings.session_cookie_samesite,
+        secure=settings.session_cookie_secure or settings.web_app_url.startswith("https://") or bool(os.getenv("VERCEL")),
         max_age=SESSION_AGE,
     )
 
@@ -56,7 +68,7 @@ async def register(body: RegisterRequest, response: Response, db: AsyncSession =
     db.add(user)
     await db.commit()
     await db.refresh(user)
-    _set_session(response, user)
+    await _set_session(response, user, db)
     return user
 
 
@@ -66,7 +78,7 @@ async def sign_in(body: SignInRequest, response: Response, db: AsyncSession = De
     user = result.scalar_one_or_none()
     if user is None or user.auth_provider != "password" or not _valid_password(body.password, user.password_hash):
         raise HTTPException(401, "Invalid email or password.")
-    _set_session(response, user)
+    await _set_session(response, user, db)
     return user
 
 
@@ -105,7 +117,7 @@ async def google_callback(code: str, state: str, request: Request, db: AsyncSess
         await db.refresh(user)
     destination = "/onboarding/consent" if not user.consent_given else "/dashboard"
     response = RedirectResponse(f"{settings.web_app_url.rstrip('/')}{destination}")
-    _set_session(response, user)
+    await _set_session(response, user, db)
     response.delete_cookie("bosla_oauth_state")
     return response
 
@@ -132,9 +144,11 @@ async def delete_account(user: User = Depends(get_current_user), db: AsyncSessio
     await db.execute(delete(GoogleIntegration).where(GoogleIntegration.user_id == user.id))
     await db.execute(delete(DocumentChunk).where(DocumentChunk.user_id == user.id))
     await db.execute(delete(UserDocument).where(UserDocument.user_id == user.id))
+    await db.execute(delete(Todo).where(Todo.user_id == user.id))
     if habit_ids:
         await db.execute(delete(Occurrence).where(Occurrence.habit_id.in_(habit_ids)))
-    for model in (CvUpload, DiscoveryMessage, DiscoveryProfile, Assessment, CareerMatch, MentorMessage, Roadmap, Goal, Habit):
+    await db.execute(delete(UserSession).where(UserSession.user_id == user.id))
+    for model in (CvUpload, DiscoveryMessage, DiscoveryProfile, Assessment, MentorMessage, Roadmap, CareerMatch, Habit, Goal):
         await db.execute(delete(model).where(model.user_id == user.id))
     await db.delete(user)
     await db.commit()
@@ -144,6 +158,12 @@ async def delete_account(user: User = Depends(get_current_user), db: AsyncSessio
 
 
 @router.post("/signout")
-async def sign_out(response: Response) -> dict:
+async def sign_out(
+    response: Response, bosla_user: str | None = Cookie(default=None), db: AsyncSession = Depends(get_db)
+) -> dict:
+    if bosla_user:
+        token_hash = hashlib.sha256(bosla_user.encode()).hexdigest()
+        await db.execute(delete(UserSession).where(UserSession.token_hash == token_hash))
+        await db.commit()
     response.delete_cookie("bosla_user")
     return {"ok": True}

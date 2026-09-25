@@ -38,6 +38,16 @@ class CvUpload(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    user_id: Mapped[str] = mapped_column(String(32), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class UserDocument(Base):
     """A user-owned text source. Original binary files are not retained by the API."""
 
@@ -174,7 +184,7 @@ class Habit(Base):
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
     user_id: Mapped[str] = mapped_column(String(32), ForeignKey("users.id"))
-    goal_id: Mapped[str | None] = mapped_column(String(32), ForeignKey("goals.id"), nullable=True)
+    goal_id: Mapped[str | None] = mapped_column(String(32), ForeignKey("goals.id", ondelete="SET NULL"), nullable=True)
     name: Mapped[str] = mapped_column(String(255))
     recurrence: Mapped[dict] = mapped_column(JSON, default=dict)
     scheduled_time: Mapped[str] = mapped_column(String(8), default="09:00")
@@ -200,6 +210,22 @@ class Occurrence(Base):
     origin: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     habit: Mapped["Habit"] = relationship(back_populates="occurrences")
+
+
+class Todo(Base):
+    """A manual task carries forward; an occurrence subtask stays on its session."""
+
+    __tablename__ = "todos"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    user_id: Mapped[str] = mapped_column(String(32), ForeignKey("users.id"), index=True)
+    goal_id: Mapped[str | None] = mapped_column(String(32), ForeignKey("goals.id", ondelete="SET NULL"), nullable=True)
+    occurrence_id: Mapped[str | None] = mapped_column(String(32), ForeignKey("occurrences.id", ondelete="CASCADE"), nullable=True)
+    title: Mapped[str] = mapped_column(String(255))
+    due_date: Mapped[str] = mapped_column(String(10))
+    completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 class GoogleIntegration(Base):

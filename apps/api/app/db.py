@@ -62,6 +62,9 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def init_db() -> None:
     async with engine.begin() as conn:
         if conn.dialect.name == "postgresql":
+            # Several Vercel instances can cold-start together. Serialize the
+            # create_all / one-time FK upgrade so they cannot race each other.
+            await conn.execute(text("SELECT pg_advisory_xact_lock(324671, 1)"))
             # Neon supports pgvector. Creating the extension before the ORM tables
             # makes a new deployment self-contained instead of relying on a manual
             # dashboard action.
@@ -72,6 +75,7 @@ async def init_db() -> None:
         await conn.run_sync(_migrate_user_columns)
         await conn.run_sync(_migrate_career_match_columns)
         if conn.dialect.name == "postgresql":
+            await conn.run_sync(_migrate_habit_goal_foreign_key)
             # HNSW makes per-user cosine retrieval fast once the personal corpus grows.
             async with conn.begin_nested():
                 await conn.execute(text(
@@ -92,3 +96,28 @@ def _migrate_career_match_columns(connection) -> None:
     columns = {column["name"] for column in inspect(connection).get_columns("career_matches")}
     if "location" not in columns:
         connection.execute(text("ALTER TABLE career_matches ADD COLUMN location VARCHAR(255) DEFAULT ''"))
+
+
+def _migrate_habit_goal_foreign_key(connection) -> None:
+    """Upgrade existing Neon tables; create_all only applies the FK to new tables."""
+    foreign_keys = inspect(connection).get_foreign_keys("habits")
+    for foreign_key in foreign_keys:
+        if foreign_key["constrained_columns"] != ["goal_id"]:
+            continue
+        ondelete = (foreign_key.get("options") or {}).get("ondelete") or ""
+        if ondelete.upper() == "SET NULL":
+            return
+        name = foreign_key.get("name")
+        if not name:
+            raise RuntimeError("Cannot migrate an unnamed habits.goal_id foreign key.")
+        quoted_name = connection.dialect.identifier_preparer.quote(name)
+        connection.execute(text(f"ALTER TABLE habits DROP CONSTRAINT {quoted_name}"))
+        connection.execute(text(
+            "ALTER TABLE habits ADD CONSTRAINT habits_goal_id_fkey "
+            "FOREIGN KEY (goal_id) REFERENCES goals(id) ON DELETE SET NULL"
+        ))
+        return
+    connection.execute(text(
+        "ALTER TABLE habits ADD CONSTRAINT habits_goal_id_fkey "
+        "FOREIGN KEY (goal_id) REFERENCES goals(id) ON DELETE SET NULL"
+    ))

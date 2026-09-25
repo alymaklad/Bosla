@@ -4,7 +4,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import ValidationError
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..ai import goal_planner as gp
@@ -13,7 +13,7 @@ from ..config import get_settings
 from ..db import get_db
 from ..deps import ai_error_message, get_ai_client, get_current_user
 from ..habit_engine import Recurrence, expand, target_for_level
-from ..models import Goal, Habit, User
+from ..models import Goal, Habit, Todo, User
 from ..schemas import CommitGoalRequest, GoalDraftRequest, GoalOut, HabitCreateRequest
 
 router = APIRouter(prefix="/goals", tags=["goals"])
@@ -96,6 +96,21 @@ async def get_goal(goal_id: str, user: User = Depends(get_current_user), db: Asy
     return goal
 
 
+@router.delete("/{goal_id}", status_code=204)
+async def delete_goal(
+    goal_id: str, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> None:
+    goal = await db.get(Goal, goal_id)
+    if goal is None or goal.user_id != user.id:
+        raise HTTPException(404, "Goal not found")
+    # Keep the history readable even on older SQLite databases whose FK was
+    # created before the ON DELETE SET NULL migration existed.
+    await db.execute(update(Habit).where(Habit.goal_id == goal_id, Habit.user_id == user.id).values(goal_id=None))
+    await db.execute(update(Todo).where(Todo.goal_id == goal_id, Todo.user_id == user.id).values(goal_id=None))
+    await db.delete(goal)
+    await db.commit()
+
+
 @router.post("/commit", response_model=list[dict])
 async def commit_goal(body: CommitGoalRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> list[dict]:
     """Turns a goal plan's sessions into real recurring Habit rows - the wizard's
@@ -127,6 +142,15 @@ async def commit_goal(body: CommitGoalRequest, user: User = Depends(get_current_
         )
         db.add(habit)
         created.append(habit)
+    for milestone in goal.plan.get("milestones", []):
+        try:
+            title = str(milestone["title"]).strip()
+            due_date = date.fromisoformat(milestone["dueDate"]).isoformat()
+        except (KeyError, TypeError, ValueError) as err:
+            raise HTTPException(422, "The generated goal plan contains an invalid to-do. Regenerate it.") from err
+        if not title:
+            raise HTTPException(422, "The generated goal plan contains an empty to-do.")
+        db.add(Todo(user_id=user.id, goal_id=goal.id, title=title[:255], due_date=due_date))
     goal.status = "committed"
     await db.commit()
     for h in created:

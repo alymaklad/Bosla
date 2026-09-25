@@ -50,7 +50,7 @@ export function SignIn() {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="font-body text-[11px] text-[#8A8F98]">v2.4.0</span>
+          <span className="font-body text-[11px] text-[#5B6270]">v2.4.0</span>
         </div>
       </header>
 
@@ -97,7 +97,7 @@ export function SignIn() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Aly Maklad"
-                    className="h-10 w-full rounded-lg border border-[#E6E7EA] bg-white px-3 font-body text-[14px] text-[#0F1115] placeholder-[#8A8F98] outline-none transition-colors focus:border-[#0F1115]"
+                    className="h-10 w-full rounded-lg border border-[#E6E7EA] bg-white px-3 font-body text-[14px] text-[#0F1115] placeholder-[#5B6270] outline-none transition-colors focus:border-[#0F1115]"
                   />
                 </div>
               )}
@@ -117,7 +117,7 @@ export function SignIn() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="h-10 w-full rounded-lg border border-[#E6E7EA] bg-white px-3 font-body text-[14px] text-[#0F1115] placeholder-[#8A8F98] outline-none transition-colors focus:border-[#0F1115]"
+                  className="h-10 w-full rounded-lg border border-[#E6E7EA] bg-white px-3 font-body text-[14px] text-[#0F1115] placeholder-[#5B6270] outline-none transition-colors focus:border-[#0F1115]"
                 />
               </div>
 
@@ -130,7 +130,7 @@ export function SignIn() {
                   >
                     Password
                   </label>
-                  <span className="font-body text-[11px] text-[#8A8F98]">8+ characters</span>
+                  <span className="font-body text-[11px] text-[#5B6270]">8+ characters</span>
                 </div>
                 <input
                   id="password"
@@ -140,7 +140,7 @@ export function SignIn() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="h-10 w-full rounded-lg border border-[#E6E7EA] bg-white px-3 font-body text-[14px] tracking-widest text-[#0F1115] placeholder-[#8A8F98] outline-none transition-colors focus:border-[#0F1115]"
+                  className="h-10 w-full rounded-lg border border-[#E6E7EA] bg-white px-3 font-body text-[14px] tracking-widest text-[#0F1115] placeholder-[#5B6270] outline-none transition-colors focus:border-[#0F1115]"
                 />
               </div>
 
@@ -163,7 +163,7 @@ export function SignIn() {
                 <div className="w-full border-t border-[#E6E7EA]" />
               </div>
               <div className="relative bg-white px-3">
-                <span className="font-body text-[11px] uppercase tracking-wider text-[#8A8F98]">or</span>
+                <span className="font-body text-[11px] uppercase tracking-wider text-[#5B6270]">or</span>
               </div>
             </div>
 
@@ -215,7 +215,7 @@ export function SignIn() {
 
       {/* Quiet Editorial Footer */}
       <footer className="w-full px-8 py-6 text-center">
-        <div className="flex items-center justify-center gap-4 font-body text-[11px] text-[#8A8F98]">
+        <div className="flex items-center justify-center gap-4 font-body text-[11px] text-[#5B6270]">
           <span>Privacy Policy</span>
           <span className="h-1 w-1 rounded-full bg-[#E6E7EA]" />
           <span>Terms of Service</span>

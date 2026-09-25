@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from fastapi.responses import Response, StreamingResponse
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..ai import career_discovery as cd
@@ -185,6 +185,10 @@ async def _history(db: AsyncSession, user_id: str) -> list[dict]:
 
 @router.post("/discovery/start", response_model=DiscoveryMessageOut)
 async def start_discovery(body: DiscoveryStartRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> dict:
+    # Restarting discovery invalidates guidance derived from the old answers.
+    # Personal documents and independently scheduled habits remain intact.
+    await _clear_generated_career(db, user.id)
+    await db.execute(delete(Assessment).where(Assessment.user_id == user.id))
     await db.execute(delete(DiscoveryMessage).where(DiscoveryMessage.user_id == user.id))
     await db.execute(delete(DiscoveryProfile).where(DiscoveryProfile.user_id == user.id))
     await db.commit()
@@ -225,10 +229,13 @@ async def get_discovery_profile(user: User = Depends(get_current_user), db: Asyn
 async def send_discovery_message(
     body: DiscoverySendRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), ai: AiClient = Depends(get_ai_client)
 ) -> StreamingResponse:
-    db.add(DiscoveryMessage(user_id=user.id, role="user", content=body.message))
-    await db.commit()
-
+    exchange_count = (await db.execute(select(func.count()).select_from(DiscoveryMessage).where(
+        DiscoveryMessage.user_id == user.id, DiscoveryMessage.role == "user"
+    ))).scalar_one()
+    if exchange_count >= cd.MAX_EXCHANGES:
+        raise HTTPException(409, "You have completed the discovery conversation. Generate your matches to continue.")
     history = await _history(db, user.id)
+    history.append({"role": "user", "content": body.message})
     document_context = await _personal_context(db, user.id, body.message)
 
     async def gen():
@@ -238,13 +245,12 @@ async def send_discovery_message(
                 full += chunk
                 yield _sse("chunk", {"text": chunk})
 
-            db.add(DiscoveryMessage(user_id=user.id, role="assistant", content=full))
-            await db.commit()
-
             updated_history = history + [{"role": "assistant", "content": full}]
             profile = await cd.extract_profile(ai, history=updated_history, previous=None)
             ready = cd.discovery_ready(profile)
 
+            db.add(DiscoveryMessage(user_id=user.id, role="user", content=body.message))
+            db.add(DiscoveryMessage(user_id=user.id, role="assistant", content=full))
             res = await db.execute(select(DiscoveryProfile).where(DiscoveryProfile.user_id == user.id))
             row = res.scalar_one_or_none()
             if row is None:
@@ -280,6 +286,13 @@ def _profile_summary_text(p: DiscoveryProfile | None) -> str:
         if text:
             parts.append(f"{label} ({conf} confidence): {text}")
     return "\n".join(parts) or "No discovery profile recorded."
+
+
+async def _clear_generated_career(db: AsyncSession, user_id: str) -> None:
+    """Remove dependent guidance before replacing its match rows."""
+    await db.execute(delete(MentorMessage).where(MentorMessage.user_id == user_id))
+    await db.execute(delete(Roadmap).where(Roadmap.user_id == user_id))
+    await db.execute(delete(CareerMatch).where(CareerMatch.user_id == user_id))
 
 
 @router.post("/assessment")
@@ -329,18 +342,32 @@ async def generate_matches(user: User = Depends(get_current_user), db: AsyncSess
     if assessment is None:
         raise HTTPException(400, "Run the assessment before generating matches.")
 
-    ai = get_ai_client()
     pres = await db.execute(select(DiscoveryProfile).where(DiscoveryProfile.user_id == user.id))
     profile = pres.scalar_one_or_none()
     if profile is None or profile.status != "complete":
         raise HTTPException(400, "Continue the discovery conversation before generating matches.")
+    confidence_levels = (
+        profile.interests_confidence, profile.strengths_confidence, profile.skills_confidence,
+        profile.experience_confidence, profile.motivations_confidence,
+    )
+    if sum(level in {"medium", "high"} for level in confidence_levels) < 3:
+        # Twenty turns can close discovery even when almost no concrete signal
+        # emerged. Do not fabricate a confident ranked list from that profile.
+        await _clear_generated_career(db, user.id)
+        await db.commit()
+        return []
+
+    ai = get_ai_client()
 
     document_context = await _personal_context(
         db, user.id, "career match evidence skills experience strengths interests projects credentials"
     )
     matches = await cd.generate_career_matches(ai, assessment.text, _profile_summary_text(profile), document_context)
+    if len(matches) < 3:
+        raise HTTPException(502, "Bosla could not produce three reliable career directions. Please retry after adding more context.")
+    matches = sorted(matches, key=lambda match: match.fit_score, reverse=True)[:5]
 
-    await db.execute(delete(CareerMatch).where(CareerMatch.user_id == user.id))
+    await _clear_generated_career(db, user.id)
     rows = []
     for i, m in enumerate(matches):
         row = CareerMatch(

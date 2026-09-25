@@ -4,6 +4,7 @@ import { api, type DiscoveryMessage, type DiscoveryProfile } from '../api'
 import { OnboardingHeader } from '../components/OnboardingHeader'
 import { ErrorToast } from '../components/ErrorToast'
 import { PageLoading } from '../components/PageLoading'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { useApp } from '../context/AppContext'
 
 type DimensionKey = 'interests' | 'strengths' | 'skills' | 'experience' | 'motivations'
@@ -25,6 +26,7 @@ export function Discovery() {
   const [preparing, setPreparing] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [confirmingRestart, setConfirmingRestart] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
@@ -74,7 +76,8 @@ export function Discovery() {
         },
       })
     } catch (err) {
-      setMessages((m) => m.slice(0, -1))
+      setMessages((m) => m.slice(0, -2))
+      setInput(text)
       setError(err instanceof Error ? err.message : 'Connection failed. Please retry.')
       setSending(false)
     }
@@ -112,6 +115,22 @@ export function Discovery() {
     }
   }
 
+  async function restartDiscovery() {
+    setConfirmingRestart(false)
+    setLoading(true)
+    try {
+      const opening = await api.startDiscovery(user?.persona)
+      setMessages([opening])
+      setProfile(null)
+      setInput('')
+      await refreshOnboarding()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not restart discovery. Please retry.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (preparing) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#FAFAF8] px-6 text-center">
@@ -130,6 +149,16 @@ export function Discovery() {
   return (
     <div className="flex min-h-screen flex-col justify-between bg-[#FAFAF8] text-[#0F1115] antialiased">
       <ErrorToast message={error} onDismiss={() => setError(null)} />
+      <ConfirmDialog
+        open={confirmingRestart}
+        title="Start a new discovery conversation?"
+        description="Your previous answers, matches, roadmap, and mentor chat will be replaced so the next recommendations use a fresh conversation."
+        note="Your uploaded career documents and saved habits remain available."
+        confirmLabel="Start again"
+        cancelLabel="Keep conversation"
+        onCancel={() => setConfirmingRestart(false)}
+        onConfirm={() => void restartDiscovery()}
+      />
       <OnboardingHeader currentStep={3} />
 
       {/* Main Canvas */}
@@ -156,10 +185,17 @@ export function Discovery() {
               <div className="hidden text-right sm:block">
                 <div className="font-body text-[11px] text-[#5B6270]">Progress to unlock</div>
                 <div className="font-body text-[14px] font-medium text-[#0F1115]">
-                  Turn {turnCount} of ~12
+                  Turn {Math.min(turnCount, 20)} of 20
                 </div>
               </div>
             </div>
+
+            {(profile?.exchange_count ?? 0) >= 20 && (
+              <div className="border-b border-[#E6E7EA] bg-[#F4F7FF] px-6 py-3 font-body text-[12px] text-[#1E3A8A]">
+                You have reached the 20-question limit. If your matches need more evidence, add a document or start a fresh conversation.
+                <button type="button" onClick={() => setConfirmingRestart(true)} className="ml-2 font-semibold underline underline-offset-2 hover:text-[#0F1115]">Start again</button>
+              </div>
+            )}
 
             {/* Chat Stream Canvas */}
             <div ref={scrollRef} className="h-[480px] space-y-6 overflow-y-auto p-6">
@@ -220,15 +256,15 @@ export function Discovery() {
                   <input
                     type="text"
                     value={input}
-                    disabled={sending}
+                    disabled={sending || (profile?.exchange_count ?? 0) >= 20}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Type your answer…"
+                    placeholder={(profile?.exchange_count ?? 0) >= 20 ? 'Conversation complete' : 'Type your answer…'}
                     className="h-10 w-full rounded-lg border border-[#E6E7EA] bg-white px-4 font-body text-[14px] text-[#0F1115] placeholder-[#8A8F98] outline-none transition-colors focus:border-[#1E3A8A]"
                   />
                 </div>
                 <button
                   type="submit"
-                  disabled={!input.trim() || sending}
+                  disabled={!input.trim() || sending || (profile?.exchange_count ?? 0) >= 20}
                   className="flex h-10 items-center justify-center gap-1.5 rounded-lg bg-[#0F1115] px-5 font-body text-[14px] font-medium text-white transition-colors hover:bg-[#1C1F26] disabled:opacity-50"
                 >
                   <span>Send</span>
@@ -327,6 +363,11 @@ export function Discovery() {
                   <span>{profile?.ready ? 'Generate Career Matches' : 'Continue conversation to unlock'}</span>
                   <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </button>
+                {profile?.ready && (
+                  <p className="mt-2 font-body text-[11px] leading-relaxed text-[#5B6270]">
+                    Regenerating matches replaces your previous roadmap and mentor conversation. Saved habits and career documents remain.
+                  </p>
+                )}
               </div>
             </div>
           </aside>

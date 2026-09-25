@@ -41,17 +41,22 @@ export function Matches() {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 px-6 text-center">
         <span className="material-symbols-outlined text-[36px] text-[#8A8F98]">explore</span>
-        <h2 className="font-display text-[22px] font-semibold text-[#0F1115]">No matches found yet</h2>
+        <h2 className="font-display text-[22px] font-semibold text-[#0F1115]">We need a clearer picture first</h2>
         <p className="font-body text-[14px] text-[#5B6270]">
-          Start a quick conversation with Bosla to map your strengths and recommend matching roles.
+          Bosla will not force a career match from thin evidence. Continue discovery or add a career document, then try again.
         </p>
-        <button
-          type="button"
-          onClick={() => navigate('/onboarding/discovery')}
-          className="mt-2 h-10 rounded-lg bg-[#0F1115] px-5 font-body text-[14px] font-medium text-white transition-colors hover:bg-[#1C1F26]"
-        >
-          Start discovery conversation
-        </button>
+        <div className="mt-2 flex flex-wrap justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/onboarding/discovery')}
+            className="h-10 rounded-lg bg-[#0F1115] px-5 font-body text-[14px] font-medium text-white transition-colors hover:bg-[#1C1F26]"
+          >
+            Continue discovery
+          </button>
+          <Link to="/onboarding/cv" className="inline-flex h-10 items-center rounded-lg border border-[#1E3A8A] px-5 font-body text-[14px] font-medium text-[#1E3A8A] hover:bg-[#F0F3FF]">
+            Add career evidence
+          </Link>
+        </div>
       </div>
     )
   }
@@ -136,9 +141,8 @@ export function Matches() {
             const strokeDashoffset = circumference * (1 - (m.fit_score ?? 0) / 100)
 
             return (
-              <div
+              <article
                 key={m.id}
-                onClick={() => setSelectedId(m.id)}
                 className={`relative rounded-lg border bg-white p-6 transition-all ${
                   selectedId === m.id
                     ? 'border-[#1E3A8A] shadow-sm'
@@ -189,9 +193,14 @@ export function Matches() {
                       <h2 className="font-display text-[22px] font-semibold text-[#0F1115]">
                         {m.title}
                       </h2>
-                      <p className="font-body text-[13px] text-[#5B6270]">
-                        {m.salary || 'Market compensation not yet verified'}
-                      </p>
+                      {m.salary && m.location && m.source && m.as_of ? (
+                        <div className="mt-1 space-y-0.5 font-body text-[12px] text-[#5B6270]">
+                          <p>{m.salary} · {m.location}</p>
+                          <p>Source: {m.source} · Updated {m.as_of}</p>
+                        </div>
+                      ) : (
+                        <p className="mt-1 font-body text-[12px] text-[#5B6270]">Salary data for this market is not verified.</p>
+                      )}
                     </div>
                   </div>
                   <span className="material-symbols-outlined text-[#76777B]">auto_awesome</span>
@@ -216,7 +225,15 @@ export function Matches() {
                 </div>
 
                 {/* Actions Row */}
-                <div className="flex items-center gap-3 border-t border-[#E6E7EA] pt-3">
+                <div className="flex flex-wrap items-center gap-3 border-t border-[#E6E7EA] pt-3">
+                  <button
+                    type="button"
+                    aria-pressed={selectedId === m.id}
+                    onClick={() => setSelectedId(m.id)}
+                    className="h-10 rounded-lg border border-[#D7DAE0] px-3 font-body text-[13px] font-medium text-[#1E3A8A] transition-colors hover:border-[#1E3A8A] hover:bg-[#F0F3FF]"
+                  >
+                    Market details
+                  </button>
                   <button
                     type="button"
                     disabled={busyChoice === m.id}
@@ -235,7 +252,7 @@ export function Matches() {
                     <span>Ask a follow-up</span>
                   </Link>
                 </div>
-              </div>
+              </article>
             )
           })}
         </div>

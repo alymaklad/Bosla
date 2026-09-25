@@ -131,7 +131,7 @@ export function Landing() {
 
       {/* Minimal Footer */}
       <footer className="w-full py-8 text-center">
-        <p className="font-body text-[14px] text-[#8A8F98]">
+        <p className="font-body text-[14px] text-[#5B6270]">
           Bosla means compass.
         </p>
       </footer>

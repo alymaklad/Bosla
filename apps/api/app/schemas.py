@@ -265,6 +265,40 @@ class HabitOut(BaseModel):
         from_attributes = True
 
 
+class TodoCreateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
+    due_date: str | None = None
+    goal_id: str | None = None
+    occurrence_id: str | None = None
+
+    @field_validator("title")
+    @classmethod
+    def non_blank_title(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("To-do title cannot be empty.")
+        return value
+
+    @field_validator("due_date")
+    @classmethod
+    def valid_due_date(cls, value: str | None) -> str | None:
+        return date.fromisoformat(value).isoformat() if value else None
+
+
+class TodoCompletionRequest(BaseModel):
+    completed: bool
+
+
+class TodoOut(BaseModel):
+    id: str
+    title: str
+    due_date: str
+    completed: bool
+    goal_id: str | None
+    occurrence_id: str | None
+    carried_forward: bool
+
+
 class OccurrenceOut(BaseModel):
     id: str
     habit_id: str

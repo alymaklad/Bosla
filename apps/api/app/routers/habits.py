@@ -1,5 +1,5 @@
 import logging
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import habit_engine as he
 from ..db import get_db
 from ..deps import get_current_user
-from ..models import Goal, Habit, Occurrence, User
+from ..models import Goal, Habit, Occurrence, Todo, User
 from ..schemas import (
     AcceptDifficultyRequest,
     DifficultyProposalOut,
@@ -17,9 +17,94 @@ from ..schemas import (
     LogOccurrenceRequest,
     OccurrenceOut,
     SkipOccurrenceRequest,
+    TodoCompletionRequest,
+    TodoCreateRequest,
+    TodoOut,
 )
 
 router = APIRouter(prefix="/habits", tags=["habits"])
+
+
+def _todo_out(todo: Todo, day: str) -> TodoOut:
+    return TodoOut(
+        id=todo.id, title=todo.title, due_date=todo.due_date, completed=todo.completed,
+        goal_id=todo.goal_id, occurrence_id=todo.occurrence_id,
+        carried_forward=todo.occurrence_id is None and not todo.completed and todo.due_date < day,
+    )
+
+
+@router.post("/todos", response_model=TodoOut)
+async def create_todo(
+    body: TodoCreateRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> TodoOut:
+    goal_id = body.goal_id
+    due_date = body.due_date or date.today().isoformat()
+    if body.occurrence_id:
+        occurrence = await db.get(Occurrence, body.occurrence_id)
+        habit = await db.get(Habit, occurrence.habit_id) if occurrence else None
+        if habit is None or habit.user_id != user.id:
+            raise HTTPException(404, "Habit session not found.")
+        due_date = occurrence.date
+        goal_id = goal_id or habit.goal_id
+    if goal_id:
+        goal = await db.get(Goal, goal_id)
+        if goal is None or goal.user_id != user.id:
+            raise HTTPException(404, "Goal not found.")
+    todo = Todo(
+        user_id=user.id, goal_id=goal_id, occurrence_id=body.occurrence_id,
+        title=body.title, due_date=due_date,
+    )
+    db.add(todo)
+    await db.commit()
+    await db.refresh(todo)
+    return _todo_out(todo, date.today().isoformat())
+
+
+@router.get("/todos", response_model=list[TodoOut])
+async def list_todos(
+    day: str | None = None, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> list[TodoOut]:
+    try:
+        selected_day = date.fromisoformat(day).isoformat() if day else date.today().isoformat()
+    except ValueError as err:
+        raise HTTPException(422, "Enter a valid date.") from err
+    rows = (await db.execute(
+        select(Todo).where(Todo.user_id == user.id, Todo.due_date <= selected_day)
+        .order_by(Todo.due_date, Todo.created_at)
+    )).scalars().all()
+    visible = [
+        todo for todo in rows
+        if (todo.occurrence_id is not None and todo.due_date == selected_day)
+        or (todo.occurrence_id is None and not todo.completed)
+        or (todo.occurrence_id is None and todo.completed_at is not None
+            and todo.completed_at.date().isoformat() == selected_day)
+    ]
+    return [_todo_out(todo, selected_day) for todo in visible]
+
+
+@router.post("/todos/{todo_id}/completion", response_model=TodoOut)
+async def set_todo_completion(
+    todo_id: str, body: TodoCompletionRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> TodoOut:
+    todo = await db.get(Todo, todo_id)
+    if todo is None or todo.user_id != user.id:
+        raise HTTPException(404, "To-do not found.")
+    todo.completed = body.completed
+    todo.completed_at = datetime.utcnow() if body.completed else None
+    await db.commit()
+    await db.refresh(todo)
+    return _todo_out(todo, date.today().isoformat())
+
+
+@router.delete("/todos/{todo_id}", status_code=204)
+async def delete_todo(
+    todo_id: str, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> None:
+    todo = await db.get(Todo, todo_id)
+    if todo is None or todo.user_id != user.id:
+        raise HTTPException(404, "To-do not found.")
+    await db.delete(todo)
+    await db.commit()
 
 
 def _facts(o: Occurrence) -> he.OccurrenceFacts:
