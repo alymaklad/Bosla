@@ -461,7 +461,7 @@ class MvpRegressionsTest(unittest.IsolatedAsyncioTestCase):
                 ("llama-3.3-70b-versatile", "first-test-key"),
                 ("llama-3.3-70b-versatile", "second-test-key"),
             ])
-            self.assertIn("out of credits", str(exhausted.exception))
+            self.assertIn("busy", str(exhausted.exception))
             self.assertNotIn("first-test-key", str(exhausted.exception))
         finally:
             await ai._http.aclose()

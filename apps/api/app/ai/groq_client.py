@@ -5,9 +5,12 @@ the Anthropic backend implements, so goal_planner.py and career_discovery.py nev
 to know which provider is configured.
 
 Two differences from Anthropic are absorbed here so the rest of the app never sees them:
- - research uses Groq's `compound` system (server-side search), falling back to
-   `compound-mini` and then the plan model with no search at all;
+ - research uses Groq's `compound` system (server-side search) when the project has it,
+   otherwise the plan model with no search at all;
  - there is no web-fetch tool, so link verification is a plain HTTP GET.
+
+Free-tier limits are per model and per organization (keys in one org share them), so on a
+429 the client moves straight to the next configured model instead of sleeping on the same one.
 """
 
 from __future__ import annotations
@@ -21,20 +24,43 @@ from typing import TypeVar
 import httpx
 from pydantic import BaseModel
 
-from .base import AiError, AiErrorKind, EXCERPT_CHARS, FetchedPage, PageToJudge
+from .base import AiError, EXCERPT_CHARS, FetchedPage, PageToJudge
 
 BASE = "https://api.groq.com/openai/v1"
 
 GROQ_RESEARCH_MODEL = "groq/compound"
-GROQ_RESEARCH_FALLBACK_MODEL = "groq/compound-mini"
 GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b"
+GROQ_DEFAULT_FALLBACK_MODELS = ("openai/gpt-oss-20b", "qwen/qwen3.8-27b")
 
 # Groq's free tier caps tokens per request and per minute far below Anthropic's, and a
 # request that would exceed the per-request cap is refused outright (413).
 MAX_OUTPUT = {"research": 1500, "plan": 4000, "critique": 800, "relevance": 400}
 MIN_OUTPUT = 700
-MAX_RATE_LIMIT_RETRIES = 3
-MAX_WAIT_MS = 25_000
+# After every model is rate limited, wait once if Groq says capacity returns this soon;
+# longer waits would outlast the serverless request, so fail fast with a clear message.
+RATE_LIMIT_PATIENCE_S = 8.0
+
+BUSY_MESSAGE = "Bosla's AI is busy right now. Please try again in a minute."
+UNAVAILABLE_MESSAGE = "Bosla's AI service is unavailable right now. Please try again later."
+
+# Models this Groq project cannot use (404). Remembered per process so each request does
+# not pay for the same failed call again.
+_UNAVAILABLE_MODELS: set[str] = set()
+
+
+def _retry_after_seconds(headers: httpx.Headers | dict | None) -> float | None:
+    value = (headers or {}).get("retry-after")
+    try:
+        return float(value) if value is not None else None
+    except ValueError:
+        return None
+
+
+def _rate_limited(retry_after: float | None) -> AiError:
+    error = AiError(BUSY_MESSAGE, "rate_limit", status=429)
+    error.retry_after = retry_after  # type: ignore[attr-defined]
+    return error
+
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -104,16 +130,12 @@ def _translate_openai(err: Exception) -> AiError:
 
     if isinstance(err, AiError):
         return err
-    if isinstance(err, openai.AuthenticationError):
-        return AiError(
-            "Credit limit reached. Please try again later.",
-            "auth",
-        )
+    if isinstance(err, (openai.AuthenticationError, openai.PermissionDeniedError)):
+        return AiError(UNAVAILABLE_MESSAGE, "auth")
     if isinstance(err, openai.RateLimitError):
-        return AiError(
-            "Credit limit reached. Please try again later.",
-            "rate_limit",
-        )
+        return _rate_limited(_retry_after_seconds(err.response.headers if err.response is not None else None))
+    if isinstance(err, openai.NotFoundError):
+        return AiError(f"Groq model not available: {err.message}", "other", status=404)
     if isinstance(err, openai.APIConnectionError):
         return AiError("Could not reach Groq. Check the connection.", "network")
     if isinstance(err, openai.APIStatusError):
@@ -128,20 +150,46 @@ class GroqAiClient:
     ):
         self.api_keys = api_keys
         self.model = model or GROQ_DEFAULT_MODEL
-        self.fallback_models = fallback_models or []
+        self.fallback_models = list(GROQ_DEFAULT_FALLBACK_MODELS) if fallback_models is None else fallback_models
         self.research_model = research_model or GROQ_RESEARCH_MODEL
         self._http = httpx.AsyncClient(timeout=60.0)
 
     @staticmethod
     def _reasoning_params(for_model: str) -> dict:
-        # gpt-oss models reason before answering and the reasoning spends the same output
-        # budget as the answer - keep it light, the Reflexion loop supplies the second thoughts.
-        return {"reasoning_effort": "low", "include_reasoning": False} if re.search(r"gpt-oss", for_model, re.I) else {}
+        # Reasoning spends the same output budget as the answer. gpt-oss cannot turn it off,
+        # so keep it light and hidden; Qwen 3 answers well without it.
+        if re.search(r"gpt-oss", for_model, re.I):
+            return {"reasoning_effort": "low", "include_reasoning": False}
+        if re.search(r"qwen3", for_model, re.I):
+            return {"reasoning_effort": "none"}
+        return {}
+
+    def _models(self, first: str, *, fallback: bool = True) -> list[str]:
+        chain = [first, *self.fallback_models] if fallback else [first]
+        return [model for model in dict.fromkeys(chain) if model not in _UNAVAILABLE_MODELS]
+
+    @staticmethod
+    def _patience(failures: list[AiError]) -> float | None:
+        """Seconds to wait before one more pass, only when every failure was a short rate limit."""
+        if not failures or any(f.kind != "rate_limit" for f in failures):
+            return None
+        waits = [getattr(f, "retry_after", None) for f in failures]
+        if any(w is None for w in waits):
+            return None
+        wait = min(waits)
+        return wait if wait <= RATE_LIMIT_PATIENCE_S else None
+
+    @staticmethod
+    def _exhausted(failures: list[AiError]) -> AiError:
+        if failures and all(f.kind == "auth" for f in failures):
+            return AiError(UNAVAILABLE_MESSAGE, "auth")
+        if any(f.kind == "rate_limit" for f in failures):
+            return AiError(BUSY_MESSAGE, "rate_limit", status=429)
+        return AiError(UNAVAILABLE_MESSAGE, failures[-1].kind if failures else "other")
 
     async def _chat_for_key(self, api_key: str, request: dict, *, allow_truncated: bool = False) -> str:
         body = {**self._reasoning_params(str(request["model"])), **request}
         shrunk = False
-        attempt = 0
 
         while True:
             try:
@@ -154,26 +202,14 @@ class GroqAiClient:
                 raise AiError("Could not reach Groq. Check the connection.", "network") from err
 
             if res.status_code in (401, 403):
-                raise AiError(
-                    "Credit limit reached. Please try again later.",
-                    "auth",
-                )
-
-            if res.status_code == 429 or res.status_code >= 500:
-                retry_after = res.headers.get("retry-after")
-                try:
-                    ms = float(retry_after) * 1000 if retry_after else (2**attempt) * 1500
-                except ValueError:
-                    ms = (2**attempt) * 1500
-                if attempt < MAX_RATE_LIMIT_RETRIES and ms <= MAX_WAIT_MS:
-                    await asyncio.sleep(ms / 1000)
-                    attempt += 1
-                    continue
-                if res.status_code == 429:
-                    raise AiError(
-                        "Credit limit reached. Please try again later.",
-                        "rate_limit",
-                    )
+                raise AiError(UNAVAILABLE_MESSAGE, "auth")
+            if res.status_code == 429:
+                # Sleeping here would hold the request on a model whose minute budget is spent;
+                # the caller moves on to the next model, which has its own budget.
+                raise _rate_limited(_retry_after_seconds(res.headers))
+            if res.status_code == 404:
+                _UNAVAILABLE_MODELS.add(str(body["model"]))
+                raise AiError(f"Groq model not available: {body['model']}", "other", status=404)
 
             if res.status_code == 413:
                 try:
@@ -223,30 +259,28 @@ class GroqAiClient:
 
     @staticmethod
     def _can_fail_over(error: AiError) -> bool:
-        return error.kind in {"auth", "rate_limit", "network"} or (error.status is not None and error.status >= 500)
+        return error.kind in {"auth", "rate_limit", "network"} or (error.status is not None and (error.status >= 500 or error.status == 404))
 
-    async def _chat(self, request: dict, *, allow_truncated: bool = False) -> str:
-        """Try each configured key when a credential or provider capacity fails."""
+    async def _chat(self, request: dict, *, allow_truncated: bool = False, fallback: bool = True) -> str:
+        """Try each model (each has its own rate budget) with each key, then wait once if that is quick."""
         failures: list[AiError] = []
-        models = list(dict.fromkeys([str(request["model"]), *self.fallback_models]))
-        for model in models:
-            for api_key in self.api_keys:
-                try:
-                    return await self._chat_for_key(api_key, {**request, "model": model}, allow_truncated=allow_truncated)
-                except AiError as error:
-                    if not self._can_fail_over(error):
-                        raise
-                    failures.append(error)
-
-        if failures and failures[-1].kind == "auth":
-            raise AiError(
-                "All configured Groq API keys were rejected. Replace a key, or add credits/recharge the Groq subscription behind a valid key.",
-                "auth",
-            )
-        raise AiError(
-            "All configured Groq API keys are out of credits, rate-limited, or unavailable. Add credits or recharge your Groq subscription, then try again.",
-            "rate_limit",
-        )
+        for attempt in range(2):
+            failures = []
+            for model in self._models(str(request["model"]), fallback=fallback):
+                for api_key in self.api_keys:
+                    try:
+                        return await self._chat_for_key(api_key, {**request, "model": model}, allow_truncated=allow_truncated)
+                    except AiError as error:
+                        if not self._can_fail_over(error):
+                            raise
+                        failures.append(error)
+                        if error.status == 404:
+                            break  # the model is missing for every key in this project
+            wait = self._patience(failures) if attempt == 0 else None
+            if wait is None:
+                break
+            await asyncio.sleep(wait)
+        raise self._exhausted(failures)
 
     async def _structured_named(self, system: str, user: str, output_format: type[T], name: str, max_tokens: int) -> T:
         json_schema = to_strict_schema(output_format)
@@ -286,42 +320,39 @@ class GroqAiClient:
     # ------------------------------------------------------------------ AiClient protocol
 
     async def research(self, system: str, user: str) -> str:
-        candidates = list(dict.fromkeys([self.research_model, GROQ_RESEARCH_FALLBACK_MODEL, self.model]))
-        failures: list[str] = []
-        last_kind: AiErrorKind = "other"
-
-        for candidate in candidates:
-            searchless = candidate == self.model
-            sys_prompt = (
-                f"{system}\n\nYou do not have web access for this request. Draw on what you know; only give "
-                "a URL when you are confident the page exists at exactly that address, otherwise describe "
-                "what to search for instead."
-                if searchless
-                else system
-            )
+        if self.research_model != self.model and self.research_model not in _UNAVAILABLE_MODELS:
             try:
                 text = await self._chat(
                     {
-                        "model": candidate,
-                        "messages": [{"role": "system", "content": sys_prompt}, {"role": "user", "content": user}],
+                        "model": self.research_model,
+                        "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
                         "max_tokens": MAX_OUTPUT["research"],
                     },
                     allow_truncated=True,
+                    fallback=False,  # the plain chat models cannot search, so they get the searchless prompt below
                 )
-                if not text.strip():
-                    raise AiError("The research step returned no findings.", "malformed")
-                return (
-                    f"(Researched without web search — links come from the model's memory and will be verified.)\n\n{text}"
-                    if searchless
-                    else text
-                )
+                if text.strip():
+                    return text
             except AiError as err:
-                if err.kind in ("auth", "rate_limit"):
+                if err.kind == "auth":
                     raise
-                failures.append(f"{candidate}: {err}")
-                last_kind = err.kind
 
-        raise AiError(f"Research failed on every Groq model tried — {' · '.join(failures)}", last_kind)
+        searchless_system = (
+            f"{system}\n\nYou do not have web access for this request. Draw on what you know; only give "
+            "a URL when you are confident the page exists at exactly that address, otherwise describe "
+            "what to search for instead."
+        )
+        text = await self._chat(
+            {
+                "model": self.model,
+                "messages": [{"role": "system", "content": searchless_system}, {"role": "user", "content": user}],
+                "max_tokens": MAX_OUTPUT["research"],
+            },
+            allow_truncated=True,
+        )
+        if not text.strip():
+            raise AiError("The research step returned no findings.", "malformed")
+        return f"(Researched without web search — links come from the model's memory and will be verified.)\n\n{text}"
 
     async def structured(self, system: str, user: str, output_format: type[T], max_tokens: int = 16000) -> T:
         # Groq's free-tier per-request cap is far below Anthropic's; clamp to what the
@@ -386,8 +417,7 @@ class GroqAiClient:
     ) -> AsyncGenerator[str, None]:
         import openai
 
-        kwargs: dict = dict(
-            model=self.model,
+        base: dict = dict(
             messages=[{"role": "system", "content": system}, *messages],
             stream=True,
             temperature=temperature,
@@ -395,33 +425,41 @@ class GroqAiClient:
         )
         if stop:
             # Groq rejects more than 4 stop sequences with a 400; callers still filter the full list client-side.
-            kwargs["stop"] = stop[:4]
-        if re.search(r"gpt-oss", self.model, re.I):
-            kwargs["reasoning_effort"] = "low"
-            kwargs["extra_body"] = {"include_reasoning": False}
+            base["stop"] = stop[:4]
 
         failures: list[AiError] = []
-        for model in dict.fromkeys([self.model, *self.fallback_models]):
-            for api_key in self.api_keys:
-                client = openai.AsyncOpenAI(api_key=api_key, base_url=BASE)
-                emitted = False
-                try:
-                    stream = await client.chat.completions.create(**{**kwargs, "model": model})
-                    async for chunk in stream:
-                        delta = chunk.choices[0].delta.content if chunk.choices else None
-                        if delta:
-                            emitted = True
-                            yield delta
-                    return
-                except Exception as err:
-                    error = _translate_openai(err)
-                    # A retry after output would duplicate a partial reply for the user.
-                    if emitted or not self._can_fail_over(error):
-                        raise error from err
-                    failures.append(error)
-                finally:
-                    await client.close()
-
-        if failures and failures[-1].kind == "auth":
-            raise AiError("All configured Groq API keys were rejected. Replace a key or recharge a valid Groq subscription.", "auth")
-        raise AiError("All configured Groq API keys are out of credits, rate-limited, or unavailable. Add credits or recharge your Groq subscription.", "rate_limit")
+        for attempt in range(2):
+            failures = []
+            for model in self._models(self.model):
+                reasoning = self._reasoning_params(model)
+                kwargs = {**base, "model": model, **{k: v for k, v in reasoning.items() if k != "include_reasoning"}}
+                if "include_reasoning" in reasoning:
+                    kwargs["extra_body"] = {"include_reasoning": reasoning["include_reasoning"]}
+                for api_key in self.api_keys:
+                    # The SDK's own retries would sleep on a spent model; failover is handled here.
+                    client = openai.AsyncOpenAI(api_key=api_key, base_url=BASE, max_retries=0)
+                    emitted = False
+                    try:
+                        stream = await client.chat.completions.create(**kwargs)
+                        async for chunk in stream:
+                            delta = chunk.choices[0].delta.content if chunk.choices else None
+                            if delta:
+                                emitted = True
+                                yield delta
+                        return
+                    except Exception as err:
+                        error = _translate_openai(err)
+                        # A retry after output would duplicate a partial reply for the user.
+                        if emitted or not self._can_fail_over(error):
+                            raise error from err
+                        failures.append(error)
+                        if error.status == 404:
+                            _UNAVAILABLE_MODELS.add(model)
+                            break
+                    finally:
+                        await client.close()
+            wait = self._patience(failures) if attempt == 0 else None
+            if wait is None:
+                break
+            await asyncio.sleep(wait)
+        raise self._exhausted(failures)

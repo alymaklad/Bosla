@@ -5,9 +5,9 @@ from fastapi import Cookie, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .ai.base import AiClient
+from .ai.base import AiClient, AiError
 from .ai.client import AnthropicAiClient
-from .ai.groq_client import GroqAiClient
+from .ai.groq_client import BUSY_MESSAGE, UNAVAILABLE_MESSAGE, GroqAiClient
 from .config import Settings, get_settings
 from .db import get_db
 from .models import User, UserSession
@@ -45,13 +45,9 @@ def get_ai_client() -> AiClient:
     if settings.ai_provider == "groq":
         api_keys = _provider_keys(settings.groq_api_key, settings.groq_api_keys)
         if not api_keys:
-            raise HTTPException(
-                503,
-                "Credit limit reached. Please try again later.",
-            )
-        fallback_models = [model.strip() for model in settings.groq_fallback_models.split(",") if model.strip()] or [
-            "llama-3.3-70b-versatile"
-        ]
+            raise HTTPException(503, UNAVAILABLE_MESSAGE)
+        # An empty setting means "use the client's defaults", not "no fallback".
+        fallback_models = [model.strip() for model in settings.groq_fallback_models.split(",") if model.strip()] or None
         return GroqAiClient(
             api_keys=api_keys,
             model=settings.groq_model,
@@ -59,10 +55,12 @@ def get_ai_client() -> AiClient:
             research_model=settings.groq_research_model,
         )
     if not settings.anthropic_api_key:
-        raise HTTPException(503, "Credit limit reached. Please try again later.")
+        raise HTTPException(503, UNAVAILABLE_MESSAGE)
     return AnthropicAiClient(api_key=settings.anthropic_api_key, model=settings.anthropic_model)
 
 
-def ai_error_message(_: Exception) -> str:
+def ai_error_message(err: Exception) -> str:
     """Keep provider credentials/details out of user-visible streaming errors."""
-    return "AI service is temporarily unavailable or out of credits. Please retry shortly or recharge the configured provider."
+    if isinstance(err, AiError) and err.kind == "rate_limit":
+        return BUSY_MESSAGE
+    return "Bosla's AI is temporarily unavailable. Please try again in a minute."
