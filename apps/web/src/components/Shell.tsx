@@ -5,7 +5,7 @@ import { MobileTabs } from './MobileTabs'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 
-/** Post-onboarding shell: persistent sidebar + 56px top bar + mobile tabs + floating "Ask Bosla" trigger. */
+/** App shell with persistent navigation and a floating mentor shortcut. */
 export function Shell() {
   const { user, loading } = useApp()
   const navigate = useNavigate()
@@ -20,7 +20,7 @@ export function Shell() {
       <TopBar />
 
       {/* Main Canvas offset by 240px sidebar on desktop and 56px top bar */}
-      <div className="mt-16 h-[calc(100dvh-4rem)] overflow-y-auto pb-20 md:ml-64 md:pb-12">
+      <div className="mt-16 h-[calc(100dvh-4rem)] overflow-y-auto pb-40 md:ml-64 md:pb-12">
         <Outlet />
       </div>
 
@@ -31,7 +31,7 @@ export function Shell() {
         type="button"
         onClick={() => navigate('/mentor')}
         aria-label="Ask Bosla guidance AI"
-        className="custom-floating-shadow fixed bottom-8 right-8 z-50 flex h-12 items-center gap-2.5 rounded-full bg-[#0F1115] px-5 font-body text-[14px] font-medium text-white transition-all hover:bg-[#1C1F26] active:opacity-90"
+        className="custom-floating-shadow fixed bottom-[88px] right-4 z-50 flex h-12 items-center gap-2.5 rounded-full bg-[#0F1115] px-5 font-body text-[14px] font-medium text-white transition-all hover:bg-[#1C1F26] active:opacity-90 md:bottom-8 md:right-8"
       >
         <span
           className="material-symbols-outlined text-[20px] text-[#F59E0B]"

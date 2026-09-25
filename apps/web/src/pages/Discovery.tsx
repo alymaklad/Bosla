@@ -4,6 +4,7 @@ import { api, type DiscoveryMessage, type DiscoveryProfile } from '../api'
 import { OnboardingHeader } from '../components/OnboardingHeader'
 import { ErrorToast } from '../components/ErrorToast'
 import { PageLoading } from '../components/PageLoading'
+import { LoadingSpinner } from '../components/LoadingSpinner'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { useApp } from '../context/AppContext'
 
@@ -134,9 +135,7 @@ export function Discovery() {
   if (preparing) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#FAFAF8] px-6 text-center">
-        <span className="material-symbols-outlined animate-spin text-[32px] text-[#1E3A8A]">
-          refresh
-        </span>
+        <LoadingSpinner size={32} />
         <p className="font-display text-[18px] font-semibold text-[#0F1115]">{preparing}</p>
         <p className="font-body text-[13px] text-[#5B6270]">This takes a few seconds.</p>
       </div>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { api, type GoalPlan, type GoalPlanProgressEvent } from '../api'
 import { ErrorToast } from '../components/ErrorToast'
+import { LoadingSpinner } from '../components/LoadingSpinner'
 
 const PHASE_LABEL: Record<GoalPlanProgressEvent['phase'], string> = {
   researching: 'Researching curriculum resources and pacing…',
@@ -242,9 +243,7 @@ export function HabitWizard() {
         <section className="flex flex-1 flex-col gap-6">
           {progress ? (
             <div className="flex min-h-[360px] flex-col items-center justify-center gap-3 text-center">
-              <span className="material-symbols-outlined animate-spin text-[32px] text-[#1E3A8A]">
-                refresh
-              </span>
+              <LoadingSpinner size={32} />
               <p className="font-display text-[18px] font-semibold text-[#0F1115]">
                 {PHASE_LABEL[progress.phase]}
               </p>

@@ -137,6 +137,29 @@ h3 {
   box-shadow: 0 4px 20px -2px rgba(15, 17, 21, 0.12), 0 2px 6px -1px rgba(15, 17, 21, 0.06);
 }
 
+@keyframes bosla-loader-breathe {
+  0%, 100% { opacity: 0.8; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes bosla-loader-dot {
+  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+
+.bosla-loader-mark { animation: bosla-loader-breathe 3.2s ease-in-out infinite; }
+.bosla-loader-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #1e3a8a;
+  animation: bosla-loader-dot 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bosla-loader-mark, .bosla-loader-dot { animation: none; }
+}
+
 @keyframes bosla-toast-in {
   from { opacity: 0; transform: translateY(-10px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }

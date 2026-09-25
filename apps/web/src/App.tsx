@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { Dashboard } from './components/Dashboard'
 import { DiscoveryGate } from './components/DiscoveryGate'
 import { Shell } from './components/Shell'
+import { PageLoading } from './components/PageLoading'
 import { useApp } from './context/AppContext'
 import { Consent } from './pages/Consent'
 import { CvUpload } from './pages/CvUpload'
@@ -30,7 +31,7 @@ function RequireConsent() {
 
 export default function App() {
   const { loading } = useApp()
-  if (loading) return null
+  if (loading) return <PageLoading label="Opening your Bosla workspace…" fullScreen />
 
   return (
     <Routes>

@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { api, HABITS_CHANGED_EVENT, type DashboardData } from '../api'
 import { useApp } from '../context/AppContext'
 
 export function TopBar() {
@@ -7,6 +8,25 @@ export function TopBar() {
   const navigate = useNavigate()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [summary, setSummary] = useState<DashboardData | null>(null)
+
+  useEffect(() => {
+    if (!onboardingStatus?.completed) return
+    let active = true
+    const refresh = () => {
+      void api.dashboard().then((value) => {
+        if (active) setSummary(value)
+      }).catch(() => {
+        if (active) setSummary(null)
+      })
+    }
+    refresh()
+    window.addEventListener(HABITS_CHANGED_EVENT, refresh)
+    return () => {
+      active = false
+      window.removeEventListener(HABITS_CHANGED_EVENT, refresh)
+    }
+  }, [onboardingStatus?.completed, user?.id])
 
   const initial = (user?.name || user?.email || 'A').slice(0, 1).toUpperCase()
   const displayName = user?.name || user?.email?.split('@')[0] || 'User'
@@ -20,11 +40,45 @@ export function TopBar() {
     : 'Direction not selected'
 
   const hasSetupReminder = user ? !onboardingStatus?.completed : false
+  const today = summary?.today ?? []
+  const todayCompleted = today.filter((item) => item.status === 'complete').length
+  const journey = !onboardingStatus
+    ? { eyebrow: 'Your journey', title: 'Checking your progress', detail: '', href: '/settings', action: 'View profile', progress: null }
+    : !onboardingStatus.consentGiven
+      ? { eyebrow: 'Your journey · Step 1 of 4', title: 'Set your preferences', detail: 'Start when you are ready', href: onboardingStatus.nextPath, action: 'Continue', progress: 0 }
+      : !onboardingStatus.discoveryReady
+        ? onboardingStatus.nextPath === '/onboarding/cv'
+          ? { eyebrow: 'Your journey · Step 2 of 4', title: 'Add career context', detail: 'Your progress is saved', href: onboardingStatus.nextPath, action: 'Continue', progress: 25 }
+          : { eyebrow: 'Your journey · Step 3 of 4', title: 'Discovery in progress', detail: 'Your answers are saved', href: onboardingStatus.nextPath, action: 'Resume', progress: 50 }
+        : !onboardingStatus.matchesGenerated
+          ? { eyebrow: 'Your journey · Step 4 of 4', title: 'Ready to explore matches', detail: 'Your conversation is saved', href: onboardingStatus.nextPath, action: 'Explore', progress: 75 }
+          : summary?.chosen_direction && today.length > 0
+            ? { eyebrow: 'Your journey · Today', title: summary.chosen_direction, detail: `${todayCompleted} of ${today.length} habits complete`, href: '/habits', action: 'View habits', progress: null }
+            : summary?.chosen_direction
+              ? { eyebrow: 'Your journey · Direction selected', title: summary.chosen_direction, detail: 'Your career direction', href: '/roadmap', action: 'Open roadmap', progress: null }
+              : { eyebrow: 'Your journey · Discovery complete', title: 'Your matches are ready', detail: 'Choose a direction', href: '/matches', action: 'View matches', progress: null }
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-30 flex h-16 items-center justify-end border-b border-[#E6E7EA]/90 bg-white/90 px-4 backdrop-blur-xl md:left-64 md:px-7">
+    <header className="fixed top-0 right-0 left-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-[#E6E7EA]/90 bg-white/90 px-4 backdrop-blur-xl md:left-64 md:px-7">
+      <div className="flex min-w-0 items-center gap-3 sm:gap-4" aria-label="Your journey status">
+        <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#E8EDF9] text-[#1E3A8A] lg:inline-flex">
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">explore</span>
+        </span>
+        <div className="min-w-0">
+          <p className="hidden font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-[#1E3A8A] sm:block">{journey.eyebrow}</p>
+          <p className="truncate font-body text-[12px] font-semibold text-[#0F1115] sm:text-[13px]">{journey.title}</p>
+          {journey.progress !== null ? (
+            <div className="mt-1 hidden h-1 w-28 overflow-hidden rounded-full bg-[#E8EDF9] sm:block" role="progressbar" aria-label="Onboarding milestones" aria-valuenow={journey.progress} aria-valuemin={0} aria-valuemax={100}>
+              <div className="h-full rounded-full bg-[#1E3A8A]" style={{ width: `${journey.progress}%` }} />
+            </div>
+          ) : <p className="hidden truncate font-body text-[11px] text-[#5B6270] sm:block">{journey.detail}</p>}
+        </div>
+        <Link to={journey.href} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#DCE4FA] bg-white px-2.5 py-1.5 font-body text-[11px] font-semibold text-[#1E3A8A] transition-colors hover:border-[#1E3A8A] hover:bg-[#F0F3FF] focus-visible:outline-2 focus-visible:outline-[#1E3A8A] sm:px-3 sm:text-[12px]">
+          {journey.action}<span className="material-symbols-outlined text-[15px]" aria-hidden="true">arrow_forward</span>
+        </Link>
+      </div>
       {/* Trailing Utilities */}
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-3">
         <div className="relative">
           <button
             type="button"
