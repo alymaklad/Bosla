@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useApp } from '../context/AppContext'
@@ -8,6 +8,8 @@ import { TOUR_STEPS, type TourStep } from './steps'
 import { TourContext } from './TourContext'
 
 const HOME = '/dashboard'
+// A full-screen flow the welcome should never interrupt.
+const NO_WELCOME_PATHS = ['/habit-wizard']
 const READY_TARGET = '[data-tour="direction"]'
 
 /** Wait briefly for the home page cards, so starting during a slow load does not drop their steps. */
@@ -28,10 +30,27 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const [steps, setSteps] = useState<TourStep[]>([])
   const [index, setIndex] = useState(0)
   const [justFinished, setJustFinished] = useState(false)
+  // Path on which a chosen direction was last confirmed for a first-time user.
+  const [directionSeenAt, setDirectionSeenAt] = useState<string | null>(null)
 
   const onHome = location.pathname === HOME
   const firstTime = Boolean(user && onboardingStatus?.completed && !user.tour_completed_at)
-  const showWelcome = onHome && (phase === 'welcome' || (phase === 'idle' && firstTime && !autoHandled))
+  const awaitingWelcome = phase === 'idle' && firstTime && !autoHandled
+  const welcomeAllowedHere = !NO_WELCOME_PATHS.includes(location.pathname)
+
+  // Onboarding ends on Matches -> Roadmap, not Home, so offer the welcome wherever the
+  // new user is once they have picked a direction (the tour's first step explains it).
+  useEffect(() => {
+    if (!awaitingWelcome || directionSeenAt) return
+    let active = true
+    const path = location.pathname
+    api.dashboard()
+      .then((data) => { if (active && data.chosen_direction) setDirectionSeenAt(path) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [awaitingWelcome, directionSeenAt, location.pathname])
+
+  const showWelcome = welcomeAllowedHere && (phase === 'welcome' || (awaitingWelcome && (onHome || directionSeenAt !== null)))
 
   const complete = useCallback((finished: boolean) => {
     setPhase('idle')
@@ -45,6 +64,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
   const begin = useCallback(async () => {
     setStarting(true)
+    if (location.pathname !== HOME) navigate(HOME)
     await waitForHome()
     const visible = availableSteps(TOUR_STEPS)
     setStarting(false)
@@ -56,7 +76,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     setSteps(visible)
     setIndex(0)
     setPhase('steps')
-  }, [complete])
+  }, [complete, location.pathname, navigate])
 
   const startTour = useCallback(() => {
     setAutoHandled(true)
