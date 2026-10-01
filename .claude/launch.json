@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "apps/web", "run", "dev", "--", "--port", "5173", "--strictPort"],
       "port": 5173
+    },
+    {
+      "name": "bosla-api",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd apps/api && .venv\\Scripts\\python.exe -m uvicorn app.main:app --port 8000"],
+      "port": 8000
     }
   ]
 }

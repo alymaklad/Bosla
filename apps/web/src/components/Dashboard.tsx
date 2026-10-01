@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { api, HABITS_CHANGED_EVENT, type DashboardData, type Roadmap } from '../api'
 import { useApp } from '../context/AppContext'
 import { ErrorToast } from './ErrorToast'
+import { GettingStarted } from './GettingStarted'
+import { useTour } from '../tour/TourContext'
 import { PageLoading } from './PageLoading'
 
 const PERSONAS: Record<string, string> = {
@@ -24,6 +26,7 @@ async function fetchHome() {
 
 export function Dashboard() {
   const { user, onboardingStatus, refreshOnboarding } = useApp()
+  const { justFinished, dismissFinished } = useTour()
   const [data, setData] = useState<DashboardData | null>(null)
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null)
   const [loading, setLoading] = useState(true)
@@ -125,6 +128,17 @@ export function Dashboard() {
   return (
     <main className="mx-auto w-full max-w-[1280px] space-y-7 px-6 py-8">
       <ErrorToast message={error} onDismiss={() => setError(null)} />
+      {justFinished && (
+        <div role="status" className="flex items-center justify-between gap-3 rounded-xl border border-[#E6E7EA] bg-white px-4 py-3">
+          <span className="flex items-center gap-2.5 font-body text-[14px] text-[#0F1115]">
+            <span className="material-symbols-outlined text-[19px] text-[#1E3A8A]" aria-hidden="true">check_circle</span>
+            Tour complete. Replay it anytime from Profile → Help.
+          </span>
+          <button type="button" onClick={dismissFinished} aria-label="Dismiss" className="flex h-8 w-8 items-center justify-center rounded-lg text-[#5B6270] hover:bg-[#F0F3FF]">
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      )}
       <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E6E7EA] pb-6">
         <div>
           <p className="font-body text-[11px] uppercase tracking-wider text-[#5B6270]">{new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())}</p>
@@ -134,19 +148,21 @@ export function Dashboard() {
         {user?.persona && <span className="rounded-lg border border-[#DCE4FA] bg-[#F7F9FF] px-3 py-2 font-body text-[12px] text-[#1E3A8A]">{PERSONAS[user.persona] ?? user.persona}</span>}
       </header>
 
+      {user?.tour_completed_at && <GettingStarted userId={user.id} data={data} roadmap={roadmap} />}
+
       <section aria-label="Your activity" className="grid gap-4 sm:grid-cols-3">
-        <article className="rounded-xl border border-[#E6E7EA] bg-white p-5">
+        <article data-tour="streaks" className="rounded-xl border border-[#E6E7EA] bg-white p-5">
           <p className="font-body text-[12px] text-[#5B6270]">Current streak</p>
           <p className="mt-2 font-display text-[28px] font-semibold text-[#0F1115]">{data.streak.current} days</p>
           <p className="mt-1 font-body text-[11px] text-[#5B6270]">Longest streak: {data.streak.longest} days</p>
         </article>
-        <article className="rounded-xl border border-[#E6E7EA] bg-white p-5">
+        <article data-tour="streaks" className="rounded-xl border border-[#E6E7EA] bg-white p-5">
           <p className="font-body text-[12px] text-[#5B6270]">Habits this week</p>
           <p className="mt-2 font-display text-[28px] font-semibold text-[#0F1115]">{data.week_completed} of {data.week_scheduled}</p>
           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#E6E7EA]"><div className="h-full rounded-full bg-[#1E3A8A]" style={{ width: `${weekPct}%` }} /></div>
           <p className="mt-2 font-body text-[11px] text-[#5B6270]">{data.week_scheduled ? `${weekPct}% completed so far` : 'No habits scheduled yet'}</p>
         </article>
-        <article className="rounded-xl border border-[#E6E7EA] bg-white p-5">
+        <article data-tour="direction" className="rounded-xl border border-[#E6E7EA] bg-white p-5">
           <p className="font-body text-[12px] text-[#5B6270]">Career direction</p>
           <p className="mt-2 font-display text-[22px] font-semibold text-[#0F1115]">{direction ?? 'Not selected yet'}</p>
           <p className="mt-2 font-body text-[11px] text-[#5B6270]">{direction ? 'Based on your selected career match' : 'Choose a match to build your roadmap'}</p>
@@ -154,7 +170,7 @@ export function Dashboard() {
       </section>
 
       <div className="grid items-start gap-5 lg:grid-cols-2">
-        <section className="rounded-xl border border-[#E6E7EA] bg-white p-6">
+        <section data-tour="today-habits" className="rounded-xl border border-[#E6E7EA] bg-white p-6">
           <div className="mb-5 flex items-center justify-between border-b border-[#E6E7EA] pb-4">
             <h2 className="font-display text-[18px] font-semibold">Today's habits</h2>
             <Link to="/habits" className="font-body text-[12px] font-medium text-[#1E3A8A] hover:underline">View all</Link>

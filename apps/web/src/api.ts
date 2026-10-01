@@ -197,6 +197,8 @@ export interface User {
   name: string
   persona: string | null
   consent_given: boolean
+  /** Set once the first-time product tour is finished or skipped. */
+  tour_completed_at?: string | null
 }
 
 export interface OnboardingStatus {
@@ -496,6 +498,7 @@ export const api = {
   register: (email: string, password: string, name: string) => post<User>('/auth/register', { email, password, name }),
   me: () => get<User>('/auth/me'),
   setConsent: (consent_given: boolean, persona: string) => post<User>('/auth/consent', { consent_given, persona }),
+  setTourCompleted: (completed: boolean) => post<User>('/auth/tour', { completed }),
   signOut: () => post<{ ok: boolean }>('/auth/signout'),
   deleteAccount: () => del<void>('/auth/account'),
 

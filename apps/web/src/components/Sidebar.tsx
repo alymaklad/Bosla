@@ -40,7 +40,7 @@ export function Sidebar() {
         </div>
 
         {/* Navigation links */}
-        <nav className="space-y-1 px-3 py-5" aria-label="Primary navigation">
+        <nav className="space-y-1 px-3 py-5" aria-label="Primary navigation" data-tour="nav">
           {NAV.map(({ to, label, icon }) => (
             <NavLink
               key={label}
@@ -73,7 +73,7 @@ export function Sidebar() {
 
       {/* Bottom User Progression Tier Card */}
       {level && <div className="border-t border-[#E6E7EA]/90 p-4">
-        <div className="rounded-2xl border border-[#DCE4FA] bg-[#F4F7FF] p-3.5">
+        <div className="rounded-2xl border border-[#DCE4FA] bg-[#F4F7FF] p-3.5" data-tour="level">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[18px] text-[#F59E0B] fill-icon">

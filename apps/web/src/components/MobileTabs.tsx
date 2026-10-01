@@ -7,7 +7,7 @@ export function MobileTabs() {
     `flex flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-medium transition-all ${isActive ? 'bg-[#E8EDF9] text-ink' : 'text-text-2 hover:bg-[#F4F7FF]'}`
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-10 grid h-[72px] grid-cols-5 gap-1 border-t border-line bg-white/95 px-2 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl md:hidden" aria-label="Mobile navigation">
+    <nav className="fixed inset-x-0 bottom-0 z-10 grid h-[72px] grid-cols-5 gap-1 border-t border-line bg-white/95 px-2 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl md:hidden" aria-label="Mobile navigation" data-tour="nav">
       <NavLink to="/matches" className={tab}>
         <img src="/brand/bosla-mark.png" alt="" className="h-6 w-6 object-contain" />
         Discover

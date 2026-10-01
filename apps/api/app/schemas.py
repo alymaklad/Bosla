@@ -1,5 +1,5 @@
 import re
-from datetime import date, time
+from datetime import date, datetime, time
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -48,9 +48,14 @@ class UserOut(BaseModel):
     persona: str | None
     language: str
     consent_given: bool
+    tour_completed_at: datetime | None = None
 
     class Config:
         from_attributes = True
+
+
+class TourRequest(BaseModel):
+    completed: bool
 
 
 class ConsentRequest(BaseModel):

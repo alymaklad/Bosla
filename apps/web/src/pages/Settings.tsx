@@ -5,12 +5,14 @@ import { ConfirmDialog } from '../components/ConfirmDialog'
 import { ErrorToast } from '../components/ErrorToast'
 import { PageLoading } from '../components/PageLoading'
 import { useApp } from '../context/AppContext'
+import { useTour } from '../tour/TourContext'
 
-type SettingsTab = 'account' | 'privacy' | 'integrations' | 'ai'
+type SettingsTab = 'account' | 'privacy' | 'integrations' | 'ai' | 'help'
 
 export function Settings() {
   const { user, signOut, onboardingStatus } = useApp()
   const navigate = useNavigate()
+  const { startTour } = useTour()
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<SettingsTab>(searchParams.has('google') ? 'integrations' : 'privacy')
   const [aiStatus, setAiStatus] = useState<AiStatus | null>(null)
@@ -201,6 +203,18 @@ export function Settings() {
             }`}
           >
             <span>AI &amp; Models</span>
+            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('help')}
+            className={`flex w-full items-center justify-between rounded-lg px-3.5 py-2.5 font-body text-[13px] font-medium transition-colors ${
+              activeTab === 'help'
+                ? 'bg-[#E7EEFF] text-[#1E3A8A]'
+                : 'text-[#5B6270] hover:bg-[#FAFAF8] hover:text-[#0F1115]'
+            }`}
+          >
+            <span>Help</span>
             <span className="material-symbols-outlined text-[16px]">chevron_right</span>
           </button>
         </nav>
@@ -425,6 +439,34 @@ export function Settings() {
                     <p className="mt-1 font-body text-[11px] text-[#5B6270]">Used only if the primary model cannot complete the request.</p>
                   </div>
                 </div>
+              </section>
+            </>
+          )}
+
+          {activeTab === 'help' && (
+            <>
+              <div className="border-b border-[#E6E7EA] pb-4">
+                <h2 className="font-display text-[20px] font-semibold text-[#0F1115]">Help</h2>
+                <p className="mt-1 font-body text-[13px] text-[#5B6270]">
+                  A refresher on how Bosla fits together.
+                </p>
+              </div>
+
+              <section className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-[#E6E7EA] bg-white p-6">
+                <div>
+                  <div className="font-display text-[16px] font-semibold text-[#0F1115]">Product tour</div>
+                  <p className="mt-1 max-w-md font-body text-[12px] text-[#5B6270]">
+                    A one-minute walkthrough of your home page: your direction, navigation, habits, streaks, levels, and Ask Bosla.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={startTour}
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#0F1115] px-4 py-2.5 font-body text-[13px] font-medium text-white hover:bg-[#1C1F26]"
+                >
+                  <span className="material-symbols-outlined text-[17px]">replay</span>
+                  Replay tour
+                </button>
               </section>
             </>
           )}

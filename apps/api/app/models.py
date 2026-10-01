@@ -23,6 +23,8 @@ class User(Base):
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     auth_provider: Mapped[str] = mapped_column(String(32), default="password")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    # Set when the first-time product tour is finished or skipped; it is replayable from Profile.
+    tour_completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class CvUpload(Base):

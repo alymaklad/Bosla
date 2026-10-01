@@ -15,7 +15,7 @@ from ..db import get_db
 from ..config import get_settings
 from ..deps import get_current_user
 from ..models import Assessment, CareerMatch, CvUpload, DiscoveryMessage, DiscoveryProfile, DocumentChunk, Goal, GoogleIntegration, GoogleSyncLink, Habit, MentorMessage, Occurrence, Roadmap, Todo, User, UserDocument, UserSession
-from ..schemas import ConsentRequest, RegisterRequest, SignInRequest, UserOut
+from ..schemas import ConsentRequest, RegisterRequest, SignInRequest, TourRequest, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 SESSION_AGE = 60 * 60 * 24 * 30
@@ -124,6 +124,15 @@ async def google_callback(code: str, state: str, request: Request, db: AsyncSess
 
 @router.get("/me", response_model=UserOut)
 async def me(user: User = Depends(get_current_user)) -> User:
+    return user
+
+
+@router.post("/tour", response_model=UserOut)
+async def set_tour(body: TourRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> User:
+    """Record that the first-time tour was finished or skipped, so it is not shown again automatically."""
+    user.tour_completed_at = datetime.utcnow() if body.completed else None
+    await db.commit()
+    await db.refresh(user)
     return user
 
 

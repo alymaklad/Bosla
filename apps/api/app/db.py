@@ -90,6 +90,8 @@ def _migrate_user_columns(connection) -> None:
         connection.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)"))
     if "auth_provider" not in columns:
         connection.execute(text("ALTER TABLE users ADD COLUMN auth_provider VARCHAR(32) DEFAULT 'password'"))
+    if "tour_completed_at" not in columns:
+        connection.execute(text("ALTER TABLE users ADD COLUMN tour_completed_at TIMESTAMP"))
 
 
 def _migrate_career_match_columns(connection) -> None:

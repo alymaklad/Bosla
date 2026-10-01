@@ -5,6 +5,7 @@ import { MobileTabs } from './MobileTabs'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { OfflineBanner } from './OfflineBanner'
+import { TourProvider } from '../tour/TourProvider'
 
 /** App shell with persistent navigation and a floating mentor shortcut. */
 export function Shell() {
@@ -15,6 +16,7 @@ export function Shell() {
   if (!user) return <Navigate to="/" replace />
 
   return (
+    <TourProvider>
     <div className="h-dvh overflow-hidden bg-[#FAFAF8]">
       <GoogleAutoSync />
       <Sidebar />
@@ -33,6 +35,7 @@ export function Shell() {
         type="button"
         onClick={() => navigate('/mentor')}
         aria-label="Ask Bosla guidance AI"
+        data-tour="ask-bosla"
         className="custom-floating-shadow fixed bottom-[88px] right-4 z-50 flex h-12 items-center gap-2.5 rounded-full bg-[#0F1115] px-5 font-body text-[14px] font-medium text-white transition-all hover:bg-[#1C1F26] active:opacity-90 md:bottom-8 md:right-8"
       >
         <span
@@ -44,5 +47,6 @@ export function Shell() {
         <span className="tracking-wide">Ask Bosla</span>
       </button>
     </div>
+    </TourProvider>
   )
 }
